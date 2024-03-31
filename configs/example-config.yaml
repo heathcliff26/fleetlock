@@ -1,0 +1,41 @@
+---
+# The level of loggin output
+logLevel: info
+
+server:
+  # The listen address of the server in the form of <ip>:<port>
+  listen: ":8080"
+  ssl:
+    # Enable ssl
+    enabled: false
+    # ssl certificate
+    cert: ""
+    # ssl private key
+    key: ""
+
+storage:
+  # The storage backend to use
+  #
+  # Options:
+  #   memory: Ephemeral, not recommended
+  #   sqlite: Recommended for production use
+  #
+  # Default: memory
+  #
+  type: memory
+  sqlite:
+    # The file to use for storing the database
+    file: test.db
+
+# The configured groups to serve, when it isn't defined here, it is not accepted.
+#
+# Format:
+#   <name>:
+#     slots: int
+#
+# When empty, it uses the default group with 1 slot
+#
+groups:
+  default:
+    # Number of slots that can be reserved simoultanously by clients
+    slots: 1
