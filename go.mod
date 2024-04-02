@@ -1,6 +1,6 @@
 module github.com/heathcliff26/fleetlock
 
-go 1.22.0
+go 1.22.1
 
 require (
 	github.com/mattn/go-sqlite3 v1.14.22
