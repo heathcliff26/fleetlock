@@ -65,13 +65,13 @@
 				
 				<option value="file4">github.com/heathcliff26/fleetlock/pkg/lock-manager/config.go (100.0%)</option>
 				
-				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (14.3%)</option>
+				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (42.9%)</option>
 				
-				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (66.7%)</option>
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (96.7%)</option>
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (71.1%)</option>
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (73.3%)</option>
 				
 				<option value="file9">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
 				
@@ -357,7 +357,7 @@ type ErrorUnknownGroup struct {
         group string
 }
 
-func NewErrorUnknownGroup(group string) error <span class="cov0" title="0">{
+func NewErrorUnknownGroup(group string) error <span class="cov8" title="1">{
         return &amp;ErrorUnknownGroup{group: group}
 }</span>
 
@@ -375,7 +375,7 @@ type ErrorUnkownStorageType struct {
         Type string
 }
 
-func NewErrorUnkownStorageType(t string) error <span class="cov0" title="0">{
+func NewErrorUnkownStorageType(t string) error <span class="cov8" title="1">{
         return &amp;ErrorUnkownStorageType{
                 Type: t,
         }
@@ -438,28 +438,28 @@ type StorageBackend interface {
 }
 
 // Create a new LockManager from the given configuration
-func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) <span class="cov0" title="0">{
+func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) <span class="cov8" title="1">{
         var storage StorageBackend
         var err error
         switch storageCfg.Type </span>{
-        case "memory":<span class="cov0" title="0">
+        case "memory":<span class="cov8" title="1">
                 i := 0
                 groupNames := make([]string, len(groups))
-                for k := range groups </span><span class="cov0" title="0">{
+                for k := range groups </span><span class="cov8" title="1">{
                         groupNames[i] = k
                         i++
                 }</span>
-                <span class="cov0" title="0">storage = memory.NewMemoryBackend(groupNames)</span>
-        case "sqlite":<span class="cov0" title="0">
+                <span class="cov8" title="1">storage = memory.NewMemoryBackend(groupNames)</span>
+        case "sqlite":<span class="cov8" title="1">
                 storage, err = sqlite.NewSQLiteBackend(storageCfg.SQLite)</span>
-        default:<span class="cov0" title="0">
+        default:<span class="cov8" title="1">
                 err = errors.NewErrorUnkownStorageType(storageCfg.Type)</span>
         }
-        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">return &amp;LockManager{
+        <span class="cov8" title="1">return &amp;LockManager{
                 groups:  initGroups(groups),
                 storage: storage,
         }, nil</span>
@@ -485,10 +485,10 @@ func initGroups(groups Groups) map[string]*lockGroup <span class="cov8" title="1
 
 func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov8" title="1">{
         lGroup := lm.groups[group]
-        if lGroup == nil </span><span class="cov0" title="0">{
+        if lGroup == nil </span><span class="cov8" title="1">{
                 return false, errors.NewErrorUnknownGroup(group)
         }</span>
-        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if id == "" </span><span class="cov8" title="1">{
                 return false, errors.ErrorEmptyID{}
         }</span>
 
@@ -544,12 +544,11 @@ func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <
 
 func (lm *LockManager) Release(group, id string) error <span class="cov8" title="1">{
         lGroup := lm.groups[group]
-        if lGroup == nil </span><span class="cov0" title="0">{
+        if lGroup == nil </span><span class="cov8" title="1">{
                 return errors.NewErrorUnknownGroup(group)
         }</span>
-        // No locks without id, so we don't need to bother storage here
-        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
-                return nil
+        <span class="cov8" title="1">if id == "" </span><span class="cov8" title="1">{
+                return errors.ErrorEmptyID{}
         }</span>
 
         <span class="cov8" title="1">lGroup.RWLock.Lock()
@@ -743,7 +742,7 @@ func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) <span class="cov8"
         }</span>
 
         <span class="cov8" title="1">_, err = db.Exec(stmtCreateTable)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
