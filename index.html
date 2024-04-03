@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/heathcliff26/fleetlock/pkg/lock-manager/config.go (100.0%)</option>
 				
-				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (42.9%)</option>
+				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (57.1%)</option>
 				
 				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (96.7%)</option>
 				
@@ -77,9 +77,9 @@
 				
 				<option value="file10">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/fleetlock/pkg/server/server.go (0.0%)</option>
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/server/server.go (85.9%)</option>
 				
-				<option value="file12">github.com/heathcliff26/fleetlock/pkg/server/utils.go (0.0%)</option>
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
 				
 				<option value="file13">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
 				
@@ -361,7 +361,7 @@ func NewErrorUnknownGroup(group string) error <span class="cov8" title="1">{
         return &amp;ErrorUnknownGroup{group: group}
 }</span>
 
-func (e *ErrorUnknownGroup) Error() string <span class="cov0" title="0">{
+func (e *ErrorUnknownGroup) Error() string <span class="cov8" title="1">{
         return fmt.Sprintf("Unknown group: %s", e.group)
 }</span>
 
@@ -932,29 +932,29 @@ type FleetLockResponse struct {
 }
 
 // Create a new Server
-func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg *lockmanager.StorageConfig) (*Server, error) <span class="cov0" title="0">{
+func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg *lockmanager.StorageConfig) (*Server, error) <span class="cov8" title="1">{
         lm, err := lockmanager.NewManager(groups, storageCfg)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">return &amp;Server{
+        <span class="cov8" title="1">return &amp;Server{
                 cfg: cfg,
                 lm:  lm,
         }, nil</span>
 }
 
 // Main entrypoint for new requests
-func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span class="cov0" title="0">{
+func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
         slog.Debug("Received request", slog.String("method", req.Method), slog.String("uri", req.RequestURI), slog.String("remote", ReadUserIP(req)))
 
         var handleFunc func(http.ResponseWriter, FleetLockRequest)
         switch req.URL.String() </span>{
-        case "/v1/pre-reboot":<span class="cov0" title="0">
+        case "/v1/pre-reboot":<span class="cov8" title="1">
                 handleFunc = s.handleReserve</span>
-        case "/v1/steady-state":<span class="cov0" title="0">
+        case "/v1/steady-state":<span class="cov8" title="1">
                 handleFunc = s.handleRelease</span>
-        default:<span class="cov0" title="0">
+        default:<span class="cov8" title="1">
                 slog.Debug("Unknown URL", slog.String("url", req.URL.String()), slog.String("remote", ReadUserIP(req)))
                 rw.WriteHeader(http.StatusNotFound)
                 sendResponse(rw, msgNotFound)
@@ -962,59 +962,62 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span
         }
 
         // Verify right method
-        <span class="cov0" title="0">if req.Method != http.MethodPost </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.Method != http.MethodPost </span><span class="cov8" title="1">{
+                slog.Debug("Received request with wrong method", slog.String("method", req.Method), slog.String("remote", ReadUserIP(req)))
                 rw.WriteHeader(http.StatusMethodNotAllowed)
+                sendResponse(rw, msgWrongMethod)
+                return
         }</span>
 
         // Verify FleetLock header is set
-        <span class="cov0" title="0">if strings.ToLower(req.Header.Get("fleet-lock-protocol")) != "true" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if strings.ToLower(req.Header.Get("fleet-lock-protocol")) != "true" </span><span class="cov8" title="1">{
                 slog.Debug("Received request with missing or wrong fleet-lock-protocol header", slog.String("remote", ReadUserIP(req)))
                 rw.WriteHeader(http.StatusBadRequest)
                 sendResponse(rw, msgMissingFleetLockHeader)
                 return
         }</span>
 
-        <span class="cov0" title="0">var params FleetLockRequest
+        <span class="cov8" title="1">var params FleetLockRequest
         err := json.NewDecoder(req.Body).Decode(&amp;params)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 slog.Debug("Failed to parse request", "error", err, slog.String("remote", ReadUserIP(req)))
                 rw.WriteHeader(http.StatusBadRequest)
                 sendResponse(rw, msgRequestParseFailed)
                 return
         }</span>
 
-        <span class="cov0" title="0">if strings.Contains(params.Client.Group, "\n") || !groupValidationRegex.MatchString(params.Client.Group) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if strings.Contains(params.Client.Group, "\n") || !groupValidationRegex.MatchString(params.Client.Group) </span><span class="cov8" title="1">{
                 slog.Debug("Request contained invalid characters for group", slog.String("group", params.Client.Group), slog.String("remote", ReadUserIP(req)))
                 rw.WriteHeader(http.StatusBadRequest)
                 sendResponse(rw, msgInvalidGroupValue)
                 return
         }</span>
 
-        <span class="cov0" title="0">if params.Client.ID == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if params.Client.ID == "" </span><span class="cov8" title="1">{
                 slog.Debug("Request did not contain an id", slog.String("remote", ReadUserIP(req)))
                 rw.WriteHeader(http.StatusBadRequest)
                 sendResponse(rw, msgEmptyID)
                 return
         }</span>
 
-        <span class="cov0" title="0">handleFunc(rw, params)</span>
+        <span class="cov8" title="1">handleFunc(rw, params)</span>
 }
 
 // Handle requests to reserve a slot
 //
 //        URL: /v1/pre-reboot
-func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) <span class="cov0" title="0">{
+func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) <span class="cov8" title="1">{
         ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
                 rw.WriteHeader(http.StatusInternalServerError)
                 sendResponse(rw, msgUnexpectedError)
                 return
         }</span>
-        <span class="cov0" title="0">if ok </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if ok </span><span class="cov8" title="1">{
                 slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
                 sendResponse(rw, msgSuccess)
-        }</span> else<span class="cov0" title="0"> {
+        }</span> else<span class="cov8" title="1"> {
                 slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
                 rw.WriteHeader(http.StatusLocked)
                 sendResponse(rw, msgSlotsFull)
@@ -1024,15 +1027,15 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) 
 // Handle requests to release a slot
 //
 //        URL: /v1/steady-state
-func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) <span class="cov0" title="0">{
+func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) <span class="cov8" title="1">{
         err := s.lm.Release(params.Client.Group, params.Client.ID)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
                 rw.WriteHeader(http.StatusInternalServerError)
                 sendResponse(rw, msgUnexpectedError)
                 return
         }</span>
-        <span class="cov0" title="0">slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+        <span class="cov8" title="1">slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
         sendResponse(rw, msgSuccess)</span>
 }
 
@@ -1065,26 +1068,26 @@ import (
         "net/http"
 )
 
-func ReadUserIP(req *http.Request) string <span class="cov0" title="0">{
+func ReadUserIP(req *http.Request) string <span class="cov8" title="1">{
         IPAddress := req.Header.Get("x-real-ip")
-        if IPAddress == "" </span><span class="cov0" title="0">{
+        if IPAddress == "" </span><span class="cov8" title="1">{
                 IPAddress = req.Header.Get("x-forwarded-for")
         }</span>
-        <span class="cov0" title="0">if IPAddress == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if IPAddress == "" </span><span class="cov8" title="1">{
                 IPAddress = req.RemoteAddr
         }</span>
-        <span class="cov0" title="0">return IPAddress</span>
+        <span class="cov8" title="1">return IPAddress</span>
 }
 
 // Send a response to the writer and handle impossible parse errors
-func sendResponse(rw http.ResponseWriter, res FleetLockResponse) <span class="cov0" title="0">{
+func sendResponse(rw http.ResponseWriter, res FleetLockResponse) <span class="cov8" title="1">{
         b, err := json.Marshal(res)
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to create Response", "err", err)
                 return
         }</span>
 
-        <span class="cov0" title="0">_, err = rw.Write(b)
+        <span class="cov8" title="1">_, err = rw.Write(b)
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to send response to client", "err", err)
         }</span>
