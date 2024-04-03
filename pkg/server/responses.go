@@ -5,6 +5,10 @@ var (
 		Kind:  "not_found",
 		Value: "The requested url is not found on this server",
 	}
+	msgWrongMethod = FleetLockResponse{
+		Kind:  "bad_request",
+		Value: "Only accepts POST request",
+	}
 	msgMissingFleetLockHeader = FleetLockResponse{
 		Kind:  "missing_fleetlock_header",
 		Value: "The header fleet-lock-protocol must be set to true",

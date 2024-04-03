@@ -64,7 +64,10 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 
 	// Verify right method
 	if req.Method != http.MethodPost {
+		slog.Debug("Received request with wrong method", slog.String("method", req.Method), slog.String("remote", ReadUserIP(req)))
 		rw.WriteHeader(http.StatusMethodNotAllowed)
+		sendResponse(rw, msgWrongMethod)
+		return
 	}
 
 	// Verify FleetLock header is set
