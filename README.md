@@ -29,6 +29,7 @@ There are different flavors of the image:
 
 | Tag(s)      | Describtion                                                 |
 | ----------- | ----------------------------------------------------------- |
+| **latest**  | Last released version of the image                          |
 | **rolling** | Rolling update of the image, always build from main branch. |
 | **vX.Y.Z**  | Released version of the image                               |
 
