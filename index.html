@@ -67,7 +67,7 @@
 				
 				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (14.3%)</option>
 				
-				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (0.0%)</option>
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (66.7%)</option>
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
@@ -466,99 +466,99 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
 }
 
 // Create a new LockManager with custom StorageBackend
-func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov0" title="0">{
+func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov8" title="1">{
         return &amp;LockManager{
                 groups:  initGroups(groups),
                 storage: storage,
         }
 }</span>
 
-func initGroups(groups Groups) map[string]*lockGroup <span class="cov0" title="0">{
+func initGroups(groups Groups) map[string]*lockGroup <span class="cov8" title="1">{
         g := make(map[string]*lockGroup, len(groups))
-        for name, cfg := range groups </span><span class="cov0" title="0">{
+        for name, cfg := range groups </span><span class="cov8" title="1">{
                 g[name] = &amp;lockGroup{
                         Config: cfg,
                 }
         }</span>
-        <span class="cov0" title="0">return g</span>
+        <span class="cov8" title="1">return g</span>
 }
 
-func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov0" title="0">{
+func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov8" title="1">{
         lGroup := lm.groups[group]
         if lGroup == nil </span><span class="cov0" title="0">{
                 return false, errors.NewErrorUnknownGroup(group)
         }</span>
-        <span class="cov0" title="0">if id == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
                 return false, errors.ErrorEmptyID{}
         }</span>
 
-        <span class="cov0" title="0">checkHasLock := func() (bool, error) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">checkHasLock := func() (bool, error) </span><span class="cov8" title="1">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.storage.HasLock(group, id)
         }</span>
-        <span class="cov0" title="0">ok, err := checkHasLock()
-        if ok &amp;&amp; err == nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">ok, err := checkHasLock()
+        if ok &amp;&amp; err == nil </span><span class="cov8" title="1">{
                 return true, nil
-        }</span> else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
         // Use own function to ensure lock is released
-        <span class="cov0" title="0">checkAvailableSlots := func() (bool, error) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">checkAvailableSlots := func() (bool, error) </span><span class="cov8" title="1">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
-        <span class="cov0" title="0">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">ok, err = checkAvailableSlots()
+        if err != nil || !ok </span><span class="cov8" title="1">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov0" title="0">lGroup.RWLock.Lock()
+        <span class="cov8" title="1">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov0" title="0">{
+        if err != nil || !ok </span><span class="cov8" title="1">{
                 return false, err
         }</span>
 
-        <span class="cov0" title="0">err = lm.storage.Reserve(group, id)
+        <span class="cov8" title="1">err = lm.storage.Reserve(group, id)
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov0" title="0">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov8" title="1">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov0" title="0">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov8" title="1">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
-func (lm *LockManager) Release(group, id string) error <span class="cov0" title="0">{
+func (lm *LockManager) Release(group, id string) error <span class="cov8" title="1">{
         lGroup := lm.groups[group]
         if lGroup == nil </span><span class="cov0" title="0">{
                 return errors.NewErrorUnknownGroup(group)
         }</span>
         // No locks without id, so we don't need to bother storage here
-        <span class="cov0" title="0">if id == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
                 return nil
         }</span>
 
-        <span class="cov0" title="0">lGroup.RWLock.Lock()
+        <span class="cov8" title="1">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         return lm.storage.Release(group, id)</span>
 }
 
-func (lm *LockManager) Close() error <span class="cov0" title="0">{
+func (lm *LockManager) Close() error <span class="cov8" title="1">{
         return lm.storage.Close()
 }</span>
 </pre>
