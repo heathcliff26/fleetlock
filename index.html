@@ -57,23 +57,23 @@
 				
 				<option value="file0">github.com/heathcliff26/fleetlock/cmd/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/fleetlock/pkg/cmd/root.go (0.0%)</option>
+				<option value="file1">github.com/heathcliff26/fleetlock/pkg/cmd/root.go (21.7%)</option>
 				
-				<option value="file2">github.com/heathcliff26/fleetlock/pkg/config/config.go (0.0%)</option>
+				<option value="file2">github.com/heathcliff26/fleetlock/pkg/config/config.go (100.0%)</option>
 				
-				<option value="file3">github.com/heathcliff26/fleetlock/pkg/config/errors.go (0.0%)</option>
+				<option value="file3">github.com/heathcliff26/fleetlock/pkg/config/errors.go (50.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/fleetlock/pkg/lock-manager/config.go (0.0%)</option>
+				<option value="file4">github.com/heathcliff26/fleetlock/pkg/lock-manager/config.go (100.0%)</option>
 				
-				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (0.0%)</option>
+				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (14.3%)</option>
 				
-				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (66.7%)</option>
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (0.0%)</option>
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
 				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (71.1%)</option>
 				
-				<option value="file9">github.com/heathcliff26/fleetlock/pkg/server/config.go (0.0%)</option>
+				<option value="file9">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
 				
 				<option value="file10">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
 				
@@ -116,14 +116,14 @@ import (
         "github.com/spf13/cobra"
 )
 
-func NewRootCommand() *cobra.Command <span class="cov0" title="0">{
+func NewRootCommand() *cobra.Command <span class="cov8" title="1">{
         cobra.AddTemplateFunc(
                 "ProgramName", func() string </span><span class="cov0" title="0">{
                         return version.Name
                 }</span>,
         )
 
-        <span class="cov0" title="0">rootCmd := &amp;cobra.Command{
+        <span class="cov8" title="1">rootCmd := &amp;cobra.Command{
                 Use:   version.Name,
                 Short: version.Name + " runs a fleetlock server for use in coordinating Fedora CoreOS node updates.",
                 RunE: func(cmd *cobra.Command, _ []string) error </span><span class="cov0" title="0">{
@@ -135,7 +135,7 @@ func NewRootCommand() *cobra.Command <span class="cov0" title="0">{
                 },
         }
 
-        <span class="cov0" title="0">rootCmd.Flags().StringP("config", "c", "", "Path to config file")
+        <span class="cov8" title="1">rootCmd.Flags().StringP("config", "c", "", "Path to config file")
         rootCmd.AddCommand(
                 version.NewCommand(),
         )
@@ -190,7 +190,7 @@ const (
 var logLevel = &amp;slog.LevelVar{}
 
 // Initialize the logger
-func init() <span class="cov0" title="0">{
+func init() <span class="cov8" title="1">{
         logLevel = &amp;slog.LevelVar{}
         opts := slog.HandlerOptions{
                 Level: logLevel,
@@ -207,23 +207,23 @@ type Config struct {
 }
 
 // Parse a given string and set the resulting log level
-func setLogLevel(level string) error <span class="cov0" title="0">{
+func setLogLevel(level string) error <span class="cov8" title="1">{
         switch strings.ToLower(level) </span>{
-        case "debug":<span class="cov0" title="0">
+        case "debug":<span class="cov8" title="1">
                 logLevel.Set(slog.LevelDebug)</span>
-        case "info":<span class="cov0" title="0">
+        case "info":<span class="cov8" title="1">
                 logLevel.Set(slog.LevelInfo)</span>
-        case "warn":<span class="cov0" title="0">
+        case "warn":<span class="cov8" title="1">
                 logLevel.Set(slog.LevelWarn)</span>
-        case "error":<span class="cov0" title="0">
+        case "error":<span class="cov8" title="1">
                 logLevel.Set(slog.LevelError)</span>
-        default:<span class="cov0" title="0">
+        default:<span class="cov8" title="1">
                 return NewErrUnknownLogLevel(level)</span>
         }
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
-func DefaultConfig() *Config <span class="cov0" title="0">{
+func DefaultConfig() *Config <span class="cov8" title="1">{
         return &amp;Config{
                 LogLevel: DEFAULT_LOG_LEVEL,
                 Server:   server.NewDefaultServerConfig(),
@@ -234,58 +234,58 @@ func DefaultConfig() *Config <span class="cov0" title="0">{
 // Loads the config from the given path.
 // When path is empty, returns default config.
 // Returns error when the given config is invalid.
-func LoadConfig(path string) (*Config, error) <span class="cov0" title="0">{
+func LoadConfig(path string) (*Config, error) <span class="cov8" title="1">{
         c := DefaultConfig()
 
-        if path == "" </span><span class="cov0" title="0">{
+        if path == "" </span><span class="cov8" title="1">{
                 c.Defaults()
                 return c, nil
         }</span>
 
-        <span class="cov0" title="0">f, err := os.ReadFile(path)
-        if err != nil </span><span class="cov0" title="0">{
-                return &amp;Config{}, err
+        <span class="cov8" title="1">f, err := os.ReadFile(path)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
         }</span>
 
-        <span class="cov0" title="0">err = yaml.Unmarshal(f, &amp;c)
-        if err != nil </span><span class="cov0" title="0">{
-                return &amp;Config{}, err
+        <span class="cov8" title="1">err = yaml.Unmarshal(f, &amp;c)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
         }</span>
 
-        <span class="cov0" title="0">c.Defaults()
+        <span class="cov8" title="1">c.Defaults()
 
         err = c.Validate()
-        if err != nil </span><span class="cov0" title="0">{
-                return &amp;Config{}, err
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
         }</span>
 
-        <span class="cov0" title="0">return c, nil</span>
+        <span class="cov8" title="1">return c, nil</span>
 }
 
-func (c *Config) Defaults() <span class="cov0" title="0">{
+func (c *Config) Defaults() <span class="cov8" title="1">{
         c.Server.Defaults()
-        if c.Groups == nil </span><span class="cov0" title="0">{
+        if c.Groups == nil </span><span class="cov8" title="1">{
                 c.Groups = lockmanager.NewDefaultGroups()
         }</span>
 }
 
-func (c *Config) Validate() error <span class="cov0" title="0">{
+func (c *Config) Validate() error <span class="cov8" title="1">{
         err := setLogLevel(c.LogLevel)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">err = c.Server.Validate()
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">err = c.Server.Validate()
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">err = c.Groups.Validate()
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">err = c.Groups.Validate()
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
@@ -295,7 +295,7 @@ type ErrUnknownLogLevel struct {
         level string
 }
 
-func NewErrUnknownLogLevel(level string) error <span class="cov0" title="0">{
+func NewErrUnknownLogLevel(level string) error <span class="cov8" title="1">{
         return &amp;ErrUnknownLogLevel{
                 level: level,
         }
@@ -325,13 +325,13 @@ type GroupConfig struct {
 }
 
 // Create a new storage config with default values
-func NewDefaultStorageConfig() *StorageConfig <span class="cov0" title="0">{
+func NewDefaultStorageConfig() *StorageConfig <span class="cov8" title="1">{
         return &amp;StorageConfig{
                 Type: "memory",
         }
 }</span>
 
-func NewDefaultGroups() Groups <span class="cov0" title="0">{
+func NewDefaultGroups() Groups <span class="cov8" title="1">{
         groups := make(Groups, 1)
         groups["default"] = GroupConfig{
                 Slots: 1,
@@ -339,13 +339,13 @@ func NewDefaultGroups() Groups <span class="cov0" title="0">{
         return groups
 }</span>
 
-func (g Groups) Validate() error <span class="cov0" title="0">{
-        for _, v := range g </span><span class="cov0" title="0">{
-                if v.Slots &lt; 1 </span><span class="cov0" title="0">{
+func (g Groups) Validate() error <span class="cov8" title="1">{
+        for _, v := range g </span><span class="cov8" title="1">{
+                if v.Slots &lt; 1 </span><span class="cov8" title="1">{
                         return errors.NewErrorGroupSlotsOutOfRange()
                 }</span>
         }
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
@@ -387,7 +387,7 @@ func (e *ErrorUnkownStorageType) Error() string <span class="cov0" title="0">{
 
 type ErrorGroupSlotsOutOfRange struct{}
 
-func NewErrorGroupSlotsOutOfRange() error <span class="cov0" title="0">{
+func NewErrorGroupSlotsOutOfRange() error <span class="cov8" title="1">{
         return ErrorGroupSlotsOutOfRange{}
 }</span>
 
@@ -466,99 +466,99 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
 }
 
 // Create a new LockManager with custom StorageBackend
-func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov8" title="1">{
+func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov0" title="0">{
         return &amp;LockManager{
                 groups:  initGroups(groups),
                 storage: storage,
         }
 }</span>
 
-func initGroups(groups Groups) map[string]*lockGroup <span class="cov8" title="1">{
+func initGroups(groups Groups) map[string]*lockGroup <span class="cov0" title="0">{
         g := make(map[string]*lockGroup, len(groups))
-        for name, cfg := range groups </span><span class="cov8" title="1">{
+        for name, cfg := range groups </span><span class="cov0" title="0">{
                 g[name] = &amp;lockGroup{
                         Config: cfg,
                 }
         }</span>
-        <span class="cov8" title="1">return g</span>
+        <span class="cov0" title="0">return g</span>
 }
 
-func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov8" title="1">{
+func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov0" title="0">{
         lGroup := lm.groups[group]
         if lGroup == nil </span><span class="cov0" title="0">{
                 return false, errors.NewErrorUnknownGroup(group)
         }</span>
-        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if id == "" </span><span class="cov0" title="0">{
                 return false, errors.ErrorEmptyID{}
         }</span>
 
-        <span class="cov8" title="1">checkHasLock := func() (bool, error) </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">checkHasLock := func() (bool, error) </span><span class="cov0" title="0">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.storage.HasLock(group, id)
         }</span>
-        <span class="cov8" title="1">ok, err := checkHasLock()
-        if ok &amp;&amp; err == nil </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">ok, err := checkHasLock()
+        if ok &amp;&amp; err == nil </span><span class="cov0" title="0">{
                 return true, nil
-        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
         // Use own function to ensure lock is released
-        <span class="cov8" title="1">checkAvailableSlots := func() (bool, error) </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">checkAvailableSlots := func() (bool, error) </span><span class="cov0" title="0">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
-        <span class="cov8" title="1">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">ok, err = checkAvailableSlots()
+        if err != nil || !ok </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov8" title="1">lGroup.RWLock.Lock()
+        <span class="cov0" title="0">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov8" title="1">{
+        if err != nil || !ok </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov8" title="1">err = lm.storage.Reserve(group, id)
+        <span class="cov0" title="0">err = lm.storage.Reserve(group, id)
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov8" title="1">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov0" title="0">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov8" title="1">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov0" title="0">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
-func (lm *LockManager) Release(group, id string) error <span class="cov8" title="1">{
+func (lm *LockManager) Release(group, id string) error <span class="cov0" title="0">{
         lGroup := lm.groups[group]
         if lGroup == nil </span><span class="cov0" title="0">{
                 return errors.NewErrorUnknownGroup(group)
         }</span>
         // No locks without id, so we don't need to bother storage here
-        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if id == "" </span><span class="cov0" title="0">{
                 return nil
         }</span>
 
-        <span class="cov8" title="1">lGroup.RWLock.Lock()
+        <span class="cov0" title="0">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         return lm.storage.Release(group, id)</span>
 }
 
-func (lm *LockManager) Close() error <span class="cov8" title="1">{
+func (lm *LockManager) Close() error <span class="cov0" title="0">{
         return lm.storage.Close()
 }</span>
 </pre>
@@ -863,29 +863,29 @@ type SSLConfig struct {
 }
 
 // Create a default server config with
-func NewDefaultServerConfig() *ServerConfig <span class="cov0" title="0">{
+func NewDefaultServerConfig() *ServerConfig <span class="cov8" title="1">{
         return &amp;ServerConfig{}
 }</span>
 
 // Check if there are empty values that need to be replaced by default values
-func (cfg *ServerConfig) Defaults() <span class="cov0" title="0">{
-        if cfg.Listen == "" </span><span class="cov0" title="0">{
-                if cfg.SSL.Enabled </span><span class="cov0" title="0">{
+func (cfg *ServerConfig) Defaults() <span class="cov8" title="1">{
+        if cfg.Listen == "" </span><span class="cov8" title="1">{
+                if cfg.SSL.Enabled </span><span class="cov8" title="1">{
                         cfg.Listen = ":" + strconv.Itoa(DEFAULT_SERVER_PORT_SSL)
-                }</span> else<span class="cov0" title="0"> {
+                }</span> else<span class="cov8" title="1"> {
                         cfg.Listen = ":" + strconv.Itoa(DEFAULT_SERVER_PORT)
                 }</span>
         }
 }
 
 // Validate Server config and set default listen addr if needed
-func (cfg *ServerConfig) Validate() error <span class="cov0" title="0">{
-        if cfg.SSL.Enabled </span><span class="cov0" title="0">{
-                if cfg.SSL.Cert == "" || cfg.SSL.Key == "" </span><span class="cov0" title="0">{
+func (cfg *ServerConfig) Validate() error <span class="cov8" title="1">{
+        if cfg.SSL.Enabled </span><span class="cov8" title="1">{
+                if cfg.SSL.Cert == "" || cfg.SSL.Key == "" </span><span class="cov8" title="1">{
                         return ErrorIncompleteSSlConfig{}
                 }</span>
         }
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
