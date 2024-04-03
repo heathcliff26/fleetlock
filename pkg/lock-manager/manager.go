@@ -149,9 +149,8 @@ func (lm *LockManager) Release(group, id string) error {
 	if lGroup == nil {
 		return errors.NewErrorUnknownGroup(group)
 	}
-	// No locks without id, so we don't need to bother storage here
 	if id == "" {
-		return nil
+		return errors.ErrorEmptyID{}
 	}
 
 	lGroup.RWLock.Lock()
