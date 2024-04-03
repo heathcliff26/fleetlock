@@ -1,0 +1,1176 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/heathcliff26/fleetlock/cmd/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/heathcliff26/fleetlock/pkg/cmd/root.go (0.0%)</option>
+				
+				<option value="file2">github.com/heathcliff26/fleetlock/pkg/config/config.go (0.0%)</option>
+				
+				<option value="file3">github.com/heathcliff26/fleetlock/pkg/config/errors.go (0.0%)</option>
+				
+				<option value="file4">github.com/heathcliff26/fleetlock/pkg/lock-manager/config.go (0.0%)</option>
+				
+				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (0.0%)</option>
+				
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (66.7%)</option>
+				
+				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
+				
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (71.1%)</option>
+				
+				<option value="file9">github.com/heathcliff26/fleetlock/pkg/server/config.go (0.0%)</option>
+				
+				<option value="file10">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
+				
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/server/server.go (0.0%)</option>
+				
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/server/utils.go (0.0%)</option>
+				
+				<option value="file13">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import "github.com/heathcliff26/fleetlock/pkg/cmd"
+
+func main() <span class="cov0" title="0">{
+        cmd.Execute()
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package cmd
+
+import (
+        "fmt"
+        "os"
+
+        "github.com/heathcliff26/fleetlock/pkg/config"
+        "github.com/heathcliff26/fleetlock/pkg/server"
+        "github.com/heathcliff26/fleetlock/pkg/version"
+        "github.com/spf13/cobra"
+)
+
+func NewRootCommand() *cobra.Command <span class="cov0" title="0">{
+        cobra.AddTemplateFunc(
+                "ProgramName", func() string </span><span class="cov0" title="0">{
+                        return version.Name
+                }</span>,
+        )
+
+        <span class="cov0" title="0">rootCmd := &amp;cobra.Command{
+                Use:   version.Name,
+                Short: version.Name + " runs a fleetlock server for use in coordinating Fedora CoreOS node updates.",
+                RunE: func(cmd *cobra.Command, _ []string) error </span><span class="cov0" title="0">{
+                        cfg, err := cmd.Flags().GetString("config")
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">return run(cfg)</span>
+                },
+        }
+
+        <span class="cov0" title="0">rootCmd.Flags().StringP("config", "c", "", "Path to config file")
+        rootCmd.AddCommand(
+                version.NewCommand(),
+        )
+
+        return rootCmd</span>
+}
+
+func Execute() <span class="cov0" title="0">{
+        cmd := NewRootCommand()
+        err := cmd.Execute()
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, err)
+        }</span>
+}
+
+func run(configPath string) error <span class="cov0" title="0">{
+        cfg, err := config.LoadConfig(configPath)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return s.Run()</span>
+}
+
+// Print the error information on stderr and exit with code 1
+func exitError(cmd *cobra.Command, err error) <span class="cov0" title="0">{
+        fmt.Fprintln(cmd.Root().ErrOrStderr(), err.Error())
+        os.Exit(1)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package config
+
+import (
+        "log/slog"
+        "os"
+        "strings"
+
+        lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+        "github.com/heathcliff26/fleetlock/pkg/server"
+        "gopkg.in/yaml.v3"
+)
+
+const (
+        DEFAULT_LOG_LEVEL = "info"
+)
+
+var logLevel = &amp;slog.LevelVar{}
+
+// Initialize the logger
+func init() <span class="cov0" title="0">{
+        logLevel = &amp;slog.LevelVar{}
+        opts := slog.HandlerOptions{
+                Level: logLevel,
+        }
+        logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;opts))
+        slog.SetDefault(logger)
+}</span>
+
+type Config struct {
+        LogLevel string                     `yaml:"logLevel,omitempty"`
+        Server   *server.ServerConfig       `yaml:"server,omitempty"`
+        Storage  *lockmanager.StorageConfig `yaml:"storage,omitempty"`
+        Groups   lockmanager.Groups         `yaml:"groups,omitempty"`
+}
+
+// Parse a given string and set the resulting log level
+func setLogLevel(level string) error <span class="cov0" title="0">{
+        switch strings.ToLower(level) </span>{
+        case "debug":<span class="cov0" title="0">
+                logLevel.Set(slog.LevelDebug)</span>
+        case "info":<span class="cov0" title="0">
+                logLevel.Set(slog.LevelInfo)</span>
+        case "warn":<span class="cov0" title="0">
+                logLevel.Set(slog.LevelWarn)</span>
+        case "error":<span class="cov0" title="0">
+                logLevel.Set(slog.LevelError)</span>
+        default:<span class="cov0" title="0">
+                return NewErrUnknownLogLevel(level)</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+func DefaultConfig() *Config <span class="cov0" title="0">{
+        return &amp;Config{
+                LogLevel: DEFAULT_LOG_LEVEL,
+                Server:   server.NewDefaultServerConfig(),
+                Storage:  lockmanager.NewDefaultStorageConfig(),
+        }
+}</span>
+
+// Loads the config from the given path.
+// When path is empty, returns default config.
+// Returns error when the given config is invalid.
+func LoadConfig(path string) (*Config, error) <span class="cov0" title="0">{
+        c := DefaultConfig()
+
+        if path == "" </span><span class="cov0" title="0">{
+                c.Defaults()
+                return c, nil
+        }</span>
+
+        <span class="cov0" title="0">f, err := os.ReadFile(path)
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;Config{}, err
+        }</span>
+
+        <span class="cov0" title="0">err = yaml.Unmarshal(f, &amp;c)
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;Config{}, err
+        }</span>
+
+        <span class="cov0" title="0">c.Defaults()
+
+        err = c.Validate()
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;Config{}, err
+        }</span>
+
+        <span class="cov0" title="0">return c, nil</span>
+}
+
+func (c *Config) Defaults() <span class="cov0" title="0">{
+        c.Server.Defaults()
+        if c.Groups == nil </span><span class="cov0" title="0">{
+                c.Groups = lockmanager.NewDefaultGroups()
+        }</span>
+}
+
+func (c *Config) Validate() error <span class="cov0" title="0">{
+        err := setLogLevel(c.LogLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">err = c.Server.Validate()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">err = c.Groups.Validate()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package config
+
+type ErrUnknownLogLevel struct {
+        level string
+}
+
+func NewErrUnknownLogLevel(level string) error <span class="cov0" title="0">{
+        return &amp;ErrUnknownLogLevel{
+                level: level,
+        }
+}</span>
+
+func (e *ErrUnknownLogLevel) Error() string <span class="cov0" title="0">{
+        return "Unknown log level " + e.level
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package lockmanager
+
+import (
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
+)
+
+type StorageConfig struct {
+        Type   string               `yaml:"type"`
+        SQLite *sqlite.SQLiteConfig `yaml:"sqlite,omitempty"`
+}
+
+type Groups map[string]GroupConfig
+
+type GroupConfig struct {
+        Slots int `yaml:"slots"`
+}
+
+// Create a new storage config with default values
+func NewDefaultStorageConfig() *StorageConfig <span class="cov0" title="0">{
+        return &amp;StorageConfig{
+                Type: "memory",
+        }
+}</span>
+
+func NewDefaultGroups() Groups <span class="cov0" title="0">{
+        groups := make(Groups, 1)
+        groups["default"] = GroupConfig{
+                Slots: 1,
+        }
+        return groups
+}</span>
+
+func (g Groups) Validate() error <span class="cov0" title="0">{
+        for _, v := range g </span><span class="cov0" title="0">{
+                if v.Slots &lt; 1 </span><span class="cov0" title="0">{
+                        return errors.NewErrorGroupSlotsOutOfRange()
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package errors
+
+import "fmt"
+
+type ErrorUnknownGroup struct {
+        group string
+}
+
+func NewErrorUnknownGroup(group string) error <span class="cov0" title="0">{
+        return &amp;ErrorUnknownGroup{group: group}
+}</span>
+
+func (e *ErrorUnknownGroup) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Unknown group: %s", e.group)
+}</span>
+
+type ErrorEmptyID struct{}
+
+func (e ErrorEmptyID) Error() string <span class="cov0" title="0">{
+        return "Received empty id, can't reserve a slot without an id"
+}</span>
+
+type ErrorUnkownStorageType struct {
+        Type string
+}
+
+func NewErrorUnkownStorageType(t string) error <span class="cov0" title="0">{
+        return &amp;ErrorUnkownStorageType{
+                Type: t,
+        }
+}</span>
+
+func (e *ErrorUnkownStorageType) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Unsupported storage type \"%s\" selected", e.Type)
+}</span>
+
+type ErrorGroupSlotsOutOfRange struct{}
+
+func NewErrorGroupSlotsOutOfRange() error <span class="cov0" title="0">{
+        return ErrorGroupSlotsOutOfRange{}
+}</span>
+
+func (e ErrorGroupSlotsOutOfRange) Error() string <span class="cov0" title="0">{
+        return "At least one group has not enough slots, need at least 1"
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package lockmanager
+
+import (
+        "sync"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+)
+
+type LockManager struct {
+        groups  map[string]*lockGroup
+        storage StorageBackend
+}
+
+type lockGroup struct {
+        Config GroupConfig
+        RWLock sync.RWMutex
+}
+
+// It is assumed that each group itself is multi-read, single-write.
+// There can be multiple writes to different groups happening in parallel though.
+type StorageBackend interface {
+        // Reserve a lock for the given group.
+        // Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+        Reserve(group, id string) error
+        // Returns the current number of locks for the given group
+        GetLocks(group string) (int, error)
+        // Release the lock currently held by the id.
+        // Does not fail when no lock is held.
+        Release(group, id string) error
+        // Return all locks older than x
+        GetStaleLocks(ts time.Duration) ([]types.Lock, error)
+        // Check if a given id already has a lock for this group
+        HasLock(group, id string) (bool, error)
+        // Calls all necessary finalization if necessary
+        Close() error
+}
+
+// Create a new LockManager from the given configuration
+func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) <span class="cov0" title="0">{
+        var storage StorageBackend
+        var err error
+        switch storageCfg.Type </span>{
+        case "memory":<span class="cov0" title="0">
+                i := 0
+                groupNames := make([]string, len(groups))
+                for k := range groups </span><span class="cov0" title="0">{
+                        groupNames[i] = k
+                        i++
+                }</span>
+                <span class="cov0" title="0">storage = memory.NewMemoryBackend(groupNames)</span>
+        case "sqlite":<span class="cov0" title="0">
+                storage, err = sqlite.NewSQLiteBackend(storageCfg.SQLite)</span>
+        default:<span class="cov0" title="0">
+                err = errors.NewErrorUnkownStorageType(storageCfg.Type)</span>
+        }
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return &amp;LockManager{
+                groups:  initGroups(groups),
+                storage: storage,
+        }, nil</span>
+}
+
+// Create a new LockManager with custom StorageBackend
+func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov8" title="1">{
+        return &amp;LockManager{
+                groups:  initGroups(groups),
+                storage: storage,
+        }
+}</span>
+
+func initGroups(groups Groups) map[string]*lockGroup <span class="cov8" title="1">{
+        g := make(map[string]*lockGroup, len(groups))
+        for name, cfg := range groups </span><span class="cov8" title="1">{
+                g[name] = &amp;lockGroup{
+                        Config: cfg,
+                }
+        }</span>
+        <span class="cov8" title="1">return g</span>
+}
+
+func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov8" title="1">{
+        lGroup := lm.groups[group]
+        if lGroup == nil </span><span class="cov0" title="0">{
+                return false, errors.NewErrorUnknownGroup(group)
+        }</span>
+        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
+                return false, errors.ErrorEmptyID{}
+        }</span>
+
+        <span class="cov8" title="1">checkHasLock := func() (bool, error) </span><span class="cov8" title="1">{
+                // Lock group for reading to ensure that no writing is happening during it and result is accurate
+                lGroup.RWLock.RLock()
+                defer lGroup.RWLock.RUnlock()
+
+                return lm.storage.HasLock(group, id)
+        }</span>
+        <span class="cov8" title="1">ok, err := checkHasLock()
+        if ok &amp;&amp; err == nil </span><span class="cov8" title="1">{
+                return true, nil
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        // Use own function to ensure lock is released
+        <span class="cov8" title="1">checkAvailableSlots := func() (bool, error) </span><span class="cov8" title="1">{
+                // Lock group for reading to ensure that no writing is happening during it and result is accurate
+                lGroup.RWLock.RLock()
+                defer lGroup.RWLock.RUnlock()
+
+                return lm.checkSlots(group, lGroup.Config)
+        }</span>
+        <span class="cov8" title="1">ok, err = checkAvailableSlots()
+        if err != nil || !ok </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        // Get Write Lock
+        <span class="cov8" title="1">lGroup.RWLock.Lock()
+        defer lGroup.RWLock.Unlock()
+
+        // Re-check, since another write could have happened between checking the first time and now
+        ok, err = lm.checkSlots(group, lGroup.Config)
+        if err != nil || !ok </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">err = lm.storage.Reserve(group, id)
+        return err == nil, err</span>
+}
+
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov8" title="1">{
+        usedSlots, err := lm.storage.GetLocks(group)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return usedSlots &lt; cfg.Slots, nil</span>
+}
+
+func (lm *LockManager) Release(group, id string) error <span class="cov8" title="1">{
+        lGroup := lm.groups[group]
+        if lGroup == nil </span><span class="cov0" title="0">{
+                return errors.NewErrorUnknownGroup(group)
+        }</span>
+        // No locks without id, so we don't need to bother storage here
+        <span class="cov8" title="1">if id == "" </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">lGroup.RWLock.Lock()
+        defer lGroup.RWLock.Unlock()
+
+        return lm.storage.Release(group, id)</span>
+}
+
+func (lm *LockManager) Close() error <span class="cov8" title="1">{
+        return lm.storage.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package memory
+
+import (
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+)
+
+type MemoryBackend struct {
+        // This map will be assumed to be read-only after creation
+        groups map[string]*group
+}
+
+type group struct {
+        slots []lock
+}
+
+type lock struct {
+        id      string
+        created time.Time
+}
+
+const initialArraySize = 10
+
+func NewMemoryBackend(groups []string) *MemoryBackend <span class="cov8" title="1">{
+        g := make(map[string]*group)
+
+        for _, groupName := range groups </span><span class="cov8" title="1">{
+                // Pre-reserve some slots
+                g[groupName] = &amp;group{
+                        slots: make([]lock, 0, initialArraySize),
+                }
+        }</span>
+
+        <span class="cov8" title="1">return &amp;MemoryBackend{
+                groups: g,
+        }</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov8" title="1">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                // All groups should be initialized at the beginning
+                return errors.NewErrorUnknownGroup(group)
+        }</span>
+
+        <span class="cov8" title="1">if g.hasLock(id) </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">lock := lock{
+                id:      id,
+                created: time.Now(),
+        }
+        g.slots = append(g.slots, lock)
+
+        return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                return 0, nil
+        }</span>
+
+        <span class="cov8" title="1">return len(g.slots), nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (m *MemoryBackend) Release(group string, id string) error <span class="cov8" title="1">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">var i int
+        var l lock
+        for i, l = range g.slots </span><span class="cov8" title="1">{
+                if l.id == id </span><span class="cov8" title="1">{
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">if len(g.slots) &gt; 1 </span><span class="cov8" title="1">{
+                g.slots[i] = g.slots[len(g.slots)-1]
+                g.slots = g.slots[:len(g.slots)-1]
+        }</span> else<span class="cov8" title="1"> {
+                g.slots = g.slots[:0]
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Return all locks older than x
+func (m *MemoryBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("TODO")</span>
+}
+
+// Check if a given id already has a lock for this group
+func (m *MemoryBackend) HasLock(group, id string) (bool, error) <span class="cov8" title="1">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                // All groups should be initialized at the beginning
+                return false, errors.NewErrorUnknownGroup(group)
+        }</span>
+        <span class="cov8" title="1">return g.hasLock(id), nil</span>
+}
+
+// Calls all necessary finalization if necessary
+func (m *MemoryBackend) Close() error <span class="cov8" title="1">{
+        return nil
+}</span>
+
+func (g *group) hasLock(id string) bool <span class="cov8" title="1">{
+        for _, lock := range g.slots </span><span class="cov8" title="1">{
+                if id == lock.id </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package sqlite
+
+import (
+        "database/sql"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        _ "github.com/mattn/go-sqlite3"
+)
+
+const (
+        stmtCreateTable = `CREATE TABLE IF NOT EXISTS locks (
+        group_name TEXT NOT NULL,
+        id TEXT NOT NULL,
+        created TIMESTAMP NOT NULL,
+        PRIMARY KEY (group_name,id)
+        );`
+
+        stmtReserve = `INSERT INTO locks (group_name, id, created)
+                SELECT ?,?,?
+                WHERE NOT EXISTS (
+                        SELECT 1 FROM locks WHERE group_name=? AND id=?
+                );`
+
+        stmtGetLocks = `SELECT COUNT(*) FROM (
+                        SELECT id FROM locks WHERE group_name=?
+                );`
+
+        stmtRelease = "DELETE FROM locks WHERE group_name=? AND id=?;"
+
+        stmtHasLock = "SELECT 1 FROM locks WHERE group_name=? AND id=?;"
+)
+
+type SQLBackend struct {
+        db *sql.DB
+
+        reserve  *sql.Stmt
+        getLocks *sql.Stmt
+        release  *sql.Stmt
+        hasLock  *sql.Stmt
+}
+
+type SQLiteConfig struct {
+        File string `yaml:"file"`
+}
+
+func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) <span class="cov8" title="1">{
+        db, err := sql.Open("sqlite3", cfg.File)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">_, err = db.Exec(stmtCreateTable)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">reserve, err := db.Prepare(stmtReserve)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">getLocks, err := db.Prepare(stmtGetLocks)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">release, err := db.Prepare(stmtRelease)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">hasLock, err := db.Prepare(stmtHasLock)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;SQLBackend{
+                db:       db,
+                reserve:  reserve,
+                getLocks: getLocks,
+                release:  release,
+                hasLock:  hasLock,
+        }, nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (s *SQLBackend) Reserve(group string, id string) error <span class="cov8" title="1">{
+        _, err := s.reserve.Exec(group, id, time.Now(), group, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (s *SQLBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
+        rows, err := s.getLocks.Query(group)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        if !rows.Next() </span><span class="cov0" title="0">{
+                return 0, rows.Err()
+        }</span>
+
+        <span class="cov8" title="1">var count int
+        err = rows.Scan(&amp;count)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">return count, nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (s *SQLBackend) Release(group string, id string) error <span class="cov8" title="1">{
+        _, err := s.release.Exec(group, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Return all locks older than x
+func (s *SQLBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("TODO")</span>
+}
+
+// Check if a given id already has a lock for this group
+func (s *SQLBackend) HasLock(group, id string) (bool, error) <span class="cov8" title="1">{
+        rows, err := s.hasLock.Query(group, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        return rows.Next(), rows.Err()</span>
+}
+
+// Calls all necessary finalization if necessary
+func (s *SQLBackend) Close() error <span class="cov8" title="1">{
+        return s.db.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package server
+
+import (
+        "strconv"
+)
+
+const (
+        DEFAULT_SERVER_PORT     = 8080
+        DEFAULT_SERVER_PORT_SSL = 8443
+)
+
+type ServerConfig struct {
+        Listen string    `yaml:"listen"`
+        SSL    SSLConfig `yaml:"ssl,omitempty"`
+}
+
+type SSLConfig struct {
+        Enabled bool   `yaml:"enabled,omitempty"`
+        Cert    string `yaml:"cert,omitempty"`
+        Key     string `yaml:"key,omitempty"`
+}
+
+// Create a default server config with
+func NewDefaultServerConfig() *ServerConfig <span class="cov0" title="0">{
+        return &amp;ServerConfig{}
+}</span>
+
+// Check if there are empty values that need to be replaced by default values
+func (cfg *ServerConfig) Defaults() <span class="cov0" title="0">{
+        if cfg.Listen == "" </span><span class="cov0" title="0">{
+                if cfg.SSL.Enabled </span><span class="cov0" title="0">{
+                        cfg.Listen = ":" + strconv.Itoa(DEFAULT_SERVER_PORT_SSL)
+                }</span> else<span class="cov0" title="0"> {
+                        cfg.Listen = ":" + strconv.Itoa(DEFAULT_SERVER_PORT)
+                }</span>
+        }
+}
+
+// Validate Server config and set default listen addr if needed
+func (cfg *ServerConfig) Validate() error <span class="cov0" title="0">{
+        if cfg.SSL.Enabled </span><span class="cov0" title="0">{
+                if cfg.SSL.Cert == "" || cfg.SSL.Key == "" </span><span class="cov0" title="0">{
+                        return ErrorIncompleteSSlConfig{}
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package server
+
+type ErrorIncompleteSSlConfig struct{}
+
+func (e ErrorIncompleteSSlConfig) Error() string <span class="cov0" title="0">{
+        return "SSL is enabled but either key or certificate is missing"
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package server
+
+import (
+        "encoding/json"
+        "errors"
+        "log/slog"
+        "net/http"
+        "regexp"
+        "strings"
+
+        lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+)
+
+const groupValidationPattern = "^[a-zA-Z0-9.-]+$"
+
+var groupValidationRegex = regexp.MustCompile(groupValidationPattern)
+
+type Server struct {
+        cfg *ServerConfig
+        lm  *lockmanager.LockManager
+}
+
+type FleetLockRequest struct {
+        Client struct {
+                ID    string `json:"id"`
+                Group string `json:"group"`
+        } `json:"client_params"`
+}
+
+type FleetLockResponse struct {
+        Kind  string `json:"kind"`
+        Value string `json:"value"`
+}
+
+// Create a new Server
+func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg *lockmanager.StorageConfig) (*Server, error) <span class="cov0" title="0">{
+        lm, err := lockmanager.NewManager(groups, storageCfg)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return &amp;Server{
+                cfg: cfg,
+                lm:  lm,
+        }, nil</span>
+}
+
+// Main entrypoint for new requests
+func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span class="cov0" title="0">{
+        slog.Debug("Received request", slog.String("method", req.Method), slog.String("uri", req.RequestURI), slog.String("remote", ReadUserIP(req)))
+
+        var handleFunc func(http.ResponseWriter, FleetLockRequest)
+        switch req.URL.String() </span>{
+        case "/v1/pre-reboot":<span class="cov0" title="0">
+                handleFunc = s.handleReserve</span>
+        case "/v1/steady-state":<span class="cov0" title="0">
+                handleFunc = s.handleRelease</span>
+        default:<span class="cov0" title="0">
+                slog.Debug("Unknown URL", slog.String("url", req.URL.String()), slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusNotFound)
+                sendResponse(rw, msgNotFound)
+                return</span>
+        }
+
+        // Verify right method
+        <span class="cov0" title="0">if req.Method != http.MethodPost </span><span class="cov0" title="0">{
+                rw.WriteHeader(http.StatusMethodNotAllowed)
+        }</span>
+
+        // Verify FleetLock header is set
+        <span class="cov0" title="0">if strings.ToLower(req.Header.Get("fleet-lock-protocol")) != "true" </span><span class="cov0" title="0">{
+                slog.Debug("Received request with missing or wrong fleet-lock-protocol header", slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgMissingFleetLockHeader)
+                return
+        }</span>
+
+        <span class="cov0" title="0">var params FleetLockRequest
+        err := json.NewDecoder(req.Body).Decode(&amp;params)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Debug("Failed to parse request", "error", err, slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgRequestParseFailed)
+                return
+        }</span>
+
+        <span class="cov0" title="0">if strings.Contains(params.Client.Group, "\n") || !groupValidationRegex.MatchString(params.Client.Group) </span><span class="cov0" title="0">{
+                slog.Debug("Request contained invalid characters for group", slog.String("group", params.Client.Group), slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgInvalidGroupValue)
+                return
+        }</span>
+
+        <span class="cov0" title="0">if params.Client.ID == "" </span><span class="cov0" title="0">{
+                slog.Debug("Request did not contain an id", slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgEmptyID)
+                return
+        }</span>
+
+        <span class="cov0" title="0">handleFunc(rw, params)</span>
+}
+
+// Handle requests to reserve a slot
+//
+//        URL: /v1/pre-reboot
+func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) <span class="cov0" title="0">{
+        ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                rw.WriteHeader(http.StatusInternalServerError)
+                sendResponse(rw, msgUnexpectedError)
+                return
+        }</span>
+        <span class="cov0" title="0">if ok </span><span class="cov0" title="0">{
+                slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                sendResponse(rw, msgSuccess)
+        }</span> else<span class="cov0" title="0"> {
+                slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                rw.WriteHeader(http.StatusLocked)
+                sendResponse(rw, msgSlotsFull)
+        }</span>
+}
+
+// Handle requests to release a slot
+//
+//        URL: /v1/steady-state
+func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) <span class="cov0" title="0">{
+        err := s.lm.Release(params.Client.Group, params.Client.ID)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                rw.WriteHeader(http.StatusInternalServerError)
+                sendResponse(rw, msgUnexpectedError)
+                return
+        }</span>
+        <span class="cov0" title="0">slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+        sendResponse(rw, msgSuccess)</span>
+}
+
+// Starts the server and exits with error if that fails
+func (s *Server) Run() error <span class="cov0" title="0">{
+        http.HandleFunc("/", s.requestHandler)
+
+        slog.Info("Starting server", slog.String("listen", s.cfg.Listen), slog.Bool("ssl", s.cfg.SSL.Enabled))
+
+        var err error
+        if s.cfg.SSL.Enabled </span><span class="cov0" title="0">{
+                err = http.ListenAndServeTLS(s.cfg.Listen, s.cfg.SSL.Cert, s.cfg.SSL.Key, nil)
+        }</span> else<span class="cov0" title="0"> {
+                err = http.ListenAndServe(s.cfg.Listen, nil)
+        }</span>
+        // This just means the server was closed after running
+        <span class="cov0" title="0">if errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+                slog.Info("Server closed, exiting")
+                return nil
+        }</span>
+        <span class="cov0" title="0">return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package server
+
+import (
+        "encoding/json"
+        "log/slog"
+        "net/http"
+)
+
+func ReadUserIP(req *http.Request) string <span class="cov0" title="0">{
+        IPAddress := req.Header.Get("x-real-ip")
+        if IPAddress == "" </span><span class="cov0" title="0">{
+                IPAddress = req.Header.Get("x-forwarded-for")
+        }</span>
+        <span class="cov0" title="0">if IPAddress == "" </span><span class="cov0" title="0">{
+                IPAddress = req.RemoteAddr
+        }</span>
+        <span class="cov0" title="0">return IPAddress</span>
+}
+
+// Send a response to the writer and handle impossible parse errors
+func sendResponse(rw http.ResponseWriter, res FleetLockResponse) <span class="cov0" title="0">{
+        b, err := json.Marshal(res)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to create Response", "err", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">_, err = rw.Write(b)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to send response to client", "err", err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package version
+
+import (
+        "fmt"
+        "runtime"
+        "runtime/debug"
+
+        "github.com/spf13/cobra"
+)
+
+const Name = "fleetlock"
+
+var version = "devel"
+
+func NewCommand() *cobra.Command <span class="cov8" title="1">{
+        cmd := &amp;cobra.Command{
+                Use:   "version",
+                Short: "Print version information and exit",
+                Run: func(cmd *cobra.Command, args []string) </span><span class="cov0" title="0">{
+                        fmt.Print(Version())
+                }</span>,
+        }
+        // Override to prevent parent function from running
+        <span class="cov8" title="1">cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) </span>{<span class="cov0" title="0">}</span>
+
+        <span class="cov8" title="1">return cmd</span>
+}
+
+func Version() string <span class="cov8" title="1">{
+        var commit string
+        buildinfo, _ := debug.ReadBuildInfo()
+        for _, item := range buildinfo.Settings </span><span class="cov0" title="0">{
+                if item.Key == "vcs.revision" </span><span class="cov0" title="0">{
+                        commit = item.Value
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">if len(commit) &gt; 7 </span><span class="cov0" title="0">{
+                commit = commit[:7]
+        }</span> else<span class="cov8" title="1"> if commit == "" </span><span class="cov8" title="1">{
+                commit = "Unknown"
+        }</span>
+
+        <span class="cov8" title="1">result := Name + ":\n"
+        result += "    Version: " + version + "\n"
+        result += "    Commit:  " + commit + "\n"
+        result += "    Go:      " + runtime.Version() + "\n"
+
+        return result</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
