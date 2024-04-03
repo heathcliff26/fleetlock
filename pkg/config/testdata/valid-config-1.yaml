@@ -1,0 +1,22 @@
+---
+logLevel: debug
+
+server:
+  listen: "127.0.0.1:8443"
+  ssl:
+    enabled: true
+    cert: "foo.crt"
+    key: "foo.key"
+
+storage:
+  type: sqlite
+  sqlite:
+    file: "foo.db"
+
+groups:
+  default:
+    slots: 5
+  foo:
+    slots: 3
+  bar:
+    slots: 10
