@@ -71,19 +71,19 @@ func LoadConfig(path string) (*Config, error) {
 
 	f, err := os.ReadFile(path)
 	if err != nil {
-		return &Config{}, err
+		return nil, err
 	}
 
 	err = yaml.Unmarshal(f, &c)
 	if err != nil {
-		return &Config{}, err
+		return nil, err
 	}
 
 	c.Defaults()
 
 	err = c.Validate()
 	if err != nil {
-		return &Config{}, err
+		return nil, err
 	}
 
 	return c, nil
