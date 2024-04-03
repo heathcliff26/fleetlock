@@ -1,4 +1,4 @@
-package lockmanager_test
+package lockmanager
 
 import (
 	"os"
@@ -6,43 +6,42 @@ import (
 	"sync"
 	"testing"
 
-	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
 	"github.com/stretchr/testify/assert"
 )
 
-var Groups lockmanager.Groups
+var testGroups Groups
 
 func init() {
-	Groups = make(lockmanager.Groups, 1)
-	Groups["basic"] = lockmanager.GroupConfig{
+	testGroups = make(Groups, 1)
+	testGroups["basic"] = GroupConfig{
 		Slots: 1,
 	}
-	Groups["NoDuplicates"] = lockmanager.GroupConfig{
+	testGroups["NoDuplicates"] = GroupConfig{
 		Slots: 3,
 	}
-	Groups["GetLocks"] = lockmanager.GroupConfig{
+	testGroups["GetLocks"] = GroupConfig{
 		Slots: 10,
 	}
-	Groups["ConcurrentReserve"] = lockmanager.GroupConfig{
+	testGroups["ConcurrentReserve"] = GroupConfig{
 		Slots: 10,
 	}
-	Groups["ConcurrentRelease"] = lockmanager.GroupConfig{
+	testGroups["ConcurrentRelease"] = GroupConfig{
 		Slots: 10,
 	}
-	Groups["ReserveRace"] = lockmanager.GroupConfig{
+	testGroups["ReserveRace"] = GroupConfig{
 		Slots: 5,
 	}
-	Groups["ReserveReturnTrueIfAlreadyExists"] = lockmanager.GroupConfig{
+	testGroups["ReserveReturnTrueIfAlreadyExists"] = GroupConfig{
 		Slots: 1,
 	}
 }
 
 func TestMemoryBackend(t *testing.T) {
-	names := make([]string, len(Groups))
+	names := make([]string, len(testGroups))
 	i := 0
-	for k := range Groups {
+	for k := range testGroups {
 		names[i] = k
 		i++
 	}
@@ -70,8 +69,8 @@ func TestSQLiteBackend(t *testing.T) {
 	RunLockManagerTestsuiteWithStorage(t, storage)
 }
 
-func RunLockManagerTestsuiteWithStorage(t *testing.T, storage lockmanager.StorageBackend) {
-	lm := lockmanager.NewManagerWithStorage(Groups, storage)
+func RunLockManagerTestsuiteWithStorage(t *testing.T, storage StorageBackend) {
+	lm := NewManagerWithStorage(testGroups, storage)
 	t.Cleanup(func() {
 		err := lm.Close()
 		if err != nil {
