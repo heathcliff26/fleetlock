@@ -45,8 +45,8 @@ jobs:
       packages: write
     with:
       dockerfile: Dockerfile
-      tag: "${{ github.event.inputs.tag }}"
-      tags: "${{ github.event.inputs.latest == 'true' && 'type=raw,value=latest' || '' }}"
-      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.event.inputs.dry-run == 'true' }}
-      build-args: "RELEASE_VERSION=${{ github.event.inputs.tag }}"
+      tag: "${{ inputs.tag }}"
+      tags: "${{ inputs.latest == 'true' && 'type=raw,value=latest' || '' }}"
+      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
+      build-args: "RELEASE_VERSION=${{ inputs.tag }}"
     secrets: inherit
