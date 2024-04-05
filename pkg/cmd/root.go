@@ -25,7 +25,8 @@ func NewRootCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return run(cfg)
+			run(cmd, cfg)
+			return nil
 		},
 	}
 
@@ -45,21 +46,24 @@ func Execute() {
 	}
 }
 
-func run(configPath string) error {
+func run(cmd *cobra.Command, configPath string) {
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		return err
+		exitError(cmd, err)
 	}
 
 	s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage)
 	if err != nil {
-		return err
+		exitError(cmd, err)
 	}
-	return s.Run()
+	err = s.Run()
+	if err != nil {
+		exitError(cmd, err)
+	}
 }
 
 // Print the error information on stderr and exit with code 1
 func exitError(cmd *cobra.Command, err error) {
-	fmt.Fprintln(cmd.Root().ErrOrStderr(), err.Error())
+	fmt.Fprintln(cmd.Root().ErrOrStderr(), "Fatal: "+err.Error())
 	os.Exit(1)
 }
