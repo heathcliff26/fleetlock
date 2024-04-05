@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/heathcliff26/fleetlock/cmd/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/fleetlock/pkg/cmd/root.go (21.7%)</option>
+				<option value="file1">github.com/heathcliff26/fleetlock/pkg/cmd/root.go (19.2%)</option>
 				
 				<option value="file2">github.com/heathcliff26/fleetlock/pkg/config/config.go (100.0%)</option>
 				
@@ -131,7 +131,8 @@ func NewRootCommand() *cobra.Command <span class="cov8" title="1">{
                         if err != nil </span><span class="cov0" title="0">{
                                 return err
                         }</span>
-                        <span class="cov0" title="0">return run(cfg)</span>
+                        <span class="cov0" title="0">run(cmd, cfg)
+                        return nil</span>
                 },
         }
 
@@ -151,22 +152,25 @@ func Execute() <span class="cov0" title="0">{
         }</span>
 }
 
-func run(configPath string) error <span class="cov0" title="0">{
+func run(cmd *cobra.Command, configPath string) <span class="cov0" title="0">{
         cfg, err := config.LoadConfig(configPath)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                exitError(cmd, err)
         }</span>
 
         <span class="cov0" title="0">s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                exitError(cmd, err)
         }</span>
-        <span class="cov0" title="0">return s.Run()</span>
+        <span class="cov0" title="0">err = s.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, err)
+        }</span>
 }
 
 // Print the error information on stderr and exit with code 1
 func exitError(cmd *cobra.Command, err error) <span class="cov0" title="0">{
-        fmt.Fprintln(cmd.Root().ErrOrStderr(), err.Error())
+        fmt.Fprintln(cmd.Root().ErrOrStderr(), "Fatal: "+err.Error())
         os.Exit(1)
 }</span>
 </pre>
