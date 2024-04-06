@@ -15,7 +15,7 @@ COPY cmd ./cmd
 COPY pkg ./pkg
 COPY hack ./hack
 
-RUN --mount=type=bind,target=/app/.git,source=.git hack/build.sh
+RUN --mount=type=bind,target=/app/.git,source=.git GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh
 
 #
 # END build-stage
