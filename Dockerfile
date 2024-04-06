@@ -1,11 +1,14 @@
 ###############################################################################
 # BEGIN build-stage
 # Compile the binary
-FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.22.2@sha256:c4fb952e712efd8f787bcd8e53fd66d1d83b7dc26adabc218e9eac1dbf776bdf AS build-stage
+FROM --platform=$BUILDPLATFORM ghcr.io/heathcliff26/go-fyne-ci:1.22.2 AS build-stage
 
 ARG BUILDPLATFORM
 ARG TARGETARCH
 ARG RELEASE_VERSION
+
+# Cross-compile using zig
+ENV GO_CC_ZIG=true
 
 WORKDIR /app
 
@@ -24,9 +27,11 @@ RUN --mount=type=bind,target=/app/.git,source=.git GOOS=linux GOARCH="${TARGETAR
 ###############################################################################
 # BEGIN test-stage
 # Run the tests in the container
-FROM build-stage AS test-stage
+FROM docker.io/library/golang:1.22.2@sha256:c4fb952e712efd8f787bcd8e53fd66d1d83b7dc26adabc218e9eac1dbf776bdf AS test-stage
 
 WORKDIR /app
+
+COPY --from=build-stage /app /app
 
 RUN go test -v ./...
 
