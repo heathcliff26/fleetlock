@@ -71,17 +71,19 @@
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (73.3%)</option>
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (84.4%)</option>
 				
-				<option value="file9">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
+				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (73.3%)</option>
 				
-				<option value="file10">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
+				<option value="file10">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/fleetlock/pkg/server/server.go (85.9%)</option>
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/server/server.go (85.9%)</option>
 				
-				<option value="file13">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
+				<option value="file13">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
+				
+				<option value="file14">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
 				
 				</select>
 			</div>
@@ -314,12 +316,14 @@ func (e *ErrUnknownLogLevel) Error() string <span class="cov0" title="0">{
 
 import (
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
 )
 
 type StorageConfig struct {
         Type   string               `yaml:"type"`
         SQLite *sqlite.SQLiteConfig `yaml:"sqlite,omitempty"`
+        Redis  *redis.RedisConfig   `yaml:"redis,omitempty"`
 }
 
 type Groups map[string]GroupConfig
@@ -408,6 +412,7 @@ import (
 
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
 )
@@ -456,6 +461,8 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
                 <span class="cov8" title="1">storage = memory.NewMemoryBackend(groupNames)</span>
         case "sqlite":<span class="cov8" title="1">
                 storage, err = sqlite.NewSQLiteBackend(storageCfg.SQLite)</span>
+        case "redis":<span class="cov8" title="1">
+                storage, err = redis.NewRedisBackend(storageCfg.Redis)</span>
         default:<span class="cov8" title="1">
                 err = errors.NewErrorUnkownStorageType(storageCfg.Type)</span>
         }
@@ -693,7 +700,114 @@ func (g *group) hasLock(id string) bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package sqlite
+		<pre class="file" id="file8" style="display: none">package redis
+
+import (
+        "context"
+        "fmt"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        "github.com/redis/go-redis/v9"
+)
+
+const keyformat = "group:%s,id:%s"
+
+type RedisBackend struct {
+        client *redis.Client
+}
+
+type RedisConfig struct {
+        Addr     string `yaml:"address"`
+        Username string `yaml:"username,omitempty"`
+        Password string `yaml:"password,omitempty"`
+        DB       int    `yaml:"db,omitempty"`
+}
+
+func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
+        client := redis.NewClient(&amp;redis.Options{
+                Addr:     cfg.Addr,
+                Username: cfg.Username,
+                Password: cfg.Password,
+                DB:       cfg.DB,
+        })
+
+        err := client.Ping(context.Background()).Err()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;RedisBackend{
+                client: client,
+        }, nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (r *RedisBackend) Reserve(group string, id string) error <span class="cov8" title="1">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx := context.Background()
+
+        ok, err := r.client.SetNX(ctx, key, time.Now(), 0).Result()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if ok </span><span class="cov8" title="1">{
+                err := r.client.SAdd(ctx, group, key).Err()
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (r *RedisBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
+        result := r.client.SCard(context.Background(), group)
+        if err := result.Err(); err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">return int(result.Val()), nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (r *RedisBackend) Release(group string, id string) error <span class="cov8" title="1">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx := context.Background()
+
+        err := r.client.Del(ctx, key).Err()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">err = r.client.SRem(ctx, group, key).Err()
+        return err</span>
+}
+
+// Return all locks older than x
+func (r *RedisBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("not implemented")</span> // TODO: Implement
+}
+
+// Check if a given id already has a lock for this group
+func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span class="cov8" title="1">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx := context.Background()
+
+        count, err := r.client.Exists(ctx, key).Result()
+        return count == 1 || err != nil, err
+}</span>
+
+// Calls all necessary finalization if necessary
+func (r *RedisBackend) Close() error <span class="cov8" title="1">{
+        return r.client.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package sqlite
 
 import (
         "database/sql"
@@ -843,7 +957,7 @@ func (s *SQLBackend) Close() error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package server
+		<pre class="file" id="file10" style="display: none">package server
 
 import (
         "strconv"
@@ -892,7 +1006,7 @@ func (cfg *ServerConfig) Validate() error <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package server
+		<pre class="file" id="file11" style="display: none">package server
 
 type ErrorIncompleteSSlConfig struct{}
 
@@ -901,7 +1015,7 @@ func (e ErrorIncompleteSSlConfig) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package server
+		<pre class="file" id="file12" style="display: none">package server
 
 import (
         "encoding/json"
@@ -1064,7 +1178,7 @@ func (s *Server) Run() error <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package server
+		<pre class="file" id="file13" style="display: none">package server
 
 import (
         "encoding/json"
@@ -1098,7 +1212,7 @@ func sendResponse(rw http.ResponseWriter, res FleetLockResponse) <span class="co
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package version
+		<pre class="file" id="file14" style="display: none">package version
 
 import (
         "fmt"
