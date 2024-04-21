@@ -20,15 +20,35 @@ type RedisConfig struct {
 	Username string `yaml:"username,omitempty"`
 	Password string `yaml:"password,omitempty"`
 	DB       int    `yaml:"db,omitempty"`
+	Sentinel struct {
+		Enabled    bool     `yaml:"enabled,omitempty"`
+		MasterName string   `yaml:"master,omitempty"`
+		Addresses  []string `yaml:"addresses,omitempty"`
+		Username   string   `yaml:"username,omitempty"`
+		Password   string   `yaml:"password,omitempty"`
+	} `yaml:"sentinel,omitempty"`
 }
 
 func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     cfg.Addr,
-		Username: cfg.Username,
-		Password: cfg.Password,
-		DB:       cfg.DB,
-	})
+	var client *redis.Client
+	if cfg.Sentinel.Enabled {
+		client = redis.NewFailoverClient(&redis.FailoverOptions{
+			MasterName:       cfg.Sentinel.MasterName,
+			SentinelAddrs:    cfg.Sentinel.Addresses,
+			SentinelUsername: cfg.Sentinel.Username,
+			SentinelPassword: cfg.Sentinel.Password,
+			Username:         cfg.Username,
+			Password:         cfg.Password,
+			DB:               cfg.DB,
+		})
+	} else {
+		client = redis.NewClient(&redis.Options{
+			Addr:     cfg.Addr,
+			Username: cfg.Username,
+			Password: cfg.Password,
+			DB:       cfg.DB,
+		})
+	}
 
 	err := client.Ping(context.Background()).Err()
 	if err != nil {
