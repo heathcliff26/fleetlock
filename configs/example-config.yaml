@@ -17,8 +17,9 @@ storage:
   # The storage backend to use
   #
   # Options:
-  #   memory: Ephemeral, not recommended
-  #   sqlite: Recommended for production use
+  #   memory: Ephemeral, not recommended for production
+  #   sqlite: Persistent, does not really support High Availability
+  #   redis: Use redis database
   #
   # Default: memory
   #
@@ -26,6 +27,15 @@ storage:
   sqlite:
     # The file to use for storing the database
     file: test.db
+  redis:
+    # The address of the redis database
+    address: "localhost:1234"
+    # (Optional) Username for authentication
+    username: ""
+    # (Optional) Password for authentication
+    password: ""
+    # (Optional) Database to use
+    db: 0
 
 # The configured groups to serve, when it isn't defined here, it is not accepted.
 #

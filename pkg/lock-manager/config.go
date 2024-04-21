@@ -2,12 +2,14 @@ package lockmanager
 
 import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
 )
 
 type StorageConfig struct {
 	Type   string               `yaml:"type"`
 	SQLite *sqlite.SQLiteConfig `yaml:"sqlite,omitempty"`
+	Redis  *redis.RedisConfig   `yaml:"redis,omitempty"`
 }
 
 type Groups map[string]GroupConfig
