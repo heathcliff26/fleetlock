@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (84.4%)</option>
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (82.9%)</option>
 				
 				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (73.3%)</option>
 				
@@ -722,17 +722,37 @@ type RedisConfig struct {
         Username string `yaml:"username,omitempty"`
         Password string `yaml:"password,omitempty"`
         DB       int    `yaml:"db,omitempty"`
+        Sentinel struct {
+                Enabled    bool     `yaml:"enabled,omitempty"`
+                MasterName string   `yaml:"master,omitempty"`
+                Addresses  []string `yaml:"addresses,omitempty"`
+                Username   string   `yaml:"username,omitempty"`
+                Password   string   `yaml:"password,omitempty"`
+        } `yaml:"sentinel,omitempty"`
 }
 
 func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
-        client := redis.NewClient(&amp;redis.Options{
-                Addr:     cfg.Addr,
-                Username: cfg.Username,
-                Password: cfg.Password,
-                DB:       cfg.DB,
-        })
+        var client *redis.Client
+        if cfg.Sentinel.Enabled </span><span class="cov0" title="0">{
+                client = redis.NewFailoverClient(&amp;redis.FailoverOptions{
+                        MasterName:       cfg.Sentinel.MasterName,
+                        SentinelAddrs:    cfg.Sentinel.Addresses,
+                        SentinelUsername: cfg.Sentinel.Username,
+                        SentinelPassword: cfg.Sentinel.Password,
+                        Username:         cfg.Username,
+                        Password:         cfg.Password,
+                        DB:               cfg.DB,
+                })
+        }</span> else<span class="cov8" title="1"> {
+                client = redis.NewClient(&amp;redis.Options{
+                        Addr:     cfg.Addr,
+                        Username: cfg.Username,
+                        Password: cfg.Password,
+                        DB:       cfg.DB,
+                })
+        }</span>
 
-        err := client.Ping(context.Background()).Err()
+        <span class="cov8" title="1">err := client.Ping(context.Background()).Err()
         if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
