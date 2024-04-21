@@ -5,29 +5,31 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewManager(t *testing.T) {
+	mr := miniredis.RunT(t)
+	type result struct {
+		groups  map[string]*lockGroup
+		storage string
+	}
+
 	tMatrix := []struct {
 		Name    string
 		Storage *StorageConfig
-		Result  struct {
-			groups  map[string]*lockGroup
-			storage string
-		}
-		Error string
+		Result  result
+		Error   string
 	}{
 		{
 			Name: "MemoryBackend",
 			Storage: &StorageConfig{
 				Type: "memory",
 			},
-			Result: struct {
-				groups  map[string]*lockGroup
-				storage string
-			}{
+			Result: result{
 				groups:  initGroups(NewDefaultGroups()),
 				storage: "*memory.MemoryBackend",
 			},
@@ -41,10 +43,7 @@ func TestNewManager(t *testing.T) {
 					File: "test.db",
 				},
 			},
-			Result: struct {
-				groups  map[string]*lockGroup
-				storage string
-			}{
+			Result: result{
 				groups:  initGroups(NewDefaultGroups()),
 				storage: "*sqlite.SQLBackend",
 			},
@@ -59,6 +58,30 @@ func TestNewManager(t *testing.T) {
 				},
 			},
 			Error: "sqlite3.Error",
+		},
+		{
+			Name: "RedisBackend",
+			Storage: &StorageConfig{
+				Type: "redis",
+				Redis: &redis.RedisConfig{
+					Addr: mr.Addr(),
+				},
+			},
+			Result: result{
+				groups:  initGroups(NewDefaultGroups()),
+				storage: "*redis.RedisBackend",
+			},
+			Error: "",
+		},
+		{
+			Name: "ErrorNewRedisBackend",
+			Storage: &StorageConfig{
+				Type: "redis",
+				Redis: &redis.RedisConfig{
+					Addr: "",
+				},
+			},
+			Error: "*net.OpError",
 		},
 		{
 			Name: "UnknownStorageType",
