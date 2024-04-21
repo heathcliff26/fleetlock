@@ -36,6 +36,19 @@ storage:
     password: ""
     # (Optional) Database to use
     db: 0
+    # (Optional) Sentinel optiones
+    sentinel:
+      # Enable sentinel
+      enabled: false
+      # Master name
+      master: ""
+      # Addresses for sentinel server
+      addresses:
+        - ""
+      # (Optional) Username for authentication with sentinel
+      username: ""
+      # (Optional) Password for authentication with sentinel
+      password: ""
 
 # The configured groups to serve, when it isn't defined here, it is not accepted.
 #
