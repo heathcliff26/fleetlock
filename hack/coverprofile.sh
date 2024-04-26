@@ -13,7 +13,7 @@ if [ ! -d "${OUT_DIR}" ]; then
     mkdir "${OUT_DIR}"
 fi
 
-go test -coverprofile="${OUT_DIR}/cover-${APP}.out" "./..."
+go test -coverprofile="${OUT_DIR}/cover-${APP}.out" -coverpkg "./..." "./..."
 go tool cover -html "${OUT_DIR}/cover-${APP}.out" -o "${OUT_DIR}/index.html"
 
 popd >/dev/null
