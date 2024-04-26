@@ -71,6 +71,17 @@ func TestNewManager(t *testing.T) {
 			Error: "*pgconn.ConnectError",
 		},
 		{
+			Name: "ErrorNewMySQLBackend",
+			Storage: &StorageConfig{
+				Type: "mysql",
+				MySQL: &sql.MySQLConfig{
+					Address:  "localhost:1234",
+					Database: "nothing",
+				},
+			},
+			Error: "*errors.errorString",
+		},
+		{
 			Name: "RedisBackend",
 			Storage: &StorageConfig{
 				Type: "redis",
