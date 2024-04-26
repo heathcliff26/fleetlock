@@ -71,21 +71,25 @@
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (82.9%)</option>
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (100.0%)</option>
 				
-				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (73.3%)</option>
+				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (0.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite/storage.go (73.3%)</option>
 				
-				<option value="file11">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/fleetlock/pkg/server/server.go (85.9%)</option>
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
 				
-				<option value="file13">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
+				<option value="file13">github.com/heathcliff26/fleetlock/pkg/server/server.go (85.9%)</option>
 				
-				<option value="file14">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
+				<option value="file14">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
 				
-				<option value="file15">github.com/heathcliff26/fleetlock/tests/storage/testsuite.go (98.2%)</option>
+				<option value="file15">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
+				
+				<option value="file16">github.com/heathcliff26/fleetlock/tests/storage/testsuite.go (98.2%)</option>
+				
+				<option value="file17">github.com/heathcliff26/fleetlock/tests/utils/container.go (72.2%)</option>
 				
 				</select>
 			</div>
@@ -706,6 +710,108 @@ func (g *group) hasLock(id string) bool <span class="cov8" title="1">{
 
 import (
         "context"
+        "net"
+        "strings"
+        "sync"
+        "time"
+
+        "github.com/redis/go-redis/v9"
+)
+
+const loadbalancerHealtchCheckPeriod = time.Second * 10
+
+type loadbalancer struct {
+        // List of addresses for redis endpoints
+        addrs []string
+        // Options for connecting to redis
+        options redis.Options
+        // Context to cancle health check
+        ctx    context.Context
+        cancel context.CancelFunc
+
+        selected int
+        rwlock   sync.RWMutex
+}
+
+// Create a new redis client with loadbalanced connections
+func NewRedisClientWithLoadbalancer(addrs []string, opt *redis.Options) (*redis.Client, *loadbalancer) <span class="cov8" title="1">{
+        lb := NewRedisLoadbalancer(addrs, *opt)
+        lb.PeriodicHealthCheck()
+        opt.Dialer = lb.Dial
+        return redis.NewClient(opt), lb
+}</span>
+
+// Return a new loadbalancer for redis
+func NewRedisLoadbalancer(addrs []string, opt redis.Options) *loadbalancer <span class="cov8" title="1">{
+        ctx, cancel := context.WithCancel(context.Background())
+
+        if opt.Network == "" </span><span class="cov8" title="1">{
+                opt.Network = "tcp"
+        }</span>
+
+        <span class="cov8" title="1">return &amp;loadbalancer{
+                addrs:   addrs,
+                options: opt,
+                ctx:     ctx,
+                cancel:  cancel,
+        }</span>
+}
+
+// Determine the first healthy master node
+func (lb *loadbalancer) HealthCheck() <span class="cov8" title="1">{
+        for i, addr := range lb.addrs </span><span class="cov8" title="1">{
+                opt := lb.options
+                opt.Addr = addr
+                client := redis.NewClient(&amp;opt)
+                defer client.Close()
+
+                res, err := client.Ping(context.Background()).Result()
+                if err != nil || res != "PONG" </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">res, err = client.Info(context.Background(), "replication").Result()
+                if err == nil || strings.Contains(res, "role:master") </span><span class="cov8" title="1">{
+                        lb.rwlock.Lock()
+                        defer lb.rwlock.Unlock()
+                        lb.selected = i
+                        break</span>
+                }
+        }
+}
+
+// Starts go-routine that periodically runs a healthcheck in the background
+func (lb *loadbalancer) PeriodicHealthCheck() <span class="cov8" title="1">{
+        go lb.periodicHealthCheck()
+}</span>
+
+func (lb *loadbalancer) periodicHealthCheck() <span class="cov8" title="1">{
+        for </span><span class="cov8" title="1">{
+                lb.HealthCheck()
+
+                select </span>{
+                case &lt;-lb.ctx.Done():<span class="cov8" title="1">
+                        return</span>
+                case &lt;-time.After(loadbalancerHealtchCheckPeriod):<span class="cov0" title="0"></span>
+                }
+        }
+}
+
+func (lb *loadbalancer) Dial(ctx context.Context, _ string, _ string) (net.Conn, error) <span class="cov8" title="1">{
+        lb.rwlock.RLock()
+        defer lb.rwlock.RUnlock()
+        return net.Dial(lb.options.Network, lb.addrs[lb.selected])
+}</span>
+
+func (lb *loadbalancer) Close() <span class="cov8" title="1">{
+        lb.cancel()
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package redis
+
+import (
+        "context"
         "fmt"
         "time"
 
@@ -717,13 +823,15 @@ const keyformat = "group:%s,id:%s"
 
 type RedisBackend struct {
         client *redis.Client
+        lb     *loadbalancer
 }
 
 type RedisConfig struct {
-        Addr     string `yaml:"address"`
-        Username string `yaml:"username,omitempty"`
-        Password string `yaml:"password,omitempty"`
-        DB       int    `yaml:"db,omitempty"`
+        Addr     string   `yaml:"address,omitempty"`
+        Addrs    []string `yaml:"addresses,omitempty"`
+        Username string   `yaml:"username,omitempty"`
+        Password string   `yaml:"password,omitempty"`
+        DB       int      `yaml:"db,omitempty"`
         Sentinel struct {
                 Enabled    bool     `yaml:"enabled,omitempty"`
                 MasterName string   `yaml:"master,omitempty"`
@@ -733,9 +841,11 @@ type RedisConfig struct {
         } `yaml:"sentinel,omitempty"`
 }
 
-func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
+func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov0" title="0">{
         var client *redis.Client
-        if cfg.Sentinel.Enabled </span><span class="cov0" title="0">{
+        var lb *loadbalancer
+        switch </span>{
+        case cfg.Sentinel.Enabled:<span class="cov0" title="0">
                 client = redis.NewFailoverClient(&amp;redis.FailoverOptions{
                         MasterName:       cfg.Sentinel.MasterName,
                         SentinelAddrs:    cfg.Sentinel.Addresses,
@@ -744,29 +854,37 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8"
                         Username:         cfg.Username,
                         Password:         cfg.Password,
                         DB:               cfg.DB,
-                })
-        }</span> else<span class="cov8" title="1"> {
+                })</span>
+        case len(cfg.Addrs) &gt; 0:<span class="cov0" title="0">
+                opt := redis.Options{
+                        Username: cfg.Username,
+                        Password: cfg.Password,
+                        DB:       cfg.DB,
+                }
+                client, lb = NewRedisClientWithLoadbalancer(cfg.Addrs, &amp;opt)</span>
+        default:<span class="cov0" title="0">
                 client = redis.NewClient(&amp;redis.Options{
                         Addr:     cfg.Addr,
                         Username: cfg.Username,
                         Password: cfg.Password,
                         DB:       cfg.DB,
-                })
-        }</span>
+                })</span>
+        }
 
-        <span class="cov8" title="1">err := client.Ping(context.Background()).Err()
-        if err != nil </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">err := client.Ping(context.Background()).Err()
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov8" title="1">return &amp;RedisBackend{
+        <span class="cov0" title="0">return &amp;RedisBackend{
                 client: client,
+                lb:     lb,
         }, nil</span>
 }
 
 // Reserve a lock for the given group.
 // Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
-func (r *RedisBackend) Reserve(group string, id string) error <span class="cov8" title="1">{
+func (r *RedisBackend) Reserve(group string, id string) error <span class="cov0" title="0">{
         key := fmt.Sprintf(keyformat, group, id)
         ctx := context.Background()
 
@@ -775,28 +893,28 @@ func (r *RedisBackend) Reserve(group string, id string) error <span class="cov8"
                 return err
         }</span>
 
-        <span class="cov8" title="1">if ok </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">if ok </span><span class="cov0" title="0">{
                 err := r.client.SAdd(ctx, group, key).Err()
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
         }
 
-        <span class="cov8" title="1">return nil</span>
+        <span class="cov0" title="0">return nil</span>
 }
 
 // Returns the current number of locks for the given group
-func (r *RedisBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
+func (r *RedisBackend) GetLocks(group string) (int, error) <span class="cov0" title="0">{
         result := r.client.SCard(context.Background(), group)
         if err := result.Err(); err != nil </span><span class="cov0" title="0">{
                 return 0, err
         }</span>
-        <span class="cov8" title="1">return int(result.Val()), nil</span>
+        <span class="cov0" title="0">return int(result.Val()), nil</span>
 }
 
 // Release the lock currently held by the id.
 // Does not fail when no lock is held.
-func (r *RedisBackend) Release(group string, id string) error <span class="cov8" title="1">{
+func (r *RedisBackend) Release(group string, id string) error <span class="cov0" title="0">{
         key := fmt.Sprintf(keyformat, group, id)
         ctx := context.Background()
 
@@ -805,7 +923,7 @@ func (r *RedisBackend) Release(group string, id string) error <span class="cov8"
                 return err
         }</span>
 
-        <span class="cov8" title="1">err = r.client.SRem(ctx, group, key).Err()
+        <span class="cov0" title="0">err = r.client.SRem(ctx, group, key).Err()
         return err</span>
 }
 
@@ -815,7 +933,7 @@ func (r *RedisBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <sp
 }
 
 // Check if a given id already has a lock for this group
-func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span class="cov8" title="1">{
+func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span class="cov0" title="0">{
         key := fmt.Sprintf(keyformat, group, id)
         ctx := context.Background()
 
@@ -824,12 +942,15 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span clas
 }</span>
 
 // Calls all necessary finalization if necessary
-func (r *RedisBackend) Close() error <span class="cov8" title="1">{
-        return r.client.Close()
-}</span>
+func (r *RedisBackend) Close() error <span class="cov0" title="0">{
+        if r.lb != nil </span><span class="cov0" title="0">{
+                r.lb.Close()
+        }</span>
+        <span class="cov0" title="0">return r.client.Close()</span>
+}
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package sqlite
+		<pre class="file" id="file10" style="display: none">package sqlite
 
 import (
         "database/sql"
@@ -979,7 +1100,7 @@ func (s *SQLBackend) Close() error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package server
+		<pre class="file" id="file11" style="display: none">package server
 
 import (
         "strconv"
@@ -1028,7 +1149,7 @@ func (cfg *ServerConfig) Validate() error <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package server
+		<pre class="file" id="file12" style="display: none">package server
 
 type ErrorIncompleteSSlConfig struct{}
 
@@ -1037,7 +1158,7 @@ func (e ErrorIncompleteSSlConfig) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package server
+		<pre class="file" id="file13" style="display: none">package server
 
 import (
         "encoding/json"
@@ -1200,7 +1321,7 @@ func (s *Server) Run() error <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package server
+		<pre class="file" id="file14" style="display: none">package server
 
 import (
         "encoding/json"
@@ -1234,7 +1355,7 @@ func sendResponse(rw http.ResponseWriter, res FleetLockResponse) <span class="co
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package version
+		<pre class="file" id="file15" style="display: none">package version
 
 import (
         "fmt"
@@ -1286,7 +1407,7 @@ func Version() string <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package storage
+		<pre class="file" id="file16" style="display: none">package storage
 
 import (
         "strconv"
@@ -1471,6 +1592,51 @@ func RunLockManagerTestsuiteWithStorage(t *testing.T, storage lockmanager.Storag
                 assert.True(ok)
                 assert.Nil(err)
         }</span>)
+}
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package utils
+
+import (
+        "fmt"
+        "os/exec"
+)
+
+var (
+        containerRuntime string
+        initialized      = false
+)
+
+func findContainerRuntime() string <span class="cov8" title="1">{
+        for _, cmd := range []string{"docker", "podman"} </span><span class="cov8" title="1">{
+                path, err := exec.LookPath(cmd)
+                if err != nil </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">err = exec.Command(path, "ps").Run()
+                if err == nil </span><span class="cov8" title="1">{
+                        fmt.Printf("Found container runtime %s, path=%s\n", cmd, path)
+                        return path
+                }</span>
+        }
+        <span class="cov0" title="0">fmt.Println("Did not find any container runtimes")
+        return ""</span>
+}
+
+func HasContainerRuntimer() bool <span class="cov8" title="1">{
+        if !initialized </span><span class="cov8" title="1">{
+                containerRuntime = findContainerRuntime()
+                initialized = true
+        }</span>
+        <span class="cov8" title="1">return containerRuntime != ""</span>
+}
+
+func ExecCRI(args ...string) error <span class="cov8" title="1">{
+        if !initialized </span><span class="cov0" title="0">{
+                containerRuntime = findContainerRuntime()
+                initialized = true
+        }</span>
+        <span class="cov8" title="1">return exec.Command(containerRuntime, args...).Run()</span>
 }
 </pre>
 		
