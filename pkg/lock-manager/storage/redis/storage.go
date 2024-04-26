@@ -13,13 +13,15 @@ const keyformat = "group:%s,id:%s"
 
 type RedisBackend struct {
 	client *redis.Client
+	lb     *loadbalancer
 }
 
 type RedisConfig struct {
-	Addr     string `yaml:"address"`
-	Username string `yaml:"username,omitempty"`
-	Password string `yaml:"password,omitempty"`
-	DB       int    `yaml:"db,omitempty"`
+	Addr     string   `yaml:"address,omitempty"`
+	Addrs    []string `yaml:"addresses,omitempty"`
+	Username string   `yaml:"username,omitempty"`
+	Password string   `yaml:"password,omitempty"`
+	DB       int      `yaml:"db,omitempty"`
 	Sentinel struct {
 		Enabled    bool     `yaml:"enabled,omitempty"`
 		MasterName string   `yaml:"master,omitempty"`
@@ -31,7 +33,9 @@ type RedisConfig struct {
 
 func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
 	var client *redis.Client
-	if cfg.Sentinel.Enabled {
+	var lb *loadbalancer
+	switch {
+	case cfg.Sentinel.Enabled:
 		client = redis.NewFailoverClient(&redis.FailoverOptions{
 			MasterName:       cfg.Sentinel.MasterName,
 			SentinelAddrs:    cfg.Sentinel.Addresses,
@@ -41,7 +45,14 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
 			Password:         cfg.Password,
 			DB:               cfg.DB,
 		})
-	} else {
+	case len(cfg.Addrs) > 0:
+		opt := redis.Options{
+			Username: cfg.Username,
+			Password: cfg.Password,
+			DB:       cfg.DB,
+		}
+		client, lb = NewRedisClientWithLoadbalancer(cfg.Addrs, &opt)
+	default:
 		client = redis.NewClient(&redis.Options{
 			Addr:     cfg.Addr,
 			Username: cfg.Username,
@@ -57,6 +68,7 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
 
 	return &RedisBackend{
 		client: client,
+		lb:     lb,
 	}, nil
 }
 
@@ -121,5 +133,8 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) {
 
 // Calls all necessary finalization if necessary
 func (r *RedisBackend) Close() error {
+	if r.lb != nil {
+		r.lb.Close()
+	}
 	return r.client.Close()
 }

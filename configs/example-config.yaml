@@ -30,6 +30,9 @@ storage:
   redis:
     # The address of the redis database
     address: "localhost:1234"
+    # (Optional) List of addresses when connectiong should be loadbalanced between active-active replicas.
+    addresses:
+      - ""
     # (Optional) Username for authentication
     username: ""
     # (Optional) Password for authentication
