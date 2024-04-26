@@ -1,14 +1,11 @@
 ###############################################################################
 # BEGIN build-stage
 # Compile the binary
-FROM --platform=$BUILDPLATFORM ghcr.io/heathcliff26/go-fyne-ci:1.22.2 AS build-stage
+FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.22.2@sha256:d5302d40dc5fbbf38ec472d1848a9d2391a13f93293a6a5b0b87c99dc0eaa6ae AS build-stage
 
 ARG BUILDPLATFORM
 ARG TARGETARCH
 ARG RELEASE_VERSION
-
-# Cross-compile using zig
-ENV GO_CC_ZIG=true
 
 WORKDIR /app
 

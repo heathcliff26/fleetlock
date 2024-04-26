@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 const (
@@ -45,7 +45,7 @@ type SQLiteConfig struct {
 }
 
 func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) {
-	db, err := sql.Open("sqlite3", cfg.File)
+	db, err := sql.Open("sqlite", cfg.File)
 	if err != nil {
 		return nil, err
 	}

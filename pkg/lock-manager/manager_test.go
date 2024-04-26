@@ -57,7 +57,7 @@ func TestNewManager(t *testing.T) {
 					File: "/not/a/valid/path/to/database",
 				},
 			},
-			Error: "sqlite3.Error",
+			Error: "*sqlite.Error",
 		},
 		{
 			Name: "RedisBackend",
