@@ -67,7 +67,7 @@
 				
 				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (57.1%)</option>
 				
-				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (96.7%)</option>
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (47.5%)</option>
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
@@ -84,6 +84,8 @@
 				<option value="file13">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
 				
 				<option value="file14">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
+				
+				<option value="file15">github.com/heathcliff26/fleetlock/tests/storage/testsuite.go (98.2%)</option>
 				
 				</select>
 			</div>
@@ -477,7 +479,7 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
 }
 
 // Create a new LockManager with custom StorageBackend
-func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov8" title="1">{
+func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov0" title="0">{
         return &amp;LockManager{
                 groups:  initGroups(groups),
                 storage: storage,
@@ -503,54 +505,54 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov8
                 return false, errors.ErrorEmptyID{}
         }</span>
 
-        <span class="cov8" title="1">checkHasLock := func() (bool, error) </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">checkHasLock := func() (bool, error) </span><span class="cov0" title="0">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.storage.HasLock(group, id)
         }</span>
-        <span class="cov8" title="1">ok, err := checkHasLock()
-        if ok &amp;&amp; err == nil </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">ok, err := checkHasLock()
+        if ok &amp;&amp; err == nil </span><span class="cov0" title="0">{
                 return true, nil
-        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
         // Use own function to ensure lock is released
-        <span class="cov8" title="1">checkAvailableSlots := func() (bool, error) </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">checkAvailableSlots := func() (bool, error) </span><span class="cov0" title="0">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
-        <span class="cov8" title="1">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">ok, err = checkAvailableSlots()
+        if err != nil || !ok </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov8" title="1">lGroup.RWLock.Lock()
+        <span class="cov0" title="0">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov8" title="1">{
+        if err != nil || !ok </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov8" title="1">err = lm.storage.Reserve(group, id)
+        <span class="cov0" title="0">err = lm.storage.Reserve(group, id)
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov8" title="1">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov0" title="0">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov8" title="1">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov0" title="0">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
 func (lm *LockManager) Release(group, id string) error <span class="cov8" title="1">{
@@ -562,13 +564,13 @@ func (lm *LockManager) Release(group, id string) error <span class="cov8" title=
                 return errors.ErrorEmptyID{}
         }</span>
 
-        <span class="cov8" title="1">lGroup.RWLock.Lock()
+        <span class="cov0" title="0">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         return lm.storage.Release(group, id)</span>
 }
 
-func (lm *LockManager) Close() error <span class="cov8" title="1">{
+func (lm *LockManager) Close() error <span class="cov0" title="0">{
         return lm.storage.Close()
 }</span>
 </pre>
@@ -1281,6 +1283,194 @@ func Version() string <span class="cov8" title="1">{
         result += "    Go:      " + runtime.Version() + "\n"
 
         return result</span>
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package storage
+
+import (
+        "strconv"
+        "sync"
+        "testing"
+
+        lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+        "github.com/stretchr/testify/assert"
+)
+
+func GetGroups() lockmanager.Groups <span class="cov8" title="1">{
+        testGroups := make(lockmanager.Groups, 7)
+        testGroups["basic"] = lockmanager.GroupConfig{
+                Slots: 1,
+        }
+        testGroups["NoDuplicates"] = lockmanager.GroupConfig{
+                Slots: 3,
+        }
+        testGroups["GetLocks"] = lockmanager.GroupConfig{
+                Slots: 10,
+        }
+        testGroups["ConcurrentReserve"] = lockmanager.GroupConfig{
+                Slots: 10,
+        }
+        testGroups["ConcurrentRelease"] = lockmanager.GroupConfig{
+                Slots: 10,
+        }
+        testGroups["ReserveRace"] = lockmanager.GroupConfig{
+                Slots: 5,
+        }
+        testGroups["ReserveReturnTrueIfAlreadyExists"] = lockmanager.GroupConfig{
+                Slots: 1,
+        }
+        return testGroups
+}</span>
+
+func RunLockManagerTestsuiteWithStorage(t *testing.T, storage lockmanager.StorageBackend) <span class="cov8" title="1">{
+        lm := lockmanager.NewManagerWithStorage(GetGroups(), storage)
+        t.Cleanup(func() </span><span class="cov8" title="1">{
+                err := lm.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        t.Logf("Failed to close manager: %v", err)
+                }</span>
+        })
+
+        <span class="cov8" title="1">t.Run("Basic", func(t *testing.T) </span><span class="cov8" title="1">{
+                t.Run("Reserve", func(t *testing.T) </span><span class="cov8" title="1">{
+                        assert := assert.New(t)
+
+                        ok, err := lm.Reserve("basic", "User1")
+                        assert.True(ok)
+                        assert.Nil(err)
+
+                        ok, err = lm.Reserve("basic", "User2")
+                        assert.False(ok)
+                        assert.Nil(err)
+                }</span>)
+                <span class="cov8" title="1">t.Run("Release", func(t *testing.T) </span><span class="cov8" title="1">{
+                        assert := assert.New(t)
+
+                        err := lm.Release("basic", "User1")
+                        assert.Nil(err)
+
+                        err = lm.Release("basic", "User1")
+                        assert.Nil(err)
+
+                        err = lm.Release("basic", "UnkownUser")
+                        assert.Nil(err)
+                }</span>)
+        })
+        <span class="cov8" title="1">t.Run("NoDuplicates", func(t *testing.T) </span><span class="cov8" title="1">{
+                assert := assert.New(t)
+                for range 10 </span><span class="cov8" title="1">{
+                        ok, err := lm.Reserve("NoDuplicates", "same-id")
+                        assert.True(ok)
+                        assert.Nil(err)
+
+                        count, err := storage.GetLocks("NoDuplicates")
+                        assert.Equal(1, count)
+                        assert.Nil(err)
+                }</span>
+        })
+        <span class="cov8" title="1">t.Run("GetLocks", func(t *testing.T) </span><span class="cov8" title="1">{
+                assert := assert.New(t)
+
+                res, err := storage.GetLocks("GetLocks")
+                assert.Equal(0, res)
+                assert.Nil(err)
+
+                for i := range 10 </span><span class="cov8" title="1">{
+                        ok, err := lm.Reserve("GetLocks", "User"+strconv.Itoa(i))
+                        assert.True(ok)
+                        assert.Nil(err)
+
+                        res, err := storage.GetLocks("GetLocks")
+                        assert.Equal(i+1, res)
+                        assert.Nil(err)
+                }</span>
+                <span class="cov8" title="1">for i := range 10 </span><span class="cov8" title="1">{
+                        err := lm.Release("GetLocks", "User"+strconv.Itoa(i))
+                        assert.Nil(err)
+
+                        res, err := storage.GetLocks("GetLocks")
+                        assert.Equal(9-i, res)
+                        assert.Nil(err)
+                }</span>
+        })
+        <span class="cov8" title="1">t.Run("ConcurrentReserve", func(t *testing.T) </span><span class="cov8" title="1">{
+                assert := assert.New(t)
+
+                var wg sync.WaitGroup
+                wg.Add(10)
+                for i := range 10 </span><span class="cov8" title="1">{
+                        go func() </span><span class="cov8" title="1">{
+                                defer wg.Done()
+                                ok, err := lm.Reserve("ConcurrentReserve", "User"+strconv.Itoa(i))
+                                assert.True(ok)
+                                assert.Nil(err)
+                        }</span>()
+                }
+                <span class="cov8" title="1">wg.Wait()
+
+                res, err := storage.GetLocks("ConcurrentReserve")
+                assert.Equal(10, res)
+                assert.Nil(err)</span>
+        })
+        <span class="cov8" title="1">t.Run("ConcurrentRelease", func(t *testing.T) </span><span class="cov8" title="1">{
+                assert := assert.New(t)
+                for i := range 10 </span><span class="cov8" title="1">{
+                        ok, err := lm.Reserve("ConcurrentRelease", "User"+strconv.Itoa(i))
+                        if !assert.True(ok) || !assert.Nil(err) </span><span class="cov0" title="0">{
+                                t.FailNow()
+                        }</span>
+                }
+
+                <span class="cov8" title="1">var wg sync.WaitGroup
+                wg.Add(10)
+                for i := range 10 </span><span class="cov8" title="1">{
+                        go func() </span><span class="cov8" title="1">{
+                                defer wg.Done()
+                                err := lm.Release("ConcurrentRelease", "User"+strconv.Itoa(i))
+                                assert.Nil(err)
+                        }</span>()
+                }
+                <span class="cov8" title="1">wg.Wait()
+
+                res, err := storage.GetLocks("ConcurrentRelease")
+                assert.Equal(0, res)
+                assert.Nil(err)</span>
+        })
+        <span class="cov8" title="1">t.Run("ReserveRace", func(t *testing.T) </span><span class="cov8" title="1">{
+                assert := assert.New(t)
+
+                result := make(chan bool, 10)
+                for i := range 10 </span><span class="cov8" title="1">{
+                        go func() </span><span class="cov8" title="1">{
+                                ok, err := lm.Reserve("ReserveRace", "User"+strconv.Itoa(i))
+                                assert.Nil(err)
+                                result &lt;- ok
+                        }</span>()
+                }
+                <span class="cov8" title="1">count := 0
+                for range 10 </span><span class="cov8" title="1">{
+                        if &lt;-result </span><span class="cov8" title="1">{
+                                count++
+                        }</span>
+                }
+                <span class="cov8" title="1">assert.Equal(5, count)
+
+                count, err := storage.GetLocks("ReserveRace")
+                assert.Equal(5, count)
+                assert.Nil(err)</span>
+        })
+        <span class="cov8" title="1">t.Run("ReserveReturnTrueIfAlreadyExists", func(t *testing.T) </span><span class="cov8" title="1">{
+                assert := assert.New(t)
+
+                ok, err := lm.Reserve("ReserveReturnTrueIfAlreadyExists", "User1")
+                assert.True(ok)
+                assert.Nil(err)
+
+                ok, err = lm.Reserve("ReserveReturnTrueIfAlreadyExists", "User1")
+                assert.True(ok)
+                assert.Nil(err)
+        }</span>)
 }
 </pre>
 		
