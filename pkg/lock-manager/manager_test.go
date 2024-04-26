@@ -7,7 +7,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,13 +39,13 @@ func TestNewManager(t *testing.T) {
 			Name: "SQLiteBackend",
 			Storage: &StorageConfig{
 				Type: "sqlite",
-				SQLite: &sqlite.SQLiteConfig{
+				SQLite: &sql.SQLiteConfig{
 					File: "test.db",
 				},
 			},
 			Result: result{
 				groups:  initGroups(NewDefaultGroups()),
-				storage: "*sqlite.SQLBackend",
+				storage: "*sql.SQLBackend",
 			},
 			Error: "",
 		},
@@ -53,7 +53,7 @@ func TestNewManager(t *testing.T) {
 			Name: "ErrorNewSQLiteBackend",
 			Storage: &StorageConfig{
 				Type: "sqlite",
-				SQLite: &sqlite.SQLiteConfig{
+				SQLite: &sql.SQLiteConfig{
 					File: "/not/a/valid/path/to/database",
 				},
 			},
