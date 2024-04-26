@@ -60,6 +60,17 @@ func TestNewManager(t *testing.T) {
 			Error: "*sqlite.Error",
 		},
 		{
+			Name: "ErrorNewPostgresBackend",
+			Storage: &StorageConfig{
+				Type: "postgres",
+				Postgres: &sql.PostgresConfig{
+					Address:  "localhost:1234",
+					Database: "nothing",
+				},
+			},
+			Error: "*pgconn.ConnectError",
+		},
+		{
 			Name: "RedisBackend",
 			Storage: &StorageConfig{
 				Type: "redis",

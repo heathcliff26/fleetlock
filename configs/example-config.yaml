@@ -19,6 +19,7 @@ storage:
   # Options:
   #   memory: Ephemeral, not recommended for production
   #   sqlite: Persistent, does not really support High Availability
+  #   postgres: Use postgres database
   #   redis: Use redis database
   #
   # Default: memory
@@ -27,6 +28,16 @@ storage:
   sqlite:
     # The file to use for storing the database
     file: test.db
+  postgres:
+    # The address of the database
+    address: "localhost:26257"
+    # The username and password for login
+    username: ""
+    password: ""
+    # The database name
+    database: ""
+    # Additional options for connections. Will be appended with ?
+    options: ""
   redis:
     # The address of the redis database
     address: "localhost:1234"

@@ -10,8 +10,8 @@ import (
 
 const (
 	stmtCreateTable = `CREATE TABLE IF NOT EXISTS locks (
-	group_name TEXT NOT NULL,
-	id TEXT NOT NULL,
+	group_name VARCHAR(100) NOT NULL,
+	id VARCHAR(100) NOT NULL,
 	created TIMESTAMP NOT NULL,
 	PRIMARY KEY (group_name,id)
 	);`
@@ -24,7 +24,7 @@ const (
 
 	stmtGetLocks = `SELECT COUNT(*) FROM (
 			SELECT id FROM locks WHERE group_name=?
-		);`
+		) AS TMP;`
 
 	stmtRelease = "DELETE FROM locks WHERE group_name=? AND id=?;"
 

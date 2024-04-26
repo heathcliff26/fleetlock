@@ -55,6 +55,8 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
 		storage = memory.NewMemoryBackend(groupNames)
 	case "sqlite":
 		storage, err = sql.NewSQLiteBackend(storageCfg.SQLite)
+	case "postgres":
+		storage, err = sql.NewPostgresBackend(storageCfg.Postgres)
 	case "redis":
 		storage, err = redis.NewRedisBackend(storageCfg.Redis)
 	default:
