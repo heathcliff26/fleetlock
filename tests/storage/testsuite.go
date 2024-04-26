@@ -1,93 +1,42 @@
-package lockmanager
+package storage
 
 import (
-	"os"
 	"strconv"
 	"sync"
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
+	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/stretchr/testify/assert"
 )
 
-var testGroups Groups
-
-func init() {
-	testGroups = make(Groups, 1)
-	testGroups["basic"] = GroupConfig{
+func GetGroups() lockmanager.Groups {
+	testGroups := make(lockmanager.Groups, 7)
+	testGroups["basic"] = lockmanager.GroupConfig{
 		Slots: 1,
 	}
-	testGroups["NoDuplicates"] = GroupConfig{
+	testGroups["NoDuplicates"] = lockmanager.GroupConfig{
 		Slots: 3,
 	}
-	testGroups["GetLocks"] = GroupConfig{
+	testGroups["GetLocks"] = lockmanager.GroupConfig{
 		Slots: 10,
 	}
-	testGroups["ConcurrentReserve"] = GroupConfig{
+	testGroups["ConcurrentReserve"] = lockmanager.GroupConfig{
 		Slots: 10,
 	}
-	testGroups["ConcurrentRelease"] = GroupConfig{
+	testGroups["ConcurrentRelease"] = lockmanager.GroupConfig{
 		Slots: 10,
 	}
-	testGroups["ReserveRace"] = GroupConfig{
+	testGroups["ReserveRace"] = lockmanager.GroupConfig{
 		Slots: 5,
 	}
-	testGroups["ReserveReturnTrueIfAlreadyExists"] = GroupConfig{
+	testGroups["ReserveReturnTrueIfAlreadyExists"] = lockmanager.GroupConfig{
 		Slots: 1,
 	}
+	return testGroups
 }
 
-func TestMemoryBackend(t *testing.T) {
-	names := make([]string, len(testGroups))
-	i := 0
-	for k := range testGroups {
-		names[i] = k
-		i++
-	}
-
-	storage := memory.NewMemoryBackend(names)
-
-	RunLockManagerTestsuiteWithStorage(t, storage)
-}
-
-func TestSQLiteBackend(t *testing.T) {
-	cfg := sqlite.SQLiteConfig{
-		File: "test.db",
-	}
-	storage, err := sqlite.NewSQLiteBackend(&cfg)
-	if err != nil {
-		t.Fatalf("Failed to create storage backend: %v", err)
-	}
-	t.Cleanup(func() {
-		err = os.Remove("test.db")
-		if err != nil {
-			t.Logf("Failed to cleanup sqlite database file: %v", err)
-		}
-	})
-
-	RunLockManagerTestsuiteWithStorage(t, storage)
-}
-
-func TestRedisBackend(t *testing.T) {
-	mr := miniredis.RunT(t)
-
-	cfg := redis.RedisConfig{
-		Addr: mr.Addr(),
-	}
-
-	storage, err := redis.NewRedisBackend(&cfg)
-	if err != nil {
-		t.Fatalf("Failed to create storage backend: %v", err)
-	}
-
-	RunLockManagerTestsuiteWithStorage(t, storage)
-}
-
-func RunLockManagerTestsuiteWithStorage(t *testing.T, storage StorageBackend) {
-	lm := NewManagerWithStorage(testGroups, storage)
+func RunLockManagerTestsuiteWithStorage(t *testing.T, storage lockmanager.StorageBackend) {
+	lm := lockmanager.NewManagerWithStorage(GetGroups(), storage)
 	t.Cleanup(func() {
 		err := lm.Close()
 		if err != nil {

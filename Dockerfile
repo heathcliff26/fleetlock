@@ -29,6 +29,7 @@ FROM docker.io/library/golang:1.22.2@sha256:d5302d40dc5fbbf38ec472d1848a9d2391a1
 WORKDIR /app
 
 COPY --from=build-stage /app /app
+COPY tests ./tests
 
 RUN go test -v ./...
 
