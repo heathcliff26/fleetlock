@@ -27,7 +27,7 @@ RUN --mount=type=bind,target=/app/.git,source=.git GOOS=linux GOARCH="${TARGETAR
 ###############################################################################
 # BEGIN test-stage
 # Run the tests in the container
-FROM docker.io/library/golang:1.22.2@sha256:450e3822c7a135e1463cd83e51c8e2eb03b86a02113c89424e6f0f8344bb4168 AS test-stage
+FROM docker.io/library/golang:1.22.2@sha256:d5302d40dc5fbbf38ec472d1848a9d2391a13f93293a6a5b0b87c99dc0eaa6ae AS test-stage
 
 WORKDIR /app
 
