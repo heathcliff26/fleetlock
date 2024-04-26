@@ -7,9 +7,10 @@ import (
 )
 
 type StorageConfig struct {
-	Type   string             `yaml:"type"`
-	SQLite *sql.SQLiteConfig  `yaml:"sqlite,omitempty"`
-	Redis  *redis.RedisConfig `yaml:"redis,omitempty"`
+	Type     string              `yaml:"type"`
+	SQLite   *sql.SQLiteConfig   `yaml:"sqlite,omitempty"`
+	Postgres *sql.PostgresConfig `yaml:"postgres,omitempty"`
+	Redis    *redis.RedisConfig  `yaml:"redis,omitempty"`
 }
 
 type Groups map[string]GroupConfig
