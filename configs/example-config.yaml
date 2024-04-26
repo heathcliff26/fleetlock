@@ -20,6 +20,7 @@ storage:
   #   memory: Ephemeral, not recommended for production
   #   sqlite: Persistent, does not really support High Availability
   #   postgres: Use postgres database
+  #   mysql: Use mysql database
   #   redis: Use redis database
   #
   # Default: memory
@@ -31,6 +32,16 @@ storage:
   postgres:
     # The address of the database
     address: "localhost:26257"
+    # The username and password for login
+    username: ""
+    password: ""
+    # The database name
+    database: ""
+    # Additional options for connections. Will be appended with ?
+    options: ""
+  mysql:
+    # The address of the database
+    address: "tcp(localhost:3306)"
     # The username and password for login
     username: ""
     password: ""

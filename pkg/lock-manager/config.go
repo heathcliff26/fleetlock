@@ -10,6 +10,7 @@ type StorageConfig struct {
 	Type     string              `yaml:"type"`
 	SQLite   *sql.SQLiteConfig   `yaml:"sqlite,omitempty"`
 	Postgres *sql.PostgresConfig `yaml:"postgres,omitempty"`
+	MySQL    *sql.MySQLConfig    `yaml:"mysql,omitempty"`
 	Redis    *redis.RedisConfig  `yaml:"redis,omitempty"`
 }
 
