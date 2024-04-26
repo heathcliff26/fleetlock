@@ -7,7 +7,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
 )
 
@@ -54,7 +54,7 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
 		}
 		storage = memory.NewMemoryBackend(groupNames)
 	case "sqlite":
-		storage, err = sqlite.NewSQLiteBackend(storageCfg.SQLite)
+		storage, err = sql.NewSQLiteBackend(storageCfg.SQLite)
 	case "redis":
 		storage, err = redis.NewRedisBackend(storageCfg.Redis)
 	default:

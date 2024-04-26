@@ -4,14 +4,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 )
 
 func TestSQLiteBackend(t *testing.T) {
-	cfg := sqlite.SQLiteConfig{
+	cfg := sql.SQLiteConfig{
 		File: "test.db",
 	}
-	storage, err := sqlite.NewSQLiteBackend(&cfg)
+	storage, err := sql.NewSQLiteBackend(&cfg)
 	if err != nil {
 		t.Fatalf("Failed to create storage backend: %v", err)
 	}

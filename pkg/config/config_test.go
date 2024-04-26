@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sqlite"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/server"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,7 +24,7 @@ func TestValidConfigs(t *testing.T) {
 		},
 		Storage: &lockmanager.StorageConfig{
 			Type: "sqlite",
-			SQLite: &sqlite.SQLiteConfig{
+			SQLite: &sql.SQLiteConfig{
 				File: "foo.db",
 			},
 		},

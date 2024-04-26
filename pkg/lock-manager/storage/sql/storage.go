@@ -1,4 +1,4 @@
-package sqlite
+package sql
 
 import (
 	"database/sql"
@@ -40,48 +40,33 @@ type SQLBackend struct {
 	hasLock  *sql.Stmt
 }
 
-type SQLiteConfig struct {
-	File string `yaml:"file"`
-}
-
-func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) {
-	db, err := sql.Open("sqlite", cfg.File)
+func (s *SQLBackend) init() error {
+	_, err := s.db.Exec(stmtCreateTable)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	_, err = db.Exec(stmtCreateTable)
+	s.reserve, err = s.db.Prepare(stmtReserve)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	reserve, err := db.Prepare(stmtReserve)
+	s.getLocks, err = s.db.Prepare(stmtGetLocks)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	getLocks, err := db.Prepare(stmtGetLocks)
+	s.release, err = s.db.Prepare(stmtRelease)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	release, err := db.Prepare(stmtRelease)
+	s.hasLock, err = s.db.Prepare(stmtHasLock)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	hasLock, err := db.Prepare(stmtHasLock)
-	if err != nil {
-		return nil, err
-	}
-
-	return &SQLBackend{
-		db:       db,
-		reserve:  reserve,
-		getLocks: getLocks,
-		release:  release,
-		hasLock:  hasLock,
-	}, nil
+	return nil
 }
 
 // Reserve a lock for the given group.
