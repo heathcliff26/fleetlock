@@ -17,18 +17,20 @@ type RedisBackend struct {
 }
 
 type RedisConfig struct {
-	Addr     string   `yaml:"address,omitempty"`
-	Addrs    []string `yaml:"addresses,omitempty"`
-	Username string   `yaml:"username,omitempty"`
-	Password string   `yaml:"password,omitempty"`
-	DB       int      `yaml:"db,omitempty"`
-	Sentinel struct {
-		Enabled    bool     `yaml:"enabled,omitempty"`
-		MasterName string   `yaml:"master,omitempty"`
-		Addresses  []string `yaml:"addresses,omitempty"`
-		Username   string   `yaml:"username,omitempty"`
-		Password   string   `yaml:"password,omitempty"`
-	} `yaml:"sentinel,omitempty"`
+	Addr     string              `yaml:"address,omitempty"`
+	Addrs    []string            `yaml:"addresses,omitempty"`
+	Username string              `yaml:"username,omitempty"`
+	Password string              `yaml:"password,omitempty"`
+	DB       int                 `yaml:"db,omitempty"`
+	Sentinel RedisSentinelConfig `yaml:"sentinel,omitempty"`
+}
+
+type RedisSentinelConfig struct {
+	Enabled    bool     `yaml:"enabled,omitempty"`
+	MasterName string   `yaml:"master,omitempty"`
+	Addresses  []string `yaml:"addresses,omitempty"`
+	Username   string   `yaml:"username,omitempty"`
+	Password   string   `yaml:"password,omitempty"`
 }
 
 func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {

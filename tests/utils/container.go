@@ -11,7 +11,7 @@ var (
 )
 
 func findContainerRuntime() string {
-	for _, cmd := range []string{"docker", "podman"} {
+	for _, cmd := range []string{"podman", "docker"} {
 		path, err := exec.LookPath(cmd)
 		if err != nil {
 			continue
@@ -34,10 +34,14 @@ func HasContainerRuntimer() bool {
 	return containerRuntime != ""
 }
 
+func GetCommand(args ...string) *exec.Cmd {
+	return exec.Command(containerRuntime, args...)
+}
+
 func ExecCRI(args ...string) error {
 	if !initialized {
 		containerRuntime = findContainerRuntime()
 		initialized = true
 	}
-	return exec.Command(containerRuntime, args...).Run()
+	return GetCommand(args...).Run()
 }
