@@ -67,37 +67,39 @@
 				
 				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (57.1%)</option>
 				
-				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (96.8%)</option>
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (96.9%)</option>
 				
-				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
+				<option value="file7">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd/storage.go (79.1%)</option>
 				
-				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (100.0%)</option>
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (87.5%)</option>
+				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (87.5%)</option>
 				
-				<option value="file11">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/postgres.go (76.2%)</option>
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (100.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/sqlite.go (88.9%)</option>
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/postgres.go (76.2%)</option>
 				
-				<option value="file13">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/storage.go (73.8%)</option>
+				<option value="file13">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/sqlite.go (88.9%)</option>
 				
-				<option value="file14">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/util.go (90.0%)</option>
+				<option value="file14">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/storage.go (73.8%)</option>
 				
-				<option value="file15">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
+				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/util.go (90.0%)</option>
 				
-				<option value="file16">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
+				<option value="file16">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
 				
-				<option value="file17">github.com/heathcliff26/fleetlock/pkg/server/server.go (85.9%)</option>
+				<option value="file17">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
 				
-				<option value="file18">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
+				<option value="file18">github.com/heathcliff26/fleetlock/pkg/server/server.go (85.9%)</option>
 				
-				<option value="file19">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
+				<option value="file19">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
 				
-				<option value="file20">github.com/heathcliff26/fleetlock/tests/storage/testsuite.go (98.2%)</option>
+				<option value="file20">github.com/heathcliff26/fleetlock/pkg/version/version.go (73.7%)</option>
 				
-				<option value="file21">github.com/heathcliff26/fleetlock/tests/utils/container.go (73.7%)</option>
+				<option value="file21">github.com/heathcliff26/fleetlock/tests/storage/testsuite.go (98.2%)</option>
+				
+				<option value="file22">github.com/heathcliff26/fleetlock/tests/utils/container.go (73.7%)</option>
 				
 				</select>
 			</div>
@@ -330,6 +332,7 @@ func (e *ErrUnknownLogLevel) Error() string <span class="cov0" title="0">{
 
 import (
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 )
@@ -340,6 +343,7 @@ type StorageConfig struct {
         Postgres *sql.PostgresConfig `yaml:"postgres,omitempty"`
         MySQL    *sql.MySQLConfig    `yaml:"mysql,omitempty"`
         Redis    *redis.RedisConfig  `yaml:"redis,omitempty"`
+        Etcd     *etcd.EtcdConfig    `yaml:"etcd,omitempty"`
 }
 
 type Groups map[string]GroupConfig
@@ -427,6 +431,7 @@ import (
         "time"
 
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
@@ -483,6 +488,8 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
                 storage, err = sql.NewMySQLBackend(storageCfg.MySQL)</span>
         case "redis":<span class="cov8" title="1">
                 storage, err = redis.NewRedisBackend(storageCfg.Redis)</span>
+        case "etcd":<span class="cov8" title="1">
+                storage, err = etcd.NewEtcdBackend(storageCfg.Etcd)</span>
         default:<span class="cov8" title="1">
                 err = errors.NewErrorUnkownStorageType(storageCfg.Type)</span>
         }
@@ -593,7 +600,139 @@ func (lm *LockManager) Close() error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package memory
+		<pre class="file" id="file7" style="display: none">package etcd
+
+import (
+        "context"
+        "crypto/tls"
+        "fmt"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        "go.etcd.io/etcd/client/pkg/v3/transport"
+        clientv3 "go.etcd.io/etcd/client/v3"
+)
+
+const keyformat = "com.github.heathcliff26.fleetlock/group/%s/id/%s"
+
+const timeout = 200 * time.Millisecond
+
+type EtcdBackend struct {
+        client *clientv3.Client
+}
+
+type EtcdConfig struct {
+        Endpoints []string `yaml:"endpoints,omitempty"`
+        Username  string   `yaml:"username,omitempty"`
+        Password  string   `yaml:"password,omitempty"`
+        CertFile  string   `yaml:"cert,omitempty"`
+        KeyFile   string   `yaml:"key,omitempty"`
+}
+
+func NewEtcdBackend(cfg *EtcdConfig) (*EtcdBackend, error) <span class="cov8" title="1">{
+        var tls *tls.Config
+        if cfg.CertFile != "" &amp;&amp; cfg.KeyFile != "" </span><span class="cov0" title="0">{
+                var err error
+                tls, err = transport.TLSInfo{
+                        CertFile: cfg.CertFile,
+                        KeyFile:  cfg.KeyFile,
+                }.ClientConfig()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+        <span class="cov8" title="1">c, err := clientv3.New(clientv3.Config{
+                Endpoints:   cfg.Endpoints,
+                Username:    cfg.Username,
+                Password:    cfg.Password,
+                DialTimeout: time.Second,
+                TLS:         tls,
+        })
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+        _, err = c.MemberList(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;EtcdBackend{
+                client: c,
+        }, nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (e *EtcdBackend) Reserve(group string, id string) error <span class="cov8" title="1">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        _, err := e.client.Txn(ctx).If(
+                clientv3.Compare(clientv3.Version(key), "=", 0),
+        ).Then(
+                clientv3.OpPut(key, time.Now().String()),
+        ).Commit()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (e *EtcdBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
+        key := fmt.Sprintf(keyformat, group, "")
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        res, err := e.client.Get(ctx, key, clientv3.WithPrefix(), clientv3.WithCountOnly())
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">return int(res.Count), nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (e *EtcdBackend) Release(group string, id string) error <span class="cov8" title="1">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        _, err := e.client.Delete(ctx, key)
+        return err
+}</span>
+
+// Return all locks older than x
+func (e *EtcdBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("not implemented")</span> // TODO: Implement
+}
+
+// Check if a given id already has a lock for this group
+func (e *EtcdBackend) HasLock(group string, id string) (bool, error) <span class="cov8" title="1">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        res, err := e.client.Get(ctx, key, clientv3.WithCountOnly())
+        if err != nil || res == nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov8" title="1">return res.Count == 1, nil</span>
+}
+
+// Calls all necessary finalization if necessary
+func (e *EtcdBackend) Close() error <span class="cov8" title="1">{
+        return e.client.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package memory
 
 import (
         "time"
@@ -720,7 +859,7 @@ func (g *group) hasLock(id string) bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package redis
+		<pre class="file" id="file9" style="display: none">package redis
 
 import (
         "context"
@@ -822,7 +961,7 @@ func (lb *loadbalancer) Close() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package redis
+		<pre class="file" id="file10" style="display: none">package redis
 
 import (
         "context"
@@ -966,7 +1105,7 @@ func (r *RedisBackend) Close() error <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package sql
+		<pre class="file" id="file11" style="display: none">package sql
 
 import (
         "database/sql"
@@ -1002,7 +1141,7 @@ func NewMySQLBackend(cfg *MySQLConfig) (*SQLBackend, error) <span class="cov8" t
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package sql
+		<pre class="file" id="file12" style="display: none">package sql
 
 import (
         "database/sql"
@@ -1074,7 +1213,7 @@ func NewPostgresBackend(cfg *PostgresConfig) (*SQLBackend, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package sql
+		<pre class="file" id="file13" style="display: none">package sql
 
 import (
         "database/sql"
@@ -1106,7 +1245,7 @@ func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) <span class="cov8"
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package sql
+		<pre class="file" id="file14" style="display: none">package sql
 
 import (
         "database/sql"
@@ -1241,7 +1380,7 @@ func (s *SQLBackend) Close() error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package sql
+		<pre class="file" id="file15" style="display: none">package sql
 
 func createConnectionString(username, password, address, database, options string) string <span class="cov8" title="1">{
         var connStr string
@@ -1261,7 +1400,7 @@ func createConnectionString(username, password, address, database, options strin
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package server
+		<pre class="file" id="file16" style="display: none">package server
 
 import (
         "strconv"
@@ -1310,7 +1449,7 @@ func (cfg *ServerConfig) Validate() error <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package server
+		<pre class="file" id="file17" style="display: none">package server
 
 type ErrorIncompleteSSlConfig struct{}
 
@@ -1319,7 +1458,7 @@ func (e ErrorIncompleteSSlConfig) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package server
+		<pre class="file" id="file18" style="display: none">package server
 
 import (
         "encoding/json"
@@ -1482,7 +1621,7 @@ func (s *Server) Run() error <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">package server
+		<pre class="file" id="file19" style="display: none">package server
 
 import (
         "encoding/json"
@@ -1516,7 +1655,7 @@ func sendResponse(rw http.ResponseWriter, res FleetLockResponse) <span class="co
 }
 </pre>
 		
-		<pre class="file" id="file19" style="display: none">package version
+		<pre class="file" id="file20" style="display: none">package version
 
 import (
         "fmt"
@@ -1568,7 +1707,7 @@ func Version() string <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">package storage
+		<pre class="file" id="file21" style="display: none">package storage
 
 import (
         "strconv"
@@ -1756,7 +1895,7 @@ func RunLockManagerTestsuiteWithStorage(t *testing.T, storage lockmanager.Storag
 }
 </pre>
 		
-		<pre class="file" id="file21" style="display: none">package utils
+		<pre class="file" id="file22" style="display: none">package utils
 
 import (
         "fmt"
