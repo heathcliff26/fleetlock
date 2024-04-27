@@ -1,7 +1,6 @@
 package lockmanager
 
 import (
-	"os"
 	"reflect"
 	"testing"
 
@@ -40,7 +39,7 @@ func TestNewManager(t *testing.T) {
 			Storage: &StorageConfig{
 				Type: "sqlite",
 				SQLite: &sql.SQLiteConfig{
-					File: "test.db",
+					File: "file:test.db?mode=memory",
 				},
 			},
 			Result: result{
@@ -113,12 +112,6 @@ func TestNewManager(t *testing.T) {
 			Error: "*errors.ErrorUnkownStorageType",
 		},
 	}
-	t.Cleanup(func() {
-		err := os.Remove("test.db")
-		if err != nil {
-			t.Logf("Failed to cleanup sqlite database file: %v", err)
-		}
-	})
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
