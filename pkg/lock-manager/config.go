@@ -2,6 +2,7 @@ package lockmanager
 
 import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 )
@@ -12,6 +13,7 @@ type StorageConfig struct {
 	Postgres *sql.PostgresConfig `yaml:"postgres,omitempty"`
 	MySQL    *sql.MySQLConfig    `yaml:"mysql,omitempty"`
 	Redis    *redis.RedisConfig  `yaml:"redis,omitempty"`
+	Etcd     *etcd.EtcdConfig    `yaml:"etcd,omitempty"`
 }
 
 type Groups map[string]GroupConfig

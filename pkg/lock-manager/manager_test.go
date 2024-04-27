@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/stretchr/testify/assert"
@@ -103,6 +104,16 @@ func TestNewManager(t *testing.T) {
 				},
 			},
 			Error: "*net.OpError",
+		},
+		{
+			Name: "ErrorNewEtcdBackend",
+			Storage: &StorageConfig{
+				Type: "etcd",
+				Etcd: &etcd.EtcdConfig{
+					Endpoints: []string{},
+				},
+			},
+			Error: "*errors.errorString",
 		},
 		{
 			Name: "UnknownStorageType",
