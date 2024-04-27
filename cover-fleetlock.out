@@ -690,6 +690,13 @@ github.com/heathcliff26/fleetlock/tests/utils/container.go:34.2,34.31 1 0
 github.com/heathcliff26/fleetlock/tests/utils/container.go:37.36,38.18 1 0
 github.com/heathcliff26/fleetlock/tests/utils/container.go:38.18,41.3 2 0
 github.com/heathcliff26/fleetlock/tests/utils/container.go:42.2,42.54 1 0
+github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:9.47,11.2 1 0
+github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:13.44,15.2 1 0
+github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:19.38,21.2 1 0
+github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:27.48,31.2 1 0
+github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:33.49,35.2 1 0
+github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:39.43,41.2 1 0
+github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:43.51,45.2 1 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go:26.55,29.35 2 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go:29.35,34.3 1 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go:36.2,38.3 1 0
@@ -719,13 +726,6 @@ github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go:118
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go:119.31,120.20 1 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go:120.20,122.4 1 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go:124.2,124.14 1 0
-github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:9.47,11.2 1 0
-github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:13.44,15.2 1 0
-github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:19.38,21.2 1 0
-github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:27.48,31.2 1 0
-github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:33.49,35.2 1 0
-github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:39.43,41.2 1 0
-github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go:43.51,45.2 1 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go:17.61,21.16 3 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go:21.16,23.3 1 0
 github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go:25.2,30.16 3 0
