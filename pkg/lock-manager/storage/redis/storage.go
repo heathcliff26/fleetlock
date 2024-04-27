@@ -128,7 +128,7 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) {
 	ctx := context.Background()
 
 	count, err := r.client.Exists(ctx, key).Result()
-	return count == 1 || err != nil, err
+	return count == 1 && err == nil, err
 }
 
 // Calls all necessary finalization if necessary
