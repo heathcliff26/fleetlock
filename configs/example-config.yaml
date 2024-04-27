@@ -22,6 +22,7 @@ storage:
   #   postgres: Use postgres database
   #   mysql: Use mysql database
   #   redis: Use redis database
+  #   etcd: Use etcd database
   #
   # Default: memory
   #
@@ -74,6 +75,19 @@ storage:
       username: ""
       # (Optional) Password for authentication with sentinel
       password: ""
+  etcd:
+    # The etcd endpoints
+    endpoints:
+      - "localhost:2379"
+    # (Optional) Username for authentication
+    username: ""
+    # (Optional) Password for authentication
+    password: ""
+    # (Optional) Client certificate for authentication
+    cert: ""
+    # (Optional) Private key of client certificate for authentication
+    key: ""
+
 
 # The configured groups to serve, when it isn't defined here, it is not accepted.
 #
