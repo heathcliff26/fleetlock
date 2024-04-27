@@ -73,7 +73,7 @@
 				
 				<option value="file8">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (100.0%)</option>
 				
-				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (77.5%)</option>
+				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (87.5%)</option>
 				
 				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (100.0%)</option>
 				
@@ -97,7 +97,7 @@
 				
 				<option value="file20">github.com/heathcliff26/fleetlock/tests/storage/testsuite.go (98.2%)</option>
 				
-				<option value="file21">github.com/heathcliff26/fleetlock/tests/utils/container.go (72.2%)</option>
+				<option value="file21">github.com/heathcliff26/fleetlock/tests/utils/container.go (73.7%)</option>
 				
 				</select>
 			</div>
@@ -841,25 +841,27 @@ type RedisBackend struct {
 }
 
 type RedisConfig struct {
-        Addr     string   `yaml:"address,omitempty"`
-        Addrs    []string `yaml:"addresses,omitempty"`
-        Username string   `yaml:"username,omitempty"`
-        Password string   `yaml:"password,omitempty"`
-        DB       int      `yaml:"db,omitempty"`
-        Sentinel struct {
-                Enabled    bool     `yaml:"enabled,omitempty"`
-                MasterName string   `yaml:"master,omitempty"`
-                Addresses  []string `yaml:"addresses,omitempty"`
-                Username   string   `yaml:"username,omitempty"`
-                Password   string   `yaml:"password,omitempty"`
-        } `yaml:"sentinel,omitempty"`
+        Addr     string              `yaml:"address,omitempty"`
+        Addrs    []string            `yaml:"addresses,omitempty"`
+        Username string              `yaml:"username,omitempty"`
+        Password string              `yaml:"password,omitempty"`
+        DB       int                 `yaml:"db,omitempty"`
+        Sentinel RedisSentinelConfig `yaml:"sentinel,omitempty"`
+}
+
+type RedisSentinelConfig struct {
+        Enabled    bool     `yaml:"enabled,omitempty"`
+        MasterName string   `yaml:"master,omitempty"`
+        Addresses  []string `yaml:"addresses,omitempty"`
+        Username   string   `yaml:"username,omitempty"`
+        Password   string   `yaml:"password,omitempty"`
 }
 
 func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
         var client *redis.Client
         var lb *loadbalancer
         switch </span>{
-        case cfg.Sentinel.Enabled:<span class="cov0" title="0">
+        case cfg.Sentinel.Enabled:<span class="cov8" title="1">
                 client = redis.NewFailoverClient(&amp;redis.FailoverOptions{
                         MasterName:       cfg.Sentinel.MasterName,
                         SentinelAddrs:    cfg.Sentinel.Addresses,
@@ -869,7 +871,7 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8"
                         Password:         cfg.Password,
                         DB:               cfg.DB,
                 })</span>
-        case len(cfg.Addrs) &gt; 0:<span class="cov0" title="0">
+        case len(cfg.Addrs) &gt; 0:<span class="cov8" title="1">
                 opt := redis.Options{
                         Username: cfg.Username,
                         Password: cfg.Password,
@@ -957,7 +959,7 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span clas
 
 // Calls all necessary finalization if necessary
 func (r *RedisBackend) Close() error <span class="cov8" title="1">{
-        if r.lb != nil </span><span class="cov0" title="0">{
+        if r.lb != nil </span><span class="cov8" title="1">{
                 r.lb.Close()
         }</span>
         <span class="cov8" title="1">return r.client.Close()</span>
@@ -1767,7 +1769,7 @@ var (
 )
 
 func findContainerRuntime() string <span class="cov8" title="1">{
-        for _, cmd := range []string{"docker", "podman"} </span><span class="cov8" title="1">{
+        for _, cmd := range []string{"podman", "docker"} </span><span class="cov8" title="1">{
                 path, err := exec.LookPath(cmd)
                 if err != nil </span><span class="cov0" title="0">{
                         continue</span>
@@ -1790,12 +1792,16 @@ func HasContainerRuntimer() bool <span class="cov8" title="1">{
         <span class="cov8" title="1">return containerRuntime != ""</span>
 }
 
+func GetCommand(args ...string) *exec.Cmd <span class="cov8" title="1">{
+        return exec.Command(containerRuntime, args...)
+}</span>
+
 func ExecCRI(args ...string) error <span class="cov8" title="1">{
         if !initialized </span><span class="cov0" title="0">{
                 containerRuntime = findContainerRuntime()
                 initialized = true
         }</span>
-        <span class="cov8" title="1">return exec.Command(containerRuntime, args...).Run()</span>
+        <span class="cov8" title="1">return GetCommand(args...).Run()</span>
 }
 </pre>
 		
