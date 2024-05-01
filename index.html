@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/heathcliff26/fleetlock/cmd/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/fleetlock/pkg/cmd/root.go (19.2%)</option>
+				<option value="file1">github.com/heathcliff26/fleetlock/pkg/cmd/root.go (20.0%)</option>
 				
 				<option value="file2">github.com/heathcliff26/fleetlock/pkg/config/config.go (100.0%)</option>
 				
@@ -149,12 +149,19 @@ func NewRootCommand() *cobra.Command <span class="cov8" title="1">{
                         if err != nil </span><span class="cov0" title="0">{
                                 return err
                         }</span>
-                        <span class="cov0" title="0">run(cmd, cfg)
+
+                        <span class="cov0" title="0">env, err := cmd.Flags().GetBool("env")
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+
+                        <span class="cov0" title="0">run(cmd, cfg, env)
                         return nil</span>
                 },
         }
 
         <span class="cov8" title="1">rootCmd.Flags().StringP("config", "c", "", "Path to config file")
+        rootCmd.Flags().Bool("env", false, "Expand enviroment variables in config file")
         rootCmd.AddCommand(
                 version.NewCommand(),
         )
@@ -170,8 +177,8 @@ func Execute() <span class="cov0" title="0">{
         }</span>
 }
 
-func run(cmd *cobra.Command, configPath string) <span class="cov0" title="0">{
-        cfg, err := config.LoadConfig(configPath)
+func run(cmd *cobra.Command, configPath string, env bool) <span class="cov0" title="0">{
+        cfg, err := config.LoadConfig(configPath, env)
         if err != nil </span><span class="cov0" title="0">{
                 exitError(cmd, err)
         }</span>
@@ -256,7 +263,7 @@ func DefaultConfig() *Config <span class="cov8" title="1">{
 // Loads the config from the given path.
 // When path is empty, returns default config.
 // Returns error when the given config is invalid.
-func LoadConfig(path string) (*Config, error) <span class="cov8" title="1">{
+func LoadConfig(path string, env bool) (*Config, error) <span class="cov8" title="1">{
         c := DefaultConfig()
 
         if path == "" </span><span class="cov8" title="1">{
@@ -267,6 +274,10 @@ func LoadConfig(path string) (*Config, error) <span class="cov8" title="1">{
         <span class="cov8" title="1">f, err := os.ReadFile(path)
         if err != nil </span><span class="cov8" title="1">{
                 return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if env </span><span class="cov8" title="1">{
+                f = []byte(os.ExpandEnv(string(f)))
         }</span>
 
         <span class="cov8" title="1">err = yaml.Unmarshal(f, &amp;c)
