@@ -25,12 +25,19 @@ func NewRootCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			run(cmd, cfg)
+
+			env, err := cmd.Flags().GetBool("env")
+			if err != nil {
+				return err
+			}
+
+			run(cmd, cfg, env)
 			return nil
 		},
 	}
 
 	rootCmd.Flags().StringP("config", "c", "", "Path to config file")
+	rootCmd.Flags().Bool("env", false, "Expand enviroment variables in config file")
 	rootCmd.AddCommand(
 		version.NewCommand(),
 	)
@@ -46,8 +53,8 @@ func Execute() {
 	}
 }
 
-func run(cmd *cobra.Command, configPath string) {
-	cfg, err := config.LoadConfig(configPath)
+func run(cmd *cobra.Command, configPath string, env bool) {
+	cfg, err := config.LoadConfig(configPath, env)
 	if err != nil {
 		exitError(cmd, err)
 	}

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/server"
 	"github.com/stretchr/testify/assert"
@@ -77,7 +78,7 @@ func TestValidConfigs(t *testing.T) {
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
-			c, err := LoadConfig(tCase.Path)
+			c, err := LoadConfig(tCase.Path, false)
 
 			assert := assert.New(t)
 
@@ -168,7 +169,7 @@ func TestInvalidConfigs(t *testing.T) {
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
-			cfg, err := LoadConfig(tCase.Path)
+			cfg, err := LoadConfig(tCase.Path, false)
 
 			assert := assert.New(t)
 
@@ -176,4 +177,26 @@ func TestInvalidConfigs(t *testing.T) {
 			assert.Equal(tCase.Result, reflect.TypeOf(err).String())
 		})
 	}
+}
+
+func TestEnvSubstitution(t *testing.T) {
+	c := DefaultConfig()
+	c.Storage.Type = "redis"
+	c.Storage.Redis = &redis.RedisConfig{
+		Addr:     "localhost:4321",
+		Username: "redis",
+		Password: "testpass",
+		DB:       5,
+	}
+	c.Defaults()
+
+	t.Setenv("FLEETLOCK_REDIS_USERNAME", "redis")
+	t.Setenv("FLEETLOCK_REDIS_PASSWORD", "testpass")
+
+	cfg, err := LoadConfig("testdata/env-substitution.yaml", true)
+
+	assert := assert.New(t)
+
+	assert.Nil(err)
+	assert.Equal(c, cfg)
 }

@@ -61,7 +61,7 @@ func DefaultConfig() *Config {
 // Loads the config from the given path.
 // When path is empty, returns default config.
 // Returns error when the given config is invalid.
-func LoadConfig(path string) (*Config, error) {
+func LoadConfig(path string, env bool) (*Config, error) {
 	c := DefaultConfig()
 
 	if path == "" {
@@ -72,6 +72,10 @@ func LoadConfig(path string) (*Config, error) {
 	f, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
+	}
+
+	if env {
+		f = []byte(os.ExpandEnv(string(f)))
 	}
 
 	err = yaml.Unmarshal(f, &c)
