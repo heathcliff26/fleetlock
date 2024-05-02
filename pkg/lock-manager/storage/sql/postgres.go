@@ -2,6 +2,7 @@ package sql
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -35,36 +36,22 @@ func NewPostgresBackend(cfg *PostgresConfig) (*SQLBackend, error) {
 
 	db, err := sql.Open("pgx", "postgres://"+connStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open postgres database: %w", err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("failed to ping postgres database: %w", err)
 	}
 
 	s := &SQLBackend{
-		db: db,
+		databaseType: "postgres",
+		db:           db,
 	}
 
-	_, err = s.db.Exec(stmtCreateTable)
+	err = s.init()
 	if err != nil {
-		return nil, err
-	}
-
-	s.reserve, err = s.db.Prepare(postgresReserve)
-	if err != nil {
-		return nil, err
-	}
-
-	s.getLocks, err = s.db.Prepare(postgresGetLocks)
-	if err != nil {
-		return nil, err
-	}
-
-	s.release, err = s.db.Prepare(postgresRelease)
-	if err != nil {
-		return nil, err
-	}
-
-	s.hasLock, err = s.db.Prepare(postgresHasLock)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 	return s, nil
 }

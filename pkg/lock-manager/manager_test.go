@@ -57,7 +57,7 @@ func TestNewManager(t *testing.T) {
 					File: "/not/a/valid/path/to/database",
 				},
 			},
-			Error: "*sqlite.Error",
+			Error: "failed to \"ping\" sqlite database",
 		},
 		{
 			Name: "ErrorNewPostgresBackend",
@@ -68,7 +68,7 @@ func TestNewManager(t *testing.T) {
 					Database: "nothing",
 				},
 			},
-			Error: "*pgconn.ConnectError",
+			Error: "failed to ping postgres database",
 		},
 		{
 			Name: "ErrorNewMySQLBackend",
@@ -79,7 +79,7 @@ func TestNewManager(t *testing.T) {
 					Database: "nothing",
 				},
 			},
-			Error: "*errors.errorString",
+			Error: "failed to open mysql database",
 		},
 		{
 			Name: "RedisBackend",
@@ -103,7 +103,7 @@ func TestNewManager(t *testing.T) {
 					Addr: "",
 				},
 			},
-			Error: "*net.OpError",
+			Error: "failed to ping redis server",
 		},
 		{
 			Name: "ErrorNewEtcdBackend",
@@ -113,14 +113,14 @@ func TestNewManager(t *testing.T) {
 					Endpoints: []string{},
 				},
 			},
-			Error: "*errors.errorString",
+			Error: "failed to create etcd client",
 		},
 		{
 			Name: "UnknownStorageType",
 			Storage: &StorageConfig{
 				Type: "not-a-valid-type",
 			},
-			Error: "*errors.ErrorUnkownStorageType",
+			Error: "Unsupported storage type",
 		},
 	}
 
@@ -139,7 +139,7 @@ func TestNewManager(t *testing.T) {
 				assert.Equal(tCase.Result.storage, reflect.TypeOf(lm.storage).String())
 			} else {
 				assert.Nil(lm)
-				assert.Equal(tCase.Error, reflect.TypeOf(err).String())
+				assert.ErrorContains(err, tCase.Error)
 			}
 		})
 	}

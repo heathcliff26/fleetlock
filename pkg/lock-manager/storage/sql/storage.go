@@ -2,6 +2,7 @@ package sql
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
@@ -32,6 +33,8 @@ const (
 )
 
 type SQLBackend struct {
+	databaseType string
+
 	db *sql.DB
 
 	reserve  *sql.Stmt
@@ -41,29 +44,43 @@ type SQLBackend struct {
 }
 
 func (s *SQLBackend) init() error {
+	var reserve, get, release, has string
+	switch s.databaseType {
+	case "postgres":
+		reserve = postgresReserve
+		get = postgresGetLocks
+		release = postgresRelease
+		has = postgresHasLock
+	default:
+		reserve = stmtReserve
+		get = stmtGetLocks
+		release = stmtRelease
+		has = stmtHasLock
+	}
+
 	_, err := s.db.Exec(stmtCreateTable)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create lock table: %w", err)
 	}
 
-	s.reserve, err = s.db.Prepare(stmtReserve)
+	s.reserve, err = s.db.Prepare(reserve)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to prepare reserve statement: %w", err)
 	}
 
-	s.getLocks, err = s.db.Prepare(stmtGetLocks)
+	s.getLocks, err = s.db.Prepare(get)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to prepare getLocks statement: %w", err)
 	}
 
-	s.release, err = s.db.Prepare(stmtRelease)
+	s.release, err = s.db.Prepare(release)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to prepare release statement: %w", err)
 	}
 
-	s.hasLock, err = s.db.Prepare(stmtHasLock)
+	s.hasLock, err = s.db.Prepare(has)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to prepare hasLock statement: %w", err)
 	}
 
 	return nil
@@ -74,7 +91,7 @@ func (s *SQLBackend) init() error {
 func (s *SQLBackend) Reserve(group string, id string) error {
 	_, err := s.reserve.Exec(group, id, time.Now(), group, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to reserve lock: %w", err)
 	}
 
 	return nil
@@ -84,18 +101,22 @@ func (s *SQLBackend) Reserve(group string, id string) error {
 func (s *SQLBackend) GetLocks(group string) (int, error) {
 	rows, err := s.getLocks.Query(group)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to run getLocks query: %w", err)
 	}
 	defer rows.Close()
 
 	if !rows.Next() {
-		return 0, rows.Err()
+		err = rows.Err()
+		if err != nil {
+			err = fmt.Errorf("failed to read rows from getLocks result: %w", err)
+		}
+		return 0, err
 	}
 
 	var count int
 	err = rows.Scan(&count)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to read next row from getLocks result: %w", err)
 	}
 	return count, nil
 }
@@ -105,7 +126,7 @@ func (s *SQLBackend) GetLocks(group string) (int, error) {
 func (s *SQLBackend) Release(group string, id string) error {
 	_, err := s.release.Exec(group, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to release lock: %w", err)
 	}
 
 	return nil
@@ -120,11 +141,16 @@ func (s *SQLBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) {
 func (s *SQLBackend) HasLock(group, id string) (bool, error) {
 	rows, err := s.hasLock.Query(group, id)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to run hasLocks query: %w", err)
 	}
 	defer rows.Close()
 
-	return rows.Next(), rows.Err()
+	res := rows.Next()
+	err = rows.Err()
+	if err != nil {
+		err = fmt.Errorf("failed to read rows from hasLocks result: %w", err)
+	}
+	return res, err
 }
 
 // Calls all necessary finalization if necessary
