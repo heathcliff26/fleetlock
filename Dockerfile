@@ -22,13 +22,26 @@ RUN --mount=type=bind,target=/app/.git,source=.git GOOS=linux GOARCH="${TARGETAR
 ###############################################################################
 
 ###############################################################################
+# BEGIN combine-stage
+# Combine all outputs, to enable single layer copy for the final image
+FROM scratch AS combine-stage
+
+COPY --from=build-stage /app/bin/fleetlock /
+
+COPY --from=build-stage /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+#
+# END combine-stage
+###############################################################################
+
+###############################################################################
 # BEGIN final-stage
 # Create final docker image
 FROM scratch AS final-stage
 
 WORKDIR /
 
-COPY --from=build-stage /app/bin/fleetlock /
+COPY --from=combine-stage / /
 
 USER 1001
 
