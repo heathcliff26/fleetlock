@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/heathcliff26/fleetlock/pkg/lock-manager/config.go (100.0%)</option>
 				
-				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (57.1%)</option>
+				<option value="file5">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (71.4%)</option>
 				
 				<option value="file6">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (96.9%)</option>
 				
@@ -75,15 +75,15 @@
 				
 				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (87.5%)</option>
+				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (84.1%)</option>
 				
-				<option value="file11">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (100.0%)</option>
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (91.7%)</option>
 				
-				<option value="file12">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/postgres.go (76.2%)</option>
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/postgres.go (83.3%)</option>
 				
-				<option value="file13">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/sqlite.go (88.9%)</option>
+				<option value="file13">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/sqlite.go (83.3%)</option>
 				
-				<option value="file14">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/storage.go (73.8%)</option>
+				<option value="file14">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/storage.go (72.9%)</option>
 				
 				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/util.go (90.0%)</option>
 				
@@ -180,16 +180,16 @@ func Execute() <span class="cov0" title="0">{
 func run(cmd *cobra.Command, configPath string, env bool) <span class="cov0" title="0">{
         cfg, err := config.LoadConfig(configPath, env)
         if err != nil </span><span class="cov0" title="0">{
-                exitError(cmd, err)
+                exitError(cmd, fmt.Errorf("failed to load configuration: %w", err))
         }</span>
 
         <span class="cov0" title="0">s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage)
         if err != nil </span><span class="cov0" title="0">{
-                exitError(cmd, err)
+                exitError(cmd, fmt.Errorf("failed to create server: %w", err))
         }</span>
         <span class="cov0" title="0">err = s.Run()
         if err != nil </span><span class="cov0" title="0">{
-                exitError(cmd, err)
+                exitError(cmd, fmt.Errorf("failed to run server: %w", err))
         }</span>
 }
 
@@ -420,7 +420,7 @@ func NewErrorUnkownStorageType(t string) error <span class="cov8" title="1">{
         }
 }</span>
 
-func (e *ErrorUnkownStorageType) Error() string <span class="cov0" title="0">{
+func (e *ErrorUnkownStorageType) Error() string <span class="cov8" title="1">{
         return fmt.Sprintf("Unsupported storage type \"%s\" selected", e.Type)
 }</span>
 
@@ -649,7 +649,7 @@ func NewEtcdBackend(cfg *EtcdConfig) (*EtcdBackend, error) <span class="cov8" ti
                         KeyFile:  cfg.KeyFile,
                 }.ClientConfig()
                 if err != nil </span><span class="cov0" title="0">{
-                        return nil, err
+                        return nil, fmt.Errorf("failed to load client certificate: %w", err)
                 }</span>
         }
         <span class="cov8" title="1">c, err := clientv3.New(clientv3.Config{
@@ -660,14 +660,14 @@ func NewEtcdBackend(cfg *EtcdConfig) (*EtcdBackend, error) <span class="cov8" ti
                 TLS:         tls,
         })
         if err != nil </span><span class="cov8" title="1">{
-                return nil, err
+                return nil, fmt.Errorf("failed to create etcd client: %w", err)
         }</span>
 
         <span class="cov8" title="1">ctx, cancel := context.WithTimeout(context.Background(), timeout)
         defer cancel()
         _, err = c.MemberList(ctx)
         if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+                return nil, fmt.Errorf("ETCD client failed connection check: %w", err)
         }</span>
 
         <span class="cov8" title="1">return &amp;EtcdBackend{
@@ -1039,7 +1039,7 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8"
 
         <span class="cov8" title="1">err := client.Ping(context.Background()).Err()
         if err != nil </span><span class="cov8" title="1">{
-                return nil, err
+                return nil, fmt.Errorf("failed to ping redis server: %w", err)
         }</span>
 
         <span class="cov8" title="1">return &amp;RedisBackend{
@@ -1056,13 +1056,13 @@ func (r *RedisBackend) Reserve(group string, id string) error <span class="cov8"
 
         ok, err := r.client.SetNX(ctx, key, time.Now(), 0).Result()
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to create key: %w", err)
         }</span>
 
         <span class="cov8" title="1">if ok </span><span class="cov8" title="1">{
                 err := r.client.SAdd(ctx, group, key).Err()
                 if err != nil </span><span class="cov0" title="0">{
-                        return err
+                        return fmt.Errorf("failed to add key to group list: %w", err)
                 }</span>
         }
 
@@ -1073,7 +1073,7 @@ func (r *RedisBackend) Reserve(group string, id string) error <span class="cov8"
 func (r *RedisBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
         result := r.client.SCard(context.Background(), group)
         if err := result.Err(); err != nil </span><span class="cov0" title="0">{
-                return 0, err
+                return 0, fmt.Errorf("failed to get locks from database: %w", err)
         }</span>
         <span class="cov8" title="1">return int(result.Val()), nil</span>
 }
@@ -1086,11 +1086,14 @@ func (r *RedisBackend) Release(group string, id string) error <span class="cov8"
 
         err := r.client.Del(ctx, key).Err()
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to delete key in database: %w", err)
         }</span>
 
         <span class="cov8" title="1">err = r.client.SRem(ctx, group, key).Err()
-        return err</span>
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to remove key from group: %w", err)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
 // Return all locks older than x
@@ -1104,8 +1107,11 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span clas
         ctx := context.Background()
 
         count, err := r.client.Exists(ctx, key).Result()
-        return count == 1 &amp;&amp; err == nil, err
-}</span>
+        if err != nil </span><span class="cov0" title="0">{
+                return false, fmt.Errorf("failed to count keys in group: %w", err)
+        }</span>
+        <span class="cov8" title="1">return count == 1, nil</span>
+}
 
 // Calls all necessary finalization if necessary
 func (r *RedisBackend) Close() error <span class="cov8" title="1">{
@@ -1120,6 +1126,7 @@ func (r *RedisBackend) Close() error <span class="cov8" title="1">{
 
 import (
         "database/sql"
+        "fmt"
 
         _ "github.com/go-sql-driver/mysql"
 )
@@ -1137,16 +1144,22 @@ func NewMySQLBackend(cfg *MySQLConfig) (*SQLBackend, error) <span class="cov8" t
 
         db, err := sql.Open("mysql", connStr)
         if err != nil </span><span class="cov8" title="1">{
-                return nil, err
+                return nil, fmt.Errorf("failed to open mysql database: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">err = db.Ping()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
         <span class="cov8" title="1">s := &amp;SQLBackend{
-                db: db,
+                databaseType: "mysql",
+                db:           db,
         }
 
         err = s.init()
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, err
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize database: %w", err)
         }</span>
         <span class="cov8" title="1">return s, nil</span>
 }
@@ -1156,6 +1169,7 @@ func NewMySQLBackend(cfg *MySQLConfig) (*SQLBackend, error) <span class="cov8" t
 
 import (
         "database/sql"
+        "fmt"
 
         _ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -1189,36 +1203,22 @@ func NewPostgresBackend(cfg *PostgresConfig) (*SQLBackend, error) <span class="c
 
         db, err := sql.Open("pgx", "postgres://"+connStr)
         if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+                return nil, fmt.Errorf("failed to open postgres database: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">err = db.Ping()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to ping postgres database: %w", err)
         }</span>
 
         <span class="cov8" title="1">s := &amp;SQLBackend{
-                db: db,
+                databaseType: "postgres",
+                db:           db,
         }
 
-        _, err = s.db.Exec(stmtCreateTable)
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">s.reserve, err = s.db.Prepare(postgresReserve)
+        err = s.init()
         if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">s.getLocks, err = s.db.Prepare(postgresGetLocks)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">s.release, err = s.db.Prepare(postgresRelease)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">s.hasLock, err = s.db.Prepare(postgresHasLock)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+                return nil, fmt.Errorf("failed to initialize database: %w", err)
         }</span>
         <span class="cov8" title="1">return s, nil</span>
 }
@@ -1228,6 +1228,7 @@ func NewPostgresBackend(cfg *PostgresConfig) (*SQLBackend, error) <span class="c
 
 import (
         "database/sql"
+        "fmt"
 
         _ "modernc.org/sqlite"
 )
@@ -1239,18 +1240,24 @@ type SQLiteConfig struct {
 func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) <span class="cov8" title="1">{
         db, err := sql.Open("sqlite", cfg.File)
         if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+                return nil, fmt.Errorf("failed to open sqlite database: %w", err)
         }</span>
 
         <span class="cov8" title="1">db.SetMaxOpenConns(1)
 
-        s := &amp;SQLBackend{
-                db: db,
+        err = db.Ping()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to \"ping\" sqlite database: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">s := &amp;SQLBackend{
+                databaseType: "sqlite",
+                db:           db,
         }
 
         err = s.init()
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, err
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize database: %w", err)
         }</span>
         <span class="cov8" title="1">return s, nil</span>
 }
@@ -1260,6 +1267,7 @@ func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) <span class="cov8"
 
 import (
         "database/sql"
+        "fmt"
         "time"
 
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
@@ -1290,6 +1298,8 @@ const (
 )
 
 type SQLBackend struct {
+        databaseType string
+
         db *sql.DB
 
         reserve  *sql.Stmt
@@ -1299,29 +1309,43 @@ type SQLBackend struct {
 }
 
 func (s *SQLBackend) init() error <span class="cov8" title="1">{
-        _, err := s.db.Exec(stmtCreateTable)
-        if err != nil </span><span class="cov8" title="1">{
-                return err
+        var reserve, get, release, has string
+        switch s.databaseType </span>{
+        case "postgres":<span class="cov8" title="1">
+                reserve = postgresReserve
+                get = postgresGetLocks
+                release = postgresRelease
+                has = postgresHasLock</span>
+        default:<span class="cov8" title="1">
+                reserve = stmtReserve
+                get = stmtGetLocks
+                release = stmtRelease
+                has = stmtHasLock</span>
+        }
+
+        <span class="cov8" title="1">_, err := s.db.Exec(stmtCreateTable)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create lock table: %w", err)
         }</span>
 
-        <span class="cov8" title="1">s.reserve, err = s.db.Prepare(stmtReserve)
+        <span class="cov8" title="1">s.reserve, err = s.db.Prepare(reserve)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to prepare reserve statement: %w", err)
         }</span>
 
-        <span class="cov8" title="1">s.getLocks, err = s.db.Prepare(stmtGetLocks)
+        <span class="cov8" title="1">s.getLocks, err = s.db.Prepare(get)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to prepare getLocks statement: %w", err)
         }</span>
 
-        <span class="cov8" title="1">s.release, err = s.db.Prepare(stmtRelease)
+        <span class="cov8" title="1">s.release, err = s.db.Prepare(release)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to prepare release statement: %w", err)
         }</span>
 
-        <span class="cov8" title="1">s.hasLock, err = s.db.Prepare(stmtHasLock)
+        <span class="cov8" title="1">s.hasLock, err = s.db.Prepare(has)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to prepare hasLock statement: %w", err)
         }</span>
 
         <span class="cov8" title="1">return nil</span>
@@ -1332,7 +1356,7 @@ func (s *SQLBackend) init() error <span class="cov8" title="1">{
 func (s *SQLBackend) Reserve(group string, id string) error <span class="cov8" title="1">{
         _, err := s.reserve.Exec(group, id, time.Now(), group, id)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to reserve lock: %w", err)
         }</span>
 
         <span class="cov8" title="1">return nil</span>
@@ -1342,18 +1366,22 @@ func (s *SQLBackend) Reserve(group string, id string) error <span class="cov8" t
 func (s *SQLBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
         rows, err := s.getLocks.Query(group)
         if err != nil </span><span class="cov0" title="0">{
-                return 0, err
+                return 0, fmt.Errorf("failed to run getLocks query: %w", err)
         }</span>
         <span class="cov8" title="1">defer rows.Close()
 
         if !rows.Next() </span><span class="cov0" title="0">{
-                return 0, rows.Err()
-        }</span>
+                err = rows.Err()
+                if err != nil </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("failed to read rows from getLocks result: %w", err)
+                }</span>
+                <span class="cov0" title="0">return 0, err</span>
+        }
 
         <span class="cov8" title="1">var count int
         err = rows.Scan(&amp;count)
         if err != nil </span><span class="cov0" title="0">{
-                return 0, err
+                return 0, fmt.Errorf("failed to read next row from getLocks result: %w", err)
         }</span>
         <span class="cov8" title="1">return count, nil</span>
 }
@@ -1363,7 +1391,7 @@ func (s *SQLBackend) GetLocks(group string) (int, error) <span class="cov8" titl
 func (s *SQLBackend) Release(group string, id string) error <span class="cov8" title="1">{
         _, err := s.release.Exec(group, id)
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to release lock: %w", err)
         }</span>
 
         <span class="cov8" title="1">return nil</span>
@@ -1378,11 +1406,16 @@ func (s *SQLBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span
 func (s *SQLBackend) HasLock(group, id string) (bool, error) <span class="cov8" title="1">{
         rows, err := s.hasLock.Query(group, id)
         if err != nil </span><span class="cov0" title="0">{
-                return false, err
+                return false, fmt.Errorf("failed to run hasLocks query: %w", err)
         }</span>
         <span class="cov8" title="1">defer rows.Close()
 
-        return rows.Next(), rows.Err()</span>
+        res := rows.Next()
+        err = rows.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                err = fmt.Errorf("failed to read rows from hasLocks result: %w", err)
+        }</span>
+        <span class="cov8" title="1">return res, err</span>
 }
 
 // Calls all necessary finalization if necessary
