@@ -47,7 +47,7 @@ podman run -d -p 8080:8080 -v fleetlock-data:/data -v /path/to/config.yaml:/conf
 
 ## Examples
 
-An example configuration can be found [here](config/example-config.yaml)
+An example configuration can be found [here](configs/example-config.yaml)
 
 ### Zincati configuration
 
