@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"time"
 
@@ -22,6 +23,7 @@ type RedisConfig struct {
 	Username string              `yaml:"username,omitempty"`
 	Password string              `yaml:"password,omitempty"`
 	DB       int                 `yaml:"db,omitempty"`
+	TLS      bool                `yaml:"tls,omitempty"`
 	Sentinel RedisSentinelConfig `yaml:"sentinel,omitempty"`
 }
 
@@ -36,6 +38,12 @@ type RedisSentinelConfig struct {
 func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
 	var client *redis.Client
 	var lb *loadbalancer
+	var tlsConfig *tls.Config
+
+	if cfg.TLS {
+		tlsConfig = &tls.Config{}
+	}
+
 	switch {
 	case cfg.Sentinel.Enabled:
 		client = redis.NewFailoverClient(&redis.FailoverOptions{
@@ -46,20 +54,23 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
 			Username:         cfg.Username,
 			Password:         cfg.Password,
 			DB:               cfg.DB,
+			TLSConfig:        tlsConfig,
 		})
 	case len(cfg.Addrs) > 0:
 		opt := redis.Options{
-			Username: cfg.Username,
-			Password: cfg.Password,
-			DB:       cfg.DB,
+			Username:  cfg.Username,
+			Password:  cfg.Password,
+			DB:        cfg.DB,
+			TLSConfig: tlsConfig,
 		}
 		client, lb = NewRedisClientWithLoadbalancer(cfg.Addrs, &opt)
 	default:
 		client = redis.NewClient(&redis.Options{
-			Addr:     cfg.Addr,
-			Username: cfg.Username,
-			Password: cfg.Password,
-			DB:       cfg.DB,
+			Addr:      cfg.Addr,
+			Username:  cfg.Username,
+			Password:  cfg.Password,
+			DB:        cfg.DB,
+			TLSConfig: tlsConfig,
 		})
 	}
 

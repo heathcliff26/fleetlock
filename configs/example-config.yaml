@@ -62,6 +62,8 @@ storage:
     password: ""
     # (Optional) Database to use
     db: 0
+    # (Optional) Use TLS when connecting to database
+    tls: false
     # (Optional) Sentinel optiones
     sentinel:
       # Enable sentinel
