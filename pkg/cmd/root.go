@@ -56,16 +56,16 @@ func Execute() {
 func run(cmd *cobra.Command, configPath string, env bool) {
 	cfg, err := config.LoadConfig(configPath, env)
 	if err != nil {
-		exitError(cmd, err)
+		exitError(cmd, fmt.Errorf("failed to load configuration: %w", err))
 	}
 
 	s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage)
 	if err != nil {
-		exitError(cmd, err)
+		exitError(cmd, fmt.Errorf("failed to create server: %w", err))
 	}
 	err = s.Run()
 	if err != nil {
-		exitError(cmd, err)
+		exitError(cmd, fmt.Errorf("failed to run server: %w", err))
 	}
 }
 

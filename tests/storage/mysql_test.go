@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,7 +34,7 @@ func TestMySQLBackend(t *testing.T) {
 	}
 	for i := 0; i < 20; {
 		storage, err = sql.NewMySQLBackend(&cfg)
-		if err == nil || (reflect.TypeOf(err).String() != "*errors.errorString" && err.Error() != "driver: bad connection") {
+		if err == nil || (!strings.Contains(err.Error(), "failed to open mysql database") && !strings.Contains(err.Error(), "failed to ping mysql database")) {
 			break
 		}
 		<-time.After(time.Second)

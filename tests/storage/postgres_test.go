@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -35,7 +35,7 @@ func TestPostgresBackend(t *testing.T) {
 	}
 	for i := 0; i < 10; {
 		storage, err = sql.NewPostgresBackend(&cfg)
-		if err == nil || reflect.TypeOf(err).String() != "*pgconn.ConnectError" {
+		if err == nil || (!strings.Contains(err.Error(), "failed to open postgres database") && !strings.Contains(err.Error(), "failed to ping postgres database")) {
 			break
 		}
 		<-time.After(time.Second)

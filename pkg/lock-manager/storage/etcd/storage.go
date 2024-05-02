@@ -36,7 +36,7 @@ func NewEtcdBackend(cfg *EtcdConfig) (*EtcdBackend, error) {
 			KeyFile:  cfg.KeyFile,
 		}.ClientConfig()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to load client certificate: %w", err)
 		}
 	}
 	c, err := clientv3.New(clientv3.Config{
@@ -47,14 +47,14 @@ func NewEtcdBackend(cfg *EtcdConfig) (*EtcdBackend, error) {
 		TLS:         tls,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create etcd client: %w", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	_, err = c.MemberList(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ETCD client failed connection check: %w", err)
 	}
 
 	return &EtcdBackend{

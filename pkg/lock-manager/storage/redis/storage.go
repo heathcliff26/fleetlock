@@ -65,7 +65,7 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
 
 	err := client.Ping(context.Background()).Err()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to ping redis server: %w", err)
 	}
 
 	return &RedisBackend{
@@ -82,13 +82,13 @@ func (r *RedisBackend) Reserve(group string, id string) error {
 
 	ok, err := r.client.SetNX(ctx, key, time.Now(), 0).Result()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create key: %w", err)
 	}
 
 	if ok {
 		err := r.client.SAdd(ctx, group, key).Err()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to add key to group list: %w", err)
 		}
 	}
 
@@ -99,7 +99,7 @@ func (r *RedisBackend) Reserve(group string, id string) error {
 func (r *RedisBackend) GetLocks(group string) (int, error) {
 	result := r.client.SCard(context.Background(), group)
 	if err := result.Err(); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get locks from database: %w", err)
 	}
 	return int(result.Val()), nil
 }
@@ -112,11 +112,14 @@ func (r *RedisBackend) Release(group string, id string) error {
 
 	err := r.client.Del(ctx, key).Err()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete key in database: %w", err)
 	}
 
 	err = r.client.SRem(ctx, group, key).Err()
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to remove key from group: %w", err)
+	}
+	return nil
 }
 
 // Return all locks older than x
@@ -130,7 +133,10 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) {
 	ctx := context.Background()
 
 	count, err := r.client.Exists(ctx, key).Result()
-	return count == 1 && err == nil, err
+	if err != nil {
+		return false, fmt.Errorf("failed to count keys in group: %w", err)
+	}
+	return count == 1, nil
 }
 
 // Calls all necessary finalization if necessary
