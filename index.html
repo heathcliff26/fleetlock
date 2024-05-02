@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (84.1%)</option>
+				<option value="file10">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (83.0%)</option>
 				
 				<option value="file11">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (91.7%)</option>
 				
@@ -976,6 +976,7 @@ func (lb *loadbalancer) Close() <span class="cov8" title="1">{
 
 import (
         "context"
+        "crypto/tls"
         "fmt"
         "time"
 
@@ -996,6 +997,7 @@ type RedisConfig struct {
         Username string              `yaml:"username,omitempty"`
         Password string              `yaml:"password,omitempty"`
         DB       int                 `yaml:"db,omitempty"`
+        TLS      bool                `yaml:"tls,omitempty"`
         Sentinel RedisSentinelConfig `yaml:"sentinel,omitempty"`
 }
 
@@ -1010,7 +1012,13 @@ type RedisSentinelConfig struct {
 func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
         var client *redis.Client
         var lb *loadbalancer
-        switch </span>{
+        var tlsConfig *tls.Config
+
+        if cfg.TLS </span><span class="cov0" title="0">{
+                tlsConfig = &amp;tls.Config{}
+        }</span>
+
+        <span class="cov8" title="1">switch </span>{
         case cfg.Sentinel.Enabled:<span class="cov8" title="1">
                 client = redis.NewFailoverClient(&amp;redis.FailoverOptions{
                         MasterName:       cfg.Sentinel.MasterName,
@@ -1020,20 +1028,23 @@ func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8"
                         Username:         cfg.Username,
                         Password:         cfg.Password,
                         DB:               cfg.DB,
+                        TLSConfig:        tlsConfig,
                 })</span>
         case len(cfg.Addrs) &gt; 0:<span class="cov8" title="1">
                 opt := redis.Options{
-                        Username: cfg.Username,
-                        Password: cfg.Password,
-                        DB:       cfg.DB,
+                        Username:  cfg.Username,
+                        Password:  cfg.Password,
+                        DB:        cfg.DB,
+                        TLSConfig: tlsConfig,
                 }
                 client, lb = NewRedisClientWithLoadbalancer(cfg.Addrs, &amp;opt)</span>
         default:<span class="cov8" title="1">
                 client = redis.NewClient(&amp;redis.Options{
-                        Addr:     cfg.Addr,
-                        Username: cfg.Username,
-                        Password: cfg.Password,
-                        DB:       cfg.DB,
+                        Addr:      cfg.Addr,
+                        Username:  cfg.Username,
+                        Password:  cfg.Password,
+                        DB:        cfg.DB,
+                        TLSConfig: tlsConfig,
                 })</span>
         }
 
