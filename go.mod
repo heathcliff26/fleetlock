@@ -12,7 +12,7 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.14
 	go.etcd.io/etcd/client/v3 v3.5.14
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.30.1
+	modernc.org/sqlite v1.30.2
 )
 
 require (
