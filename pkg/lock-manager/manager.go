@@ -6,6 +6,7 @@ import (
 
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
@@ -64,6 +65,8 @@ func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) 
 		storage, err = redis.NewRedisBackend(storageCfg.Redis)
 	case "etcd":
 		storage, err = etcd.NewEtcdBackend(storageCfg.Etcd)
+	case "kubernetes":
+		storage, err = kubernetes.NewKubernetesBackend(storageCfg.Kubernetes)
 	default:
 		err = errors.NewErrorUnkownStorageType(storageCfg.Type)
 	}

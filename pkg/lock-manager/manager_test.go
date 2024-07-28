@@ -6,6 +6,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/stretchr/testify/assert"
@@ -116,6 +117,14 @@ func TestNewManager(t *testing.T) {
 			Error: "failed to create etcd client",
 		},
 		{
+			Name: "ErrorNewKubernetesBackend",
+			Storage: &StorageConfig{
+				Type:       "kubernetes",
+				Kubernetes: &kubernetes.KubernetesConfig{},
+			},
+			Error: "invalid configuration: no configuration has been provided, try setting KUBERNETES_MASTER environment variable",
+		},
+		{
 			Name: "UnknownStorageType",
 			Storage: &StorageConfig{
 				Type: "not-a-valid-type",
@@ -131,7 +140,7 @@ func TestNewManager(t *testing.T) {
 			lm, err := NewManager(NewDefaultGroups(), tCase.Storage)
 
 			if tCase.Error == "" {
-				assert.Nil(err)
+				assert.Nilf(err, "Should not return an error but returned: %v", err)
 				if !assert.NotNil(lm) {
 					t.FailNow()
 				}

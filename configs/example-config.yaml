@@ -17,12 +17,13 @@ storage:
   # The storage backend to use
   #
   # Options:
-  #   memory: Ephemeral, not recommended for production
-  #   sqlite: Persistent, does not really support High Availability
-  #   postgres: Use postgres database
-  #   mysql: Use mysql database
-  #   redis: Use redis database
-  #   etcd: Use etcd database
+  #   memory:     Ephemeral, not recommended for production
+  #   sqlite:     Persistent, does not really support High Availability
+  #   postgres:   Use postgres database
+  #   mysql:      Use mysql database
+  #   redis:      Use redis database
+  #   etcd:       Use etcd database
+  #   kubernetes: Use kubernetes leases
   #
   # Default: memory
   #
@@ -89,7 +90,11 @@ storage:
     cert: ""
     # (Optional) Private key of client certificate for authentication
     key: ""
-
+  kubernetes:
+    # (Optional) Path to kubeconfig file, default uses in-cluster serviceaccount
+    kubeconfig: ""
+    # (Optional) Namespace to create leases in, default reads it from file inside pod or defaults to fleetlock
+    namespace: ""
 
 # The configured groups to serve, when it isn't defined here, it is not accepted.
 #

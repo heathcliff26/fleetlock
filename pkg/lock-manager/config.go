@@ -3,17 +3,19 @@ package lockmanager
 import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 )
 
 type StorageConfig struct {
-	Type     string              `yaml:"type"`
-	SQLite   *sql.SQLiteConfig   `yaml:"sqlite,omitempty"`
-	Postgres *sql.PostgresConfig `yaml:"postgres,omitempty"`
-	MySQL    *sql.MySQLConfig    `yaml:"mysql,omitempty"`
-	Redis    *redis.RedisConfig  `yaml:"redis,omitempty"`
-	Etcd     *etcd.EtcdConfig    `yaml:"etcd,omitempty"`
+	Type       string                       `yaml:"type"`
+	SQLite     *sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
+	Postgres   *sql.PostgresConfig          `yaml:"postgres,omitempty"`
+	MySQL      *sql.MySQLConfig             `yaml:"mysql,omitempty"`
+	Redis      *redis.RedisConfig           `yaml:"redis,omitempty"`
+	Etcd       *etcd.EtcdConfig             `yaml:"etcd,omitempty"`
+	Kubernetes *kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
 }
 
 type Groups map[string]GroupConfig
