@@ -1868,16 +1868,16 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span
 func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) <span class="cov8" title="1">{
         ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
         if err != nil </span><span class="cov8" title="1">{
-                slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
                 rw.WriteHeader(http.StatusInternalServerError)
                 sendResponse(rw, msgUnexpectedError)
                 return
         }</span>
         <span class="cov8" title="1">if ok </span><span class="cov8" title="1">{
-                slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
                 sendResponse(rw, msgSuccess)
         }</span> else<span class="cov8" title="1"> {
-                slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
                 rw.WriteHeader(http.StatusLocked)
                 sendResponse(rw, msgSlotsFull)
         }</span>
@@ -1889,12 +1889,12 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) 
 func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) <span class="cov8" title="1">{
         err := s.lm.Release(params.Client.Group, params.Client.ID)
         if err != nil </span><span class="cov8" title="1">{
-                slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+                slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
                 rw.WriteHeader(http.StatusInternalServerError)
                 sendResponse(rw, msgUnexpectedError)
                 return
         }</span>
-        <span class="cov8" title="1">slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+        <span class="cov8" title="1">slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
         sendResponse(rw, msgSuccess)</span>
 }
 
