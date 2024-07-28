@@ -110,16 +110,16 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) {
 	ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
 	if err != nil {
-		slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+		slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
 		rw.WriteHeader(http.StatusInternalServerError)
 		sendResponse(rw, msgUnexpectedError)
 		return
 	}
 	if ok {
-		slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+		slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
 		sendResponse(rw, msgSuccess)
 	} else {
-		slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+		slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
 		rw.WriteHeader(http.StatusLocked)
 		sendResponse(rw, msgSlotsFull)
 	}
@@ -131,12 +131,12 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) 
 func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) {
 	err := s.lm.Release(params.Client.Group, params.Client.ID)
 	if err != nil {
-		slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+		slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
 		rw.WriteHeader(http.StatusInternalServerError)
 		sendResponse(rw, msgUnexpectedError)
 		return
 	}
-	slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("group", params.Client.ID))
+	slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
 	sendResponse(rw, msgSuccess)
 }
 
