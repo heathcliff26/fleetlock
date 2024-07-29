@@ -43,7 +43,7 @@ type StorageBackend interface {
 }
 
 // Create a new LockManager from the given configuration
-func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) {
+func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) {
 	var storage StorageBackend
 	var err error
 	switch storageCfg.Type {

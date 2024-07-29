@@ -33,7 +33,7 @@ type FleetLockResponse struct {
 }
 
 // Create a new Server
-func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg *lockmanager.StorageConfig) (*Server, error) {
+func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmanager.StorageConfig) (*Server, error) {
 	lm, err := lockmanager.NewManager(groups, storageCfg)
 	if err != nil {
 		return nil, err
