@@ -235,10 +235,10 @@ func init() <span class="cov8" title="1">{
 }</span>
 
 type Config struct {
-        LogLevel string                     `yaml:"logLevel,omitempty"`
-        Server   *server.ServerConfig       `yaml:"server,omitempty"`
-        Storage  *lockmanager.StorageConfig `yaml:"storage,omitempty"`
-        Groups   lockmanager.Groups         `yaml:"groups,omitempty"`
+        LogLevel string                    `yaml:"logLevel,omitempty"`
+        Server   *server.ServerConfig      `yaml:"server,omitempty"`
+        Storage  lockmanager.StorageConfig `yaml:"storage,omitempty"`
+        Groups   lockmanager.Groups        `yaml:"groups,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
@@ -424,8 +424,8 @@ type GroupConfig struct {
 }
 
 // Create a new storage config with default values
-func NewDefaultStorageConfig() *StorageConfig <span class="cov8" title="1">{
-        return &amp;StorageConfig{
+func NewDefaultStorageConfig() StorageConfig <span class="cov8" title="1">{
+        return StorageConfig{
                 Type: "memory",
         }
 }</span>
@@ -540,7 +540,7 @@ type StorageBackend interface {
 }
 
 // Create a new LockManager from the given configuration
-func NewManager(groups Groups, storageCfg *StorageConfig) (*LockManager, error) <span class="cov8" title="1">{
+func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) <span class="cov8" title="1">{
         var storage StorageBackend
         var err error
         switch storageCfg.Type </span>{
@@ -1791,7 +1791,7 @@ type FleetLockResponse struct {
 }
 
 // Create a new Server
-func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg *lockmanager.StorageConfig) (*Server, error) <span class="cov8" title="1">{
+func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmanager.StorageConfig) (*Server, error) <span class="cov8" title="1">{
         lm, err := lockmanager.NewManager(groups, storageCfg)
         if err != nil </span><span class="cov8" title="1">{
                 return nil, err
