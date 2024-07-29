@@ -21,13 +21,13 @@ func TestNewManager(t *testing.T) {
 
 	tMatrix := []struct {
 		Name    string
-		Storage *StorageConfig
+		Storage StorageConfig
 		Result  result
 		Error   string
 	}{
 		{
 			Name: "MemoryBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "memory",
 			},
 			Result: result{
@@ -38,7 +38,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "SQLiteBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "sqlite",
 				SQLite: &sql.SQLiteConfig{
 					File: "file:test.db?mode=memory",
@@ -52,7 +52,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "ErrorNewSQLiteBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "sqlite",
 				SQLite: &sql.SQLiteConfig{
 					File: "/not/a/valid/path/to/database",
@@ -62,7 +62,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "ErrorNewPostgresBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "postgres",
 				Postgres: &sql.PostgresConfig{
 					Address:  "localhost:1234",
@@ -73,7 +73,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "ErrorNewMySQLBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "mysql",
 				MySQL: &sql.MySQLConfig{
 					Address:  "localhost:1234",
@@ -84,7 +84,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "RedisBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "redis",
 				Redis: &redis.RedisConfig{
 					Addr: mr.Addr(),
@@ -98,7 +98,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "ErrorNewRedisBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "redis",
 				Redis: &redis.RedisConfig{
 					Addr: "",
@@ -108,7 +108,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "ErrorNewEtcdBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "etcd",
 				Etcd: &etcd.EtcdConfig{
 					Endpoints: []string{},
@@ -118,7 +118,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "ErrorNewKubernetesBackend",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type:       "kubernetes",
 				Kubernetes: &kubernetes.KubernetesConfig{},
 			},
@@ -126,7 +126,7 @@ func TestNewManager(t *testing.T) {
 		},
 		{
 			Name: "UnknownStorageType",
-			Storage: &StorageConfig{
+			Storage: StorageConfig{
 				Type: "not-a-valid-type",
 			},
 			Error: "Unsupported storage type",
@@ -158,7 +158,7 @@ func TestReserve(t *testing.T) {
 	storageCfg := StorageConfig{
 		Type: "memory",
 	}
-	lm, err := NewManager(NewDefaultGroups(), &storageCfg)
+	lm, err := NewManager(NewDefaultGroups(), storageCfg)
 
 	assert := assert.New(t)
 
@@ -179,7 +179,7 @@ func TestRelease(t *testing.T) {
 	storageCfg := StorageConfig{
 		Type: "memory",
 	}
-	lm, err := NewManager(NewDefaultGroups(), &storageCfg)
+	lm, err := NewManager(NewDefaultGroups(), storageCfg)
 
 	assert := assert.New(t)
 

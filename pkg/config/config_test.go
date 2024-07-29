@@ -23,7 +23,7 @@ func TestValidConfigs(t *testing.T) {
 				Key:     "foo.key",
 			},
 		},
-		Storage: &lockmanager.StorageConfig{
+		Storage: lockmanager.StorageConfig{
 			Type: "sqlite",
 			SQLite: &sql.SQLiteConfig{
 				File: "foo.db",

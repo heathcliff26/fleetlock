@@ -25,8 +25,8 @@ type GroupConfig struct {
 }
 
 // Create a new storage config with default values
-func NewDefaultStorageConfig() *StorageConfig {
-	return &StorageConfig{
+func NewDefaultStorageConfig() StorageConfig {
+	return StorageConfig{
 		Type: "memory",
 	}
 }

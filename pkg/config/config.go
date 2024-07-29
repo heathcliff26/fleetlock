@@ -27,10 +27,10 @@ func init() {
 }
 
 type Config struct {
-	LogLevel string                     `yaml:"logLevel,omitempty"`
-	Server   *server.ServerConfig       `yaml:"server,omitempty"`
-	Storage  *lockmanager.StorageConfig `yaml:"storage,omitempty"`
-	Groups   lockmanager.Groups         `yaml:"groups,omitempty"`
+	LogLevel string                    `yaml:"logLevel,omitempty"`
+	Server   *server.ServerConfig      `yaml:"server,omitempty"`
+	Storage  lockmanager.StorageConfig `yaml:"storage,omitempty"`
+	Groups   lockmanager.Groups        `yaml:"groups,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
