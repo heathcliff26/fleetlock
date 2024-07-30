@@ -25,7 +25,7 @@ func TestValidConfigs(t *testing.T) {
 		},
 		Storage: lockmanager.StorageConfig{
 			Type: "sqlite",
-			SQLite: &sql.SQLiteConfig{
+			SQLite: sql.SQLiteConfig{
 				File: "foo.db",
 			},
 		},
@@ -182,7 +182,7 @@ func TestInvalidConfigs(t *testing.T) {
 func TestEnvSubstitution(t *testing.T) {
 	c := DefaultConfig()
 	c.Storage.Type = "redis"
-	c.Storage.Redis = &redis.RedisConfig{
+	c.Storage.Redis = redis.RedisConfig{
 		Addr:     "localhost:4321",
 		Username: "redis",
 		Password: "testpass",

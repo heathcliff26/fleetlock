@@ -17,7 +17,7 @@ func TestRedisBackend(t *testing.T) {
 		Addr: mr.Addr(),
 	}
 
-	storage, err := redis.NewRedisBackend(&cfg)
+	storage, err := redis.NewRedisBackend(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create storage backend: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestRedisLoadbalancerBackend(t *testing.T) {
 		Addrs: []string{mr.Addr()},
 	}
 
-	storage, err := redis.NewRedisBackend(&cfg)
+	storage, err := redis.NewRedisBackend(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create storage backend: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestRedisSentinelBackend(t *testing.T) {
 		},
 	}
 
-	storage, err := redis.NewRedisBackend(&cfg)
+	storage, err := redis.NewRedisBackend(cfg)
 	if err != nil {
 		cmd := utils.GetCommand("logs", "fleetlock-redis-sentinel-sentinel")
 		out, _ := cmd.Output()

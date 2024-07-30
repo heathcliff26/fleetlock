@@ -32,7 +32,7 @@ func TestEtcdBackend(t *testing.T) {
 	cfg := etcd.EtcdConfig{
 		Endpoints: []string{"http://localhost:2379"},
 	}
-	storage, err := etcd.NewEtcdBackend(&cfg)
+	storage, err := etcd.NewEtcdBackend(cfg)
 	if err != nil {
 		cmd := utils.GetCommand("logs", "fleetlock-etcd-db")
 		out, _ := cmd.Output()

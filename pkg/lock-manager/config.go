@@ -9,13 +9,13 @@ import (
 )
 
 type StorageConfig struct {
-	Type       string                       `yaml:"type"`
-	SQLite     *sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
-	Postgres   *sql.PostgresConfig          `yaml:"postgres,omitempty"`
-	MySQL      *sql.MySQLConfig             `yaml:"mysql,omitempty"`
-	Redis      *redis.RedisConfig           `yaml:"redis,omitempty"`
-	Etcd       *etcd.EtcdConfig             `yaml:"etcd,omitempty"`
-	Kubernetes *kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
+	Type       string                      `yaml:"type"`
+	SQLite     sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
+	Postgres   sql.PostgresConfig          `yaml:"postgres,omitempty"`
+	MySQL      sql.MySQLConfig             `yaml:"mysql,omitempty"`
+	Redis      redis.RedisConfig           `yaml:"redis,omitempty"`
+	Etcd       etcd.EtcdConfig             `yaml:"etcd,omitempty"`
+	Kubernetes kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
 }
 
 type Groups map[string]GroupConfig
