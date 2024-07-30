@@ -408,13 +408,13 @@ import (
 )
 
 type StorageConfig struct {
-        Type       string                       `yaml:"type"`
-        SQLite     *sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
-        Postgres   *sql.PostgresConfig          `yaml:"postgres,omitempty"`
-        MySQL      *sql.MySQLConfig             `yaml:"mysql,omitempty"`
-        Redis      *redis.RedisConfig           `yaml:"redis,omitempty"`
-        Etcd       *etcd.EtcdConfig             `yaml:"etcd,omitempty"`
-        Kubernetes *kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
+        Type       string                      `yaml:"type"`
+        SQLite     sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
+        Postgres   sql.PostgresConfig          `yaml:"postgres,omitempty"`
+        MySQL      sql.MySQLConfig             `yaml:"mysql,omitempty"`
+        Redis      redis.RedisConfig           `yaml:"redis,omitempty"`
+        Etcd       etcd.EtcdConfig             `yaml:"etcd,omitempty"`
+        Kubernetes kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
 }
 
 type Groups map[string]GroupConfig
@@ -703,7 +703,7 @@ type EtcdConfig struct {
         KeyFile   string   `yaml:"key,omitempty"`
 }
 
-func NewEtcdBackend(cfg *EtcdConfig) (*EtcdBackend, error) <span class="cov8" title="1">{
+func NewEtcdBackend(cfg EtcdConfig) (*EtcdBackend, error) <span class="cov8" title="1">{
         var tls *tls.Config
         if cfg.CertFile != "" &amp;&amp; cfg.KeyFile != "" </span><span class="cov0" title="0">{
                 var err error
@@ -840,7 +840,7 @@ type KubernetesConfig struct {
         Namespace  string `yaml:"namespace,omitempty"`
 }
 
-func NewKubernetesBackend(cfg *KubernetesConfig) (*KubernetesBackend, error) <span class="cov8" title="1">{
+func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) <span class="cov8" title="1">{
         config, err := clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
         if err != nil </span><span class="cov8" title="1">{
                 return nil, err
@@ -1252,7 +1252,7 @@ type RedisSentinelConfig struct {
         Password   string   `yaml:"password,omitempty"`
 }
 
-func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
+func NewRedisBackend(cfg RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
         var client *redis.Client
         var lb *loadbalancer
         var tlsConfig *tls.Config
@@ -1393,7 +1393,7 @@ type MySQLConfig struct {
         Options  string `yaml:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg *MySQLConfig) (*SQLBackend, error) <span class="cov8" title="1">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov8" title="1">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -1452,7 +1452,7 @@ type PostgresConfig struct {
         Options  string `yaml:"options,omitempty"`
 }
 
-func NewPostgresBackend(cfg *PostgresConfig) (*SQLBackend, error) <span class="cov8" title="1">{
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov8" title="1">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("pgx", "postgres://"+connStr)
@@ -1491,7 +1491,7 @@ type SQLiteConfig struct {
         File string `yaml:"file"`
 }
 
-func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) <span class="cov8" title="1">{
+func NewSQLiteBackend(cfg SQLiteConfig) (*SQLBackend, error) <span class="cov8" title="1">{
         db, err := sql.Open("sqlite", cfg.File)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to open sqlite database: %w", err)
