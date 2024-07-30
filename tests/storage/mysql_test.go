@@ -33,7 +33,7 @@ func TestMySQLBackend(t *testing.T) {
 		Database: "fleetlock",
 	}
 	for i := 0; i < 20; {
-		storage, err = sql.NewMySQLBackend(&cfg)
+		storage, err = sql.NewMySQLBackend(cfg)
 		if err == nil || (!strings.Contains(err.Error(), "failed to open mysql database") && !strings.Contains(err.Error(), "failed to ping mysql database")) {
 			break
 		}

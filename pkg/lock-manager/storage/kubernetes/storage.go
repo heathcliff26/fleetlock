@@ -32,7 +32,7 @@ type KubernetesConfig struct {
 	Namespace  string `yaml:"namespace,omitempty"`
 }
 
-func NewKubernetesBackend(cfg *KubernetesConfig) (*KubernetesBackend, error) {
+func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
 	if err != nil {
 		return nil, err

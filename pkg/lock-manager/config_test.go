@@ -13,7 +13,7 @@ func TestNewDefaultStorageConfig(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.Equal("memory", cfg.Type)
-	assert.Nil(cfg.SQLite)
+	assert.Empty(cfg.SQLite)
 }
 
 func TestNewDefaultGroups(t *testing.T) {

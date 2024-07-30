@@ -11,7 +11,7 @@ type SQLiteConfig struct {
 	File string `yaml:"file"`
 }
 
-func NewSQLiteBackend(cfg *SQLiteConfig) (*SQLBackend, error) {
+func NewSQLiteBackend(cfg SQLiteConfig) (*SQLBackend, error) {
 	db, err := sql.Open("sqlite", cfg.File)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open sqlite database: %w", err)

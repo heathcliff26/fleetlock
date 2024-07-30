@@ -31,7 +31,7 @@ type PostgresConfig struct {
 	Options  string `yaml:"options,omitempty"`
 }
 
-func NewPostgresBackend(cfg *PostgresConfig) (*SQLBackend, error) {
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) {
 	connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
 	db, err := sql.Open("pgx", "postgres://"+connStr)

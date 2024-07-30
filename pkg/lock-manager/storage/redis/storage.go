@@ -35,7 +35,7 @@ type RedisSentinelConfig struct {
 	Password   string   `yaml:"password,omitempty"`
 }
 
-func NewRedisBackend(cfg *RedisConfig) (*RedisBackend, error) {
+func NewRedisBackend(cfg RedisConfig) (*RedisBackend, error) {
 	var client *redis.Client
 	var lb *loadbalancer
 	var tlsConfig *tls.Config

@@ -34,7 +34,7 @@ func TestPostgresBackend(t *testing.T) {
 		Database: "fleetlock",
 	}
 	for i := 0; i < 10; {
-		storage, err = sql.NewPostgresBackend(&cfg)
+		storage, err = sql.NewPostgresBackend(cfg)
 		if err == nil || (!strings.Contains(err.Error(), "failed to open postgres database") && !strings.Contains(err.Error(), "failed to ping postgres database")) {
 			break
 		}

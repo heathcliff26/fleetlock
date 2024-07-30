@@ -40,7 +40,7 @@ func TestNewManager(t *testing.T) {
 			Name: "SQLiteBackend",
 			Storage: StorageConfig{
 				Type: "sqlite",
-				SQLite: &sql.SQLiteConfig{
+				SQLite: sql.SQLiteConfig{
 					File: "file:test.db?mode=memory",
 				},
 			},
@@ -54,7 +54,7 @@ func TestNewManager(t *testing.T) {
 			Name: "ErrorNewSQLiteBackend",
 			Storage: StorageConfig{
 				Type: "sqlite",
-				SQLite: &sql.SQLiteConfig{
+				SQLite: sql.SQLiteConfig{
 					File: "/not/a/valid/path/to/database",
 				},
 			},
@@ -64,7 +64,7 @@ func TestNewManager(t *testing.T) {
 			Name: "ErrorNewPostgresBackend",
 			Storage: StorageConfig{
 				Type: "postgres",
-				Postgres: &sql.PostgresConfig{
+				Postgres: sql.PostgresConfig{
 					Address:  "localhost:1234",
 					Database: "nothing",
 				},
@@ -75,7 +75,7 @@ func TestNewManager(t *testing.T) {
 			Name: "ErrorNewMySQLBackend",
 			Storage: StorageConfig{
 				Type: "mysql",
-				MySQL: &sql.MySQLConfig{
+				MySQL: sql.MySQLConfig{
 					Address:  "localhost:1234",
 					Database: "nothing",
 				},
@@ -86,7 +86,7 @@ func TestNewManager(t *testing.T) {
 			Name: "RedisBackend",
 			Storage: StorageConfig{
 				Type: "redis",
-				Redis: &redis.RedisConfig{
+				Redis: redis.RedisConfig{
 					Addr: mr.Addr(),
 				},
 			},
@@ -100,7 +100,7 @@ func TestNewManager(t *testing.T) {
 			Name: "ErrorNewRedisBackend",
 			Storage: StorageConfig{
 				Type: "redis",
-				Redis: &redis.RedisConfig{
+				Redis: redis.RedisConfig{
 					Addr: "",
 				},
 			},
@@ -110,7 +110,7 @@ func TestNewManager(t *testing.T) {
 			Name: "ErrorNewEtcdBackend",
 			Storage: StorageConfig{
 				Type: "etcd",
-				Etcd: &etcd.EtcdConfig{
+				Etcd: etcd.EtcdConfig{
 					Endpoints: []string{},
 				},
 			},
@@ -120,7 +120,7 @@ func TestNewManager(t *testing.T) {
 			Name: "ErrorNewKubernetesBackend",
 			Storage: StorageConfig{
 				Type:       "kubernetes",
-				Kubernetes: &kubernetes.KubernetesConfig{},
+				Kubernetes: kubernetes.KubernetesConfig{},
 			},
 			Error: "invalid configuration: no configuration has been provided, try setting KUBERNETES_MASTER environment variable",
 		},

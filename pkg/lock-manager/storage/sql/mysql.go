@@ -15,7 +15,7 @@ type MySQLConfig struct {
 	Options  string `yaml:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg *MySQLConfig) (*SQLBackend, error) {
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) {
 	connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
 	db, err := sql.Open("mysql", connStr)

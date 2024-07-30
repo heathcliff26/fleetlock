@@ -27,7 +27,7 @@ type EtcdConfig struct {
 	KeyFile   string   `yaml:"key,omitempty"`
 }
 
-func NewEtcdBackend(cfg *EtcdConfig) (*EtcdBackend, error) {
+func NewEtcdBackend(cfg EtcdConfig) (*EtcdBackend, error) {
 	var tls *tls.Config
 	if cfg.CertFile != "" && cfg.KeyFile != "" {
 		var err error
