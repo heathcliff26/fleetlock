@@ -7,3 +7,4 @@ coverprofiles/
 # Ignore files created for testing
 test-config.yaml
 test.db
+test-deployment.yaml

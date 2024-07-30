@@ -12,6 +12,7 @@ Implements the [FleetLock protocol](https://coreos.github.io/zincati/development
   - [Usage](#usage)
   - [Examples](#examples)
     - [Zincati configuration](#zincati-configuration)
+    - [Deploying to kubernetes](#deploying-to-kubernetes)
   - [Links](#links)
 
 ## Container Images
@@ -47,7 +48,7 @@ podman run -d -p 8080:8080 -v fleetlock-data:/data -v /path/to/config.yaml:/conf
 
 ## Examples
 
-An example configuration can be found [here](configs/example-config.yaml)
+An example configuration can be found [here](examples/example-config.yaml)
 
 ### Zincati configuration
 
@@ -60,6 +61,17 @@ strategy = "fleet_lock"
 [updates.fleet_lock]
 base_url = "http://fleetlock.example.org:8080/"
 ```
+
+### Deploying to kubernetes
+
+An example deployment can be found [here](examples/example-deployment.yaml).
+
+To deploy it to your cluster, run:
+```
+kubectl apply -f https://raw.githubusercontent.com/heathcliff26/fleetlock/main/examples/example-deployment.yaml
+```
+
+This will deploy the app to your cluster into the namespace `fleetlock`. You can then access the app under `fleetlock.example.org`
 
 ## Links
 
