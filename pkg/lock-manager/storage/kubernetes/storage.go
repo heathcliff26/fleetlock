@@ -14,10 +14,8 @@ import (
 
 	coordv1 "k8s.io/api/coordination/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 	v1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const keyformat = "fleetlock-reservation-%s-"
@@ -28,17 +26,12 @@ type KubernetesBackend struct {
 }
 
 type KubernetesConfig struct {
-	Kubeconfig string `yaml:"kubeconfig,omitempty"`
+	Kubeconfig string `yaml:"-"`
 	Namespace  string `yaml:"namespace,omitempty"`
 }
 
 func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := kubernetes.NewForConfig(config)
+	client, err := utils.CreateNewClientset(cfg.Kubeconfig)
 	if err != nil {
 		return nil, err
 	}

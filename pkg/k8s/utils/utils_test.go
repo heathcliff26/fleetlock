@@ -68,3 +68,10 @@ func TestGetNamespace(t *testing.T) {
 		assert.Equal("", ns)
 	})
 }
+
+func TestPointer(t *testing.T) {
+	s := "test"
+	p := Pointer(s)
+	assert.Equal(t, &s, p, "Should contain the same string")
+	assert.NotSame(t, s, p, "Should not be the same")
+}

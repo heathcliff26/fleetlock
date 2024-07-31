@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 )
 
@@ -18,6 +19,7 @@ var groupValidationRegex = regexp.MustCompile(groupValidationPattern)
 type Server struct {
 	cfg *ServerConfig
 	lm  *lockmanager.LockManager
+	k8s *k8s.Client
 }
 
 type FleetLockRequest struct {
@@ -33,15 +35,20 @@ type FleetLockResponse struct {
 }
 
 // Create a new Server
-func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmanager.StorageConfig) (*Server, error) {
+func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmanager.StorageConfig, k8s *k8s.Client) (*Server, error) {
 	lm, err := lockmanager.NewManager(groups, storageCfg)
 	if err != nil {
 		return nil, err
 	}
 
+	if k8s == nil {
+		slog.Info("No kubernetes client available, will not drain nodes")
+	}
+
 	return &Server{
 		cfg: cfg,
 		lm:  lm,
+		k8s: k8s,
 	}, nil
 }
 
@@ -115,8 +122,12 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) 
 		sendResponse(rw, msgUnexpectedError)
 		return
 	}
+
 	if ok {
 		slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+		if s.k8s != nil && !s.drainNode(rw, params) {
+			return
+		}
 		sendResponse(rw, msgSuccess)
 	} else {
 		slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -129,6 +140,10 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) 
 //
 //	URL: /v1/steady-state
 func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) {
+	if s.k8s != nil && !s.uncordonNode(rw, params) {
+		return
+	}
+
 	err := s.lm.Release(params.Client.Group, params.Client.ID)
 	if err != nil {
 		slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -138,6 +153,75 @@ func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) 
 	}
 	slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
 	sendResponse(rw, msgSuccess)
+}
+
+// Drain the node after reservation and before sending success to client.
+// Requires k8s client to be non-nil.
+func (s *Server) drainNode(rw http.ResponseWriter, params FleetLockRequest) bool {
+	node, ok := s.matchNodeToId(rw, params)
+	if node == "" {
+		return ok
+	}
+
+	drained, err := s.k8s.IsDrained(node)
+	if err != nil {
+		slog.Error("Could not check if node has been drained", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+		rw.WriteHeader(http.StatusInternalServerError)
+		sendResponse(rw, msgUnexpectedError)
+		return false
+	}
+	if drained {
+		slog.Info("Node is drained, client can continue", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+		return true
+	}
+
+	go func() {
+		err := s.k8s.DrainNode(node)
+		if err != nil {
+			slog.Error("Failed to drain node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+		} else {
+			slog.Info("Node finished draining, waiting for client to call again", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+		}
+	}()
+
+	rw.WriteHeader(http.StatusAccepted)
+	sendResponse(rw, msgWaitingForNodeDrain)
+	return false
+}
+
+// Uncordon the node before release.
+// Requires k8s client to be non-nil.
+func (s *Server) uncordonNode(rw http.ResponseWriter, params FleetLockRequest) bool {
+	node, ok := s.matchNodeToId(rw, params)
+	if node == "" {
+		return ok
+	}
+
+	err := s.k8s.UncordonNode(node)
+	if err != nil {
+		slog.Error("Failed to uncordon node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+		rw.WriteHeader(http.StatusInternalServerError)
+		sendResponse(rw, msgUnexpectedError)
+		return false
+	}
+	slog.Info("Uncordoned node", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+	return true
+}
+
+func (s *Server) matchNodeToId(rw http.ResponseWriter, params FleetLockRequest) (string, bool) {
+	node, err := s.k8s.FindNodeByZincatiID(params.Client.ID)
+	if err != nil {
+		slog.Error("An error occured when matching client id to node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+		rw.WriteHeader(http.StatusInternalServerError)
+		sendResponse(rw, msgUnexpectedError)
+		return "", false
+	}
+
+	if node == "" {
+		slog.Info("Did not find a matching node for id", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+	}
+
+	return node, true
 }
 
 // Starts the server and exits with error if that fails

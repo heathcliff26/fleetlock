@@ -2,6 +2,10 @@
 # The level of loggin output
 logLevel: info
 
+# The path to the kubeconfig file. Used for draining nodes and the kubernetes storage option if used.
+# Falls back to in-cluster serviceaccount if left empty (recommended)
+kubeconfig: ""
+
 server:
   # The listen address of the server in the form of <ip>:<port>
   listen: ":8080"
@@ -91,8 +95,8 @@ storage:
     # (Optional) Private key of client certificate for authentication
     key: ""
   kubernetes:
-    # (Optional) Path to kubeconfig file, default uses in-cluster serviceaccount
-    kubeconfig: ""
+    # The kubeconfig setting is inherited from the global setting
+
     # (Optional) Namespace to create leases in, default reads it from file inside pod or defaults to fleetlock
     namespace: ""
 

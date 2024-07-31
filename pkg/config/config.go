@@ -27,10 +27,11 @@ func init() {
 }
 
 type Config struct {
-	LogLevel string                    `yaml:"logLevel,omitempty"`
-	Server   *server.ServerConfig      `yaml:"server,omitempty"`
-	Storage  lockmanager.StorageConfig `yaml:"storage,omitempty"`
-	Groups   lockmanager.Groups        `yaml:"groups,omitempty"`
+	LogLevel   string                    `yaml:"logLevel,omitempty"`
+	Kubeconfig string                    `yaml:"kubeconfig,omitempty"`
+	Server     *server.ServerConfig      `yaml:"server,omitempty"`
+	Storage    lockmanager.StorageConfig `yaml:"storage,omitempty"`
+	Groups     lockmanager.Groups        `yaml:"groups,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
@@ -98,6 +99,8 @@ func (c *Config) Defaults() {
 	if c.Groups == nil {
 		c.Groups = lockmanager.NewDefaultGroups()
 	}
+
+	c.Storage.Kubernetes.Kubeconfig = c.Kubeconfig
 }
 
 func (c *Config) Validate() error {
