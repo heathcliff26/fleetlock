@@ -37,4 +37,8 @@ var (
 		Kind:  "all_slots_full",
 		Value: "Could not reserve a slot as all slots in the group are currently locked already",
 	}
+	msgWaitingForNodeDrain = FleetLockResponse{
+		Kind:  "waiting_for_node_drain",
+		Value: "The Slot has been reserved, but the node is not yet drained",
+	}
 )

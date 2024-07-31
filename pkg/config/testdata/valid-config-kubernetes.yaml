@@ -1,0 +1,6 @@
+---
+storage:
+  type: kubernetes
+  kubernetes:
+    namespace: "test"
+kubeconfig: "some-path"

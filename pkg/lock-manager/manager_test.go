@@ -122,7 +122,7 @@ func TestNewManager(t *testing.T) {
 				Type:       "kubernetes",
 				Kubernetes: kubernetes.KubernetesConfig{},
 			},
-			Error: "invalid configuration: no configuration has been provided, try setting KUBERNETES_MASTER environment variable",
+			Error: "unable to load in-cluster configuration",
 		},
 		{
 			Name: "UnknownStorageType",

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/heathcliff26/fleetlock/pkg/config"
+	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	"github.com/heathcliff26/fleetlock/pkg/server"
 	"github.com/heathcliff26/fleetlock/pkg/version"
 	"github.com/spf13/cobra"
@@ -59,7 +60,12 @@ func run(cmd *cobra.Command, configPath string, env bool) {
 		exitError(cmd, fmt.Errorf("failed to load configuration: %w", err))
 	}
 
-	s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage)
+	k8s, err := k8s.NewClient(cfg.Kubeconfig)
+	if err != nil {
+		exitError(cmd, fmt.Errorf("failed to create kubernetes client: %w", err))
+	}
+
+	s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage, k8s)
 	if err != nil {
 		exitError(cmd, fmt.Errorf("failed to create server: %w", err))
 	}

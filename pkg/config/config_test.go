@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/server"
@@ -50,6 +51,17 @@ func TestValidConfigs(t *testing.T) {
 	defaultConfig := DefaultConfig()
 	defaultConfig.Defaults()
 
+	cfgKubernetes := DefaultConfig()
+	cfgKubernetes.Defaults()
+	cfgKubernetes.Storage = lockmanager.StorageConfig{
+		Type: "kubernetes",
+		Kubernetes: kubernetes.KubernetesConfig{
+			Namespace:  "test",
+			Kubeconfig: "some-path",
+		},
+	}
+	cfgKubernetes.Kubeconfig = "some-path"
+
 	tMatrix := []struct {
 		Name, Path string
 		Result     *Config
@@ -73,6 +85,11 @@ func TestValidConfigs(t *testing.T) {
 			Name:   "NoConfig",
 			Path:   "",
 			Result: defaultConfig,
+		},
+		{
+			Name:   "ValidConfig3",
+			Path:   "testdata/valid-config-kubernetes.yaml",
+			Result: cfgKubernetes,
 		},
 	}
 
