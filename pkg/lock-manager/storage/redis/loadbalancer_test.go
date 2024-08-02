@@ -6,8 +6,8 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/heathcliff26/fleetlock/tests/utils"
-	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"github.com/valkey-io/valkey-go"
 )
 
 func TestLoadbalancer(t *testing.T) {
@@ -15,49 +15,63 @@ func TestLoadbalancer(t *testing.T) {
 		mr1 := miniredis.RunT(t)
 		mr2 := miniredis.RunT(t)
 
-		addrs := []string{mr1.Addr(), mr2.Addr()}
+		opt := valkey.ClientOption{
+			InitAddress:  []string{mr1.Addr(), mr2.Addr()},
+			DisableCache: true,
+		}
 
-		client, lb := NewRedisClientWithLoadbalancer(addrs, &redis.Options{})
+		assert := assert.New(t)
+
+		client, lb, err := NewRedisLoadbalancer(opt)
+		if !assert.NoError(err, "Should not return an error") || !assert.NotNil(client, "Should return a client") || !assert.NotNil(lb, "Should return a loadbalancer") {
+			t.FailNow()
+		}
 		t.Cleanup(func() {
 			lb.Close()
 			client.Close()
 		})
 
-		assert := assert.New(t)
+		res, err := client.Do(context.Background(), client.B().Ping().Build()).ToString()
 
-		res, err := client.Ping(context.Background()).Result()
-		if !assert.Nil(err, "Can reach client") || !assert.Equal("PONG", res, "Can reach client") {
-			t.FailNow()
-		}
+		assert.Nil(err, "Can reach client")
+		assert.Equal("PONG", res, "Can reach client")
 	})
 	t.Run("Failover", func(t *testing.T) {
 		if !utils.HasContainerRuntimer() {
 			t.Skip("Missing Container Runtime")
 		}
 
-		err := utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-1", "-d", "--rm", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6379", "--active-replica", "yes", "--replicaof", "localhost", "6380")
+		err := utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-1", "-d", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6379", "--active-replica", "yes", "--replicaof", "localhost", "6380")
 		if err != nil {
 			t.Fatalf("Failed to start test db: %v\n", err)
 		}
 		t.Cleanup(func() {
 			_ = utils.ExecCRI("stop", "fleetlock-redis-loadbalancer-failover-1")
+			_ = utils.ExecCRI("rm", "fleetlock-redis-loadbalancer-failover-1")
 		})
-		err = utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-2", "-d", "--rm", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6380", "--active-replica", "yes", "--replicaof", "localhost", "6379")
+		err = utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-2", "-d", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6380", "--active-replica", "yes", "--replicaof", "localhost", "6379")
 		if err != nil {
 			t.Fatalf("Failed to start test db: %v\n", err)
 		}
 		t.Cleanup(func() {
 			_ = utils.ExecCRI("stop", "fleetlock-redis-loadbalancer-failover-2")
+			_ = utils.ExecCRI("rm", "fleetlock-redis-loadbalancer-failover-2")
 		})
 
-		addrs := []string{"localhost:6379", "localhost:6380"}
-		client, lb := NewRedisClientWithLoadbalancer(addrs, &redis.Options{})
+		assert := assert.New(t)
+
+		opt := valkey.ClientOption{
+			InitAddress:  []string{"localhost:6379", "localhost:6380"},
+			DisableCache: true,
+		}
+		client, lb, err := NewRedisLoadbalancer(opt)
+		if !assert.NoError(err, "Should not return an error") || !assert.NotNil(client, "Should return a client") || !assert.NotNil(lb, "Should return a loadbalancer") {
+			t.FailNow()
+		}
 		t.Cleanup(func() {
 			lb.Close()
 			client.Close()
 		})
-
-		assert := assert.New(t)
 
 		assert.Equal(0, lb.selected, "Should have currently the first client selected")
 
@@ -65,14 +79,15 @@ func TestLoadbalancer(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to stop keydb instance: %v\n", err)
 		}
-		lb.HealthCheck()
 
+		lb.HealthCheck()
 		if !assert.Equal(1, lb.selected, "Should have failed over") {
 			t.FailNow()
 		}
-		res, err := client.Ping(context.Background()).Result()
-		if !assert.Nil(err, "Should have failed over") || !assert.Equal("PONG", res, "Should have failed over") {
-			t.FailNow()
-		}
+
+		res, err := client.Do(context.Background(), client.B().Ping().Build()).ToString()
+
+		assert.NoError(err, "Should have failed over")
+		assert.Equal("PONG", res, "Should have failed over")
 	})
 }
