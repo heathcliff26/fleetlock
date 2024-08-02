@@ -42,7 +42,7 @@ func TestLoadbalancer(t *testing.T) {
 			t.Skip("Missing Container Runtime")
 		}
 
-		err := utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-1", "-d", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6379", "--active-replica", "yes", "--replicaof", "localhost", "6380")
+		err := utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-1", "-d", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6381", "--active-replica", "yes", "--replicaof", "localhost", "6382")
 		if err != nil {
 			t.Fatalf("Failed to start test db: %v\n", err)
 		}
@@ -50,7 +50,7 @@ func TestLoadbalancer(t *testing.T) {
 			_ = utils.ExecCRI("stop", "fleetlock-redis-loadbalancer-failover-1")
 			_ = utils.ExecCRI("rm", "fleetlock-redis-loadbalancer-failover-1")
 		})
-		err = utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-2", "-d", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6380", "--active-replica", "yes", "--replicaof", "localhost", "6379")
+		err = utils.ExecCRI("run", "--name", "fleetlock-redis-loadbalancer-failover-2", "-d", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6382", "--active-replica", "yes", "--replicaof", "localhost", "6381")
 		if err != nil {
 			t.Fatalf("Failed to start test db: %v\n", err)
 		}
@@ -62,7 +62,7 @@ func TestLoadbalancer(t *testing.T) {
 		assert := assert.New(t)
 
 		opt := valkey.ClientOption{
-			InitAddress:  []string{"localhost:6379", "localhost:6380"},
+			InitAddress:  []string{"localhost:6381", "localhost:6382"},
 			DisableCache: true,
 		}
 		client, lb, err := NewRedisLoadbalancer(opt)
