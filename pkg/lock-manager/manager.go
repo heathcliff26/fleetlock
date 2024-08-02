@@ -10,6 +10,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
 )
 
@@ -63,6 +64,8 @@ func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) {
 		storage, err = sql.NewMySQLBackend(storageCfg.MySQL)
 	case "redis":
 		storage, err = redis.NewRedisBackend(storageCfg.Redis)
+	case "valkey":
+		storage, err = valkey.NewValkeyBackend(storageCfg.Valkey)
 	case "etcd":
 		storage, err = etcd.NewEtcdBackend(storageCfg.Etcd)
 	case "kubernetes":

@@ -9,6 +9,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -102,6 +103,30 @@ func TestNewManager(t *testing.T) {
 				Type: "redis",
 				Redis: redis.RedisConfig{
 					Addr: "",
+				},
+			},
+			Error: "no alive address in InitAddress",
+		},
+		{
+			Name: "ValkeyBackend",
+			Storage: StorageConfig{
+				Type: "valkey",
+				Valkey: valkey.ValkeyConfig{
+					Addrs: []string{mr.Addr()},
+				},
+			},
+			Result: result{
+				groups:  initGroups(NewDefaultGroups()),
+				storage: "*valkey.ValkeyBackend",
+			},
+			Error: "",
+		},
+		{
+			Name: "ErrorNewValkeyBackend",
+			Storage: StorageConfig{
+				Type: "valkey",
+				Valkey: valkey.ValkeyConfig{
+					Addrs: []string{},
 				},
 			},
 			Error: "no alive address in InitAddress",

@@ -6,18 +6,18 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/heathcliff26/fleetlock/tests/utils"
 )
 
-func TestRedisBackend(t *testing.T) {
+func TestValkeyBackend(t *testing.T) {
 	mr := miniredis.RunT(t)
 
-	cfg := redis.RedisConfig{
-		Addr: mr.Addr(),
+	cfg := valkey.ValkeyConfig{
+		Addrs: []string{mr.Addr()},
 	}
 
-	storage, err := redis.NewRedisBackend(cfg)
+	storage, err := valkey.NewValkeyBackend(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create storage backend: %v", err)
 	}
@@ -25,15 +25,15 @@ func TestRedisBackend(t *testing.T) {
 	RunLockManagerTestsuiteWithStorage(t, storage)
 }
 
-func TestRedisLoadbalancerBackend(t *testing.T) {
+func TestValkeyLoadbalancerBackend(t *testing.T) {
 	mr1 := miniredis.RunT(t)
 	mr2 := miniredis.RunT(t)
 
-	cfg := redis.RedisConfig{
+	cfg := valkey.ValkeyConfig{
 		Addrs: []string{mr1.Addr(), mr2.Addr()},
 	}
 
-	storage, err := redis.NewRedisBackend(cfg)
+	storage, err := valkey.NewValkeyBackend(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create storage backend: %v", err)
 	}
@@ -41,12 +41,12 @@ func TestRedisLoadbalancerBackend(t *testing.T) {
 	RunLockManagerTestsuiteWithStorage(t, storage)
 }
 
-func TestRedisSentinelBackend(t *testing.T) {
+func TestValkeySentinelBackend(t *testing.T) {
 	if !utils.HasContainerRuntimer() {
 		t.Skip("Missing Container Runtime")
 	}
 
-	err := utils.ExecCRI("run", "--name", "fleetlock-redis-sentinel-db", "-d", "--net", "host",
+	err := utils.ExecCRI("run", "--name", "fleetlock-valkey-sentinel-db", "-d", "--net", "host",
 		"docker.io/valkey/valkey:latest",
 		"--port", "6379",
 	)
@@ -54,11 +54,11 @@ func TestRedisSentinelBackend(t *testing.T) {
 		t.Fatalf("Failed to start test db: %v\n", err)
 	}
 	t.Cleanup(func() {
-		_ = utils.ExecCRI("stop", "fleetlock-redis-sentinel-db")
-		_ = utils.ExecCRI("rm", "fleetlock-redis-sentinel-db")
+		_ = utils.ExecCRI("stop", "fleetlock-valkey-sentinel-db")
+		_ = utils.ExecCRI("rm", "fleetlock-valkey-sentinel-db")
 	})
 
-	err = utils.ExecCRI("run", "--name", "fleetlock-redis-sentinel-sentinel", "-d", "--net", "host",
+	err = utils.ExecCRI("run", "--name", "fleetlock-valkey-sentinel-sentinel", "-d", "--net", "host",
 		"-v", "./testdata/valkey-sentinel.conf:/config/sentinel.conf", "--userns=keep-id",
 		"docker.io/valkey/valkey:latest",
 		"/config/sentinel.conf", "--sentinel",
@@ -67,8 +67,8 @@ func TestRedisSentinelBackend(t *testing.T) {
 		t.Fatalf("Failed to start test sentinel: %v\n", err)
 	}
 	t.Cleanup(func() {
-		_ = utils.ExecCRI("stop", "fleetlock-redis-sentinel-sentinel")
-		_ = utils.ExecCRI("rm", "fleetlock-redis-sentinel-sentinel")
+		_ = utils.ExecCRI("stop", "fleetlock-valkey-sentinel-sentinel")
+		_ = utils.ExecCRI("rm", "fleetlock-valkey-sentinel-sentinel")
 	})
 
 	for i := 0; i < 10; {
@@ -81,20 +81,20 @@ func TestRedisSentinelBackend(t *testing.T) {
 		i++
 	}
 
-	cfg := redis.RedisConfig{
-		Sentinel: redis.RedisSentinelConfig{
+	cfg := valkey.ValkeyConfig{
+		Sentinel: valkey.ValkeySentinelConfig{
 			Enabled:    true,
 			MasterName: "valkey-sentinel-backend",
 			Addresses:  []string{"localhost:26379"},
 		},
 	}
 
-	storage, err := redis.NewRedisBackend(cfg)
+	storage, err := valkey.NewValkeyBackend(cfg)
 	if err != nil {
-		cmd := utils.GetCommand("logs", "fleetlock-redis-sentinel-sentinel")
+		cmd := utils.GetCommand("logs", "fleetlock-valkey-sentinel-sentinel")
 		out, _ := cmd.Output()
 		t.Log("logs from sentinel:\n" + string(out))
-		cmd = utils.GetCommand("logs", "fleetlock-redis-sentinel-db")
+		cmd = utils.GetCommand("logs", "fleetlock-valkey-sentinel-db")
 		out, _ = cmd.Output()
 		t.Log("logs from db:\n" + string(out))
 

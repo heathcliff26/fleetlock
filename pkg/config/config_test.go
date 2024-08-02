@@ -7,8 +7,8 @@ import (
 
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/heathcliff26/fleetlock/pkg/server"
 	"github.com/stretchr/testify/assert"
 )
@@ -198,17 +198,17 @@ func TestInvalidConfigs(t *testing.T) {
 
 func TestEnvSubstitution(t *testing.T) {
 	c := DefaultConfig()
-	c.Storage.Type = "redis"
-	c.Storage.Redis = redis.RedisConfig{
-		Addr:     "localhost:4321",
-		Username: "redis",
+	c.Storage.Type = "valkey"
+	c.Storage.Valkey = valkey.ValkeyConfig{
+		Addrs:    []string{"localhost:4321"},
+		Username: "valkey",
 		Password: "testpass",
 		DB:       5,
 	}
 	c.Defaults()
 
-	t.Setenv("FLEETLOCK_REDIS_USERNAME", "redis")
-	t.Setenv("FLEETLOCK_REDIS_PASSWORD", "testpass")
+	t.Setenv("FLEETLOCK_VALKEY_USERNAME", "valkey")
+	t.Setenv("FLEETLOCK_VALKEY_PASSWORD", "testpass")
 
 	cfg, err := LoadConfig("testdata/env-substitution.yaml", true)
 

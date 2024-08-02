@@ -6,6 +6,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 )
 
 type StorageConfig struct {
@@ -13,6 +14,7 @@ type StorageConfig struct {
 	SQLite     sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
 	Postgres   sql.PostgresConfig          `yaml:"postgres,omitempty"`
 	MySQL      sql.MySQLConfig             `yaml:"mysql,omitempty"`
+	Valkey     valkey.ValkeyConfig         `yaml:"valkey,omitempty"`
 	Redis      redis.RedisConfig           `yaml:"redis,omitempty"`
 	Etcd       etcd.EtcdConfig             `yaml:"etcd,omitempty"`
 	Kubernetes kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`

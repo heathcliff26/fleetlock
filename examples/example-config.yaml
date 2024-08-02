@@ -25,9 +25,11 @@ storage:
   #   sqlite:     Persistent, does not really support High Availability
   #   postgres:   Use postgres database
   #   mysql:      Use mysql database
-  #   redis:      Use redis database
+  #   valkey:     Use valkey database (Any redis-api compatible database will do)
   #   etcd:       Use etcd database
   #   kubernetes: Use kubernetes leases
+  #
+  #   redis:      DEPRECATED, use valkey instead. This option will be removed in a future release in 2025
   #
   # Default: memory
   #
@@ -55,12 +57,11 @@ storage:
     database: ""
     # Additional options for connections. Will be appended with ?
     options: ""
-  redis:
-    # The address of the redis database
-    address: "localhost:1234"
-    # (Optional) List of addresses when connectiong should be loadbalanced between active-active replicas.
+  valkey:
+    # Address(es) of the databases
+    # When more than 1 is provided, they will be loadbalanced via failover.
     addresses:
-      - ""
+      - "localhost:1234"
     # (Optional) Username for authentication
     username: ""
     # (Optional) Password for authentication
@@ -75,7 +76,7 @@ storage:
       enabled: false
       # Master name
       master: ""
-      # Addresses for sentinel server
+      # Addresses for sentinel server(s)
       addresses:
         - ""
       # (Optional) Username for authentication with sentinel
