@@ -1,7 +1,8 @@
 storage:
-  type: redis
-  redis:
-    address: "localhost:4321"
-    username: "${FLEETLOCK_REDIS_USERNAME}"
-    password: "${FLEETLOCK_REDIS_PASSWORD}"
+  type: valkey
+  valkey:
+    addresses:
+      - "localhost:4321"
+    username: "${FLEETLOCK_VALKEY_USERNAME}"
+    password: "${FLEETLOCK_VALKEY_PASSWORD}"
     db: 5
