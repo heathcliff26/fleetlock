@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/heathcliff26/fleetlock/tests/utils"
@@ -89,5 +90,51 @@ func TestLoadbalancer(t *testing.T) {
 
 		assert.NoError(err, "Should have failed over")
 		assert.Equal("PONG", res, "Should have failed over")
+	})
+	t.Run("DeadlockCheck", func(t *testing.T) {
+		mr1 := miniredis.RunT(t)
+		mr2 := miniredis.RunT(t)
+
+		opt := valkey.ClientOption{
+			InitAddress:  []string{mr1.Addr(), mr2.Addr()},
+			DisableCache: true,
+		}
+
+		assert := assert.New(t)
+
+		client, lb, err := NewRedisLoadbalancer(opt)
+		if !assert.NoError(err, "Should not return an error") || !assert.NotNil(client, "Should return a client") || !assert.NotNil(lb, "Should return a loadbalancer") {
+			t.FailNow()
+		}
+		t.Cleanup(func() {
+			lb.Close()
+			client.Close()
+		})
+
+		// Ensure no failover happens automatically
+		lb.cancel()
+
+		assert.Equal(0, lb.selected, "Should have currently the first client selected")
+
+		mr1.Close()
+
+		done := make(chan struct{}, 1)
+
+		go func() {
+			lb.HealthCheck()
+			done <- struct{}{}
+			close(done)
+		}()
+		go func() {
+			_, err = client.Do(context.Background(), client.B().Ping().Build()).ToString()
+
+			assert.Error(err, "Call should fail")
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			t.Fatal("Timed out waiting for the failover to finished")
+		}
 	})
 }
