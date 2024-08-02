@@ -85,9 +85,9 @@
 				
 				<option value="file14">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (100.0%)</option>
+				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (90.9%)</option>
 				
-				<option value="file16">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (83.0%)</option>
+				<option value="file16">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (82.8%)</option>
 				
 				<option value="file17">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (91.7%)</option>
 				
@@ -1387,12 +1387,15 @@ func (g *group) hasLock(id string) bool <span class="cov8" title="1">{
 
 import (
         "context"
+        "crypto/tls"
+        "log/slog"
         "net"
+        "slices"
         "strings"
         "sync"
         "time"
 
-        "github.com/redis/go-redis/v9"
+        "github.com/valkey-io/valkey-go"
 )
 
 const loadbalancerHealtchCheckPeriod = time.Second * 10
@@ -1401,58 +1404,72 @@ type loadbalancer struct {
         // List of addresses for redis endpoints
         addrs []string
         // Options for connecting to redis
-        options redis.Options
+        options valkey.ClientOption
         // Context to cancle health check
         ctx    context.Context
         cancel context.CancelFunc
 
+        client   valkey.Client
         selected int
         rwlock   sync.RWMutex
 }
 
 // Create a new redis client with loadbalanced connections
-func NewRedisClientWithLoadbalancer(addrs []string, opt *redis.Options) (*redis.Client, *loadbalancer) <span class="cov8" title="1">{
-        lb := NewRedisLoadbalancer(addrs, *opt)
-        lb.PeriodicHealthCheck()
-        opt.Dialer = lb.Dial
-        return redis.NewClient(opt), lb
-}</span>
+func NewRedisLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalancer, error) <span class="cov8" title="1">{
+        opt.ForceSingleClient = true
 
-// Return a new loadbalancer for redis
-func NewRedisLoadbalancer(addrs []string, opt redis.Options) *loadbalancer <span class="cov8" title="1">{
         ctx, cancel := context.WithCancel(context.Background())
-
-        if opt.Network == "" </span><span class="cov8" title="1">{
-                opt.Network = "tcp"
-        }</span>
-
-        <span class="cov8" title="1">return &amp;loadbalancer{
-                addrs:   addrs,
+        lb := &amp;loadbalancer{
+                addrs:   opt.InitAddress,
                 options: opt,
                 ctx:     ctx,
                 cancel:  cancel,
+        }
+
+        opt.DialFn = lb.DialFn
+
+        client, err := valkey.NewClient(opt)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, err
         }</span>
+
+        <span class="cov8" title="1">lb.client = client
+        lb.PeriodicHealthCheck()
+
+        return client, lb, nil</span>
 }
 
 // Determine the first healthy master node
 func (lb *loadbalancer) HealthCheck() <span class="cov8" title="1">{
         for i, addr := range lb.addrs </span><span class="cov8" title="1">{
                 opt := lb.options
-                opt.Addr = addr
-                client := redis.NewClient(&amp;opt)
-                defer client.Close()
+                opt.InitAddress = []string{addr}
 
-                res, err := client.Ping(context.Background()).Result()
-                if err != nil || res != "PONG" </span><span class="cov8" title="1">{
+                client, err := valkey.NewClient(opt)
+                if err != nil </span><span class="cov8" title="1">{
+                        slog.Debug("Endpoint down", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
+                <span class="cov8" title="1">defer client.Close()
 
-                <span class="cov8" title="1">res, err = client.Info(context.Background(), "replication").Result()
-                if err == nil || strings.Contains(res, "role:master") </span><span class="cov8" title="1">{
+                cmdInfo := client.B().Info().Build()
+                res, err := client.Do(context.Background(), cmdInfo).ToString()
+                if err != nil </span><span class="cov0" title="0">{
+                        slog.Error("Failed to get endpoint info", slog.String("addr", addr), "err", err)
+                        continue</span>
+                }
+                <span class="cov8" title="1">s := strings.Split(res, "\r\n")
+                if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") </span><span class="cov8" title="1">{
                         lb.rwlock.Lock()
                         defer lb.rwlock.Unlock()
-                        lb.selected = i
-                        break</span>
+
+                        if lb.selected != i </span><span class="cov8" title="1">{
+                                lb.selected = i
+                                slog.Info("Failed over to new database", slog.String("addr", addr))
+                                // valkey keeps a connection. Try to ping it to ensure it gets terminated and the next try will be a new connection
+                                _ = lb.client.Do(context.Background(), client.B().Ping().Build())
+                        }</span>
+                        <span class="cov8" title="1">break</span>
                 }
         }
 }
@@ -1474,11 +1491,16 @@ func (lb *loadbalancer) periodicHealthCheck() <span class="cov8" title="1">{
         }
 }
 
-func (lb *loadbalancer) Dial(ctx context.Context, _ string, _ string) (net.Conn, error) <span class="cov8" title="1">{
+func (lb *loadbalancer) DialFn(_ string, dialer *net.Dialer, cfg *tls.Config) (conn net.Conn, err error) <span class="cov8" title="1">{
         lb.rwlock.RLock()
         defer lb.rwlock.RUnlock()
-        return net.Dial(lb.options.Network, lb.addrs[lb.selected])
-}</span>
+        dst := lb.addrs[lb.selected]
+
+        if cfg != nil </span><span class="cov0" title="0">{
+                return tls.DialWithDialer(dialer, "tcp", dst, cfg)
+        }</span>
+        <span class="cov8" title="1">return dialer.Dial("tcp", dst)</span>
+}
 
 func (lb *loadbalancer) Close() <span class="cov8" title="1">{
         lb.cancel()
@@ -1494,13 +1516,13 @@ import (
         "time"
 
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
-        "github.com/redis/go-redis/v9"
+        "github.com/valkey-io/valkey-go"
 )
 
 const keyformat = "group:%s,id:%s"
 
 type RedisBackend struct {
-        client *redis.Client
+        client valkey.Client
         lb     *loadbalancer
 }
 
@@ -1523,7 +1545,7 @@ type RedisSentinelConfig struct {
 }
 
 func NewRedisBackend(cfg RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
-        var client *redis.Client
+        var client valkey.Client
         var lb *loadbalancer
         var tlsConfig *tls.Config
 
@@ -1531,39 +1553,38 @@ func NewRedisBackend(cfg RedisConfig) (*RedisBackend, error) <span class="cov8" 
                 tlsConfig = &amp;tls.Config{}
         }</span>
 
-        <span class="cov8" title="1">switch </span>{
-        case cfg.Sentinel.Enabled:<span class="cov8" title="1">
-                client = redis.NewFailoverClient(&amp;redis.FailoverOptions{
-                        MasterName:       cfg.Sentinel.MasterName,
-                        SentinelAddrs:    cfg.Sentinel.Addresses,
-                        SentinelUsername: cfg.Sentinel.Username,
-                        SentinelPassword: cfg.Sentinel.Password,
-                        Username:         cfg.Username,
-                        Password:         cfg.Password,
-                        DB:               cfg.DB,
-                        TLSConfig:        tlsConfig,
-                })</span>
-        case len(cfg.Addrs) &gt; 0:<span class="cov8" title="1">
-                opt := redis.Options{
-                        Username:  cfg.Username,
-                        Password:  cfg.Password,
-                        DB:        cfg.DB,
-                        TLSConfig: tlsConfig,
-                }
-                client, lb = NewRedisClientWithLoadbalancer(cfg.Addrs, &amp;opt)</span>
-        default:<span class="cov8" title="1">
-                client = redis.NewClient(&amp;redis.Options{
-                        Addr:      cfg.Addr,
-                        Username:  cfg.Username,
-                        Password:  cfg.Password,
-                        DB:        cfg.DB,
-                        TLSConfig: tlsConfig,
-                })</span>
+        <span class="cov8" title="1">if cfg.Addr != "" &amp;&amp; len(cfg.Addrs) == 0 </span><span class="cov8" title="1">{
+                cfg.Addrs = []string{cfg.Addr}
+        }</span>
+
+        <span class="cov8" title="1">opt := valkey.ClientOption{
+                InitAddress: cfg.Addrs,
+                Username:    cfg.Username,
+                Password:    cfg.Password,
+                SelectDB:    cfg.DB,
+                TLSConfig:   tlsConfig,
+
+                DisableCache: true,
         }
 
-        <span class="cov8" title="1">err := client.Ping(context.Background()).Err()
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, fmt.Errorf("failed to ping redis server: %w", err)
+        var err error
+        switch </span>{
+        case cfg.Sentinel.Enabled:<span class="cov8" title="1">
+                opt.Sentinel = valkey.SentinelOption{
+                        MasterSet: cfg.Sentinel.MasterName,
+                        Username:  cfg.Sentinel.Username,
+                        Password:  cfg.Sentinel.Password,
+                }
+                opt.InitAddress = cfg.Sentinel.Addresses
+
+                client, err = valkey.NewClient(opt)</span>
+        case len(cfg.Addrs) &gt; 1:<span class="cov0" title="0">
+                client, lb, err = NewRedisLoadbalancer(opt)</span>
+        default:<span class="cov8" title="1">
+                client, err = valkey.NewClient(opt)</span>
+        }
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to connect to redis server: %v", err)
         }</span>
 
         <span class="cov8" title="1">return &amp;RedisBackend{
@@ -1578,13 +1599,16 @@ func (r *RedisBackend) Reserve(group string, id string) error <span class="cov8"
         key := fmt.Sprintf(keyformat, group, id)
         ctx := context.Background()
 
-        ok, err := r.client.SetNX(ctx, key, time.Now(), 0).Result()
+        cmdSetNX := r.client.B().Setnx().Key(key).Value(time.Now().String()).Build()
+        cmdSAdd := r.client.B().Sadd().Key(group).Member(key).Build()
+
+        ok, err := r.client.Do(ctx, cmdSetNX).AsBool()
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to create key: %w", err)
         }</span>
 
         <span class="cov8" title="1">if ok </span><span class="cov8" title="1">{
-                err := r.client.SAdd(ctx, group, key).Err()
+                err := r.client.Do(ctx, cmdSAdd).Error()
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to add key to group list: %w", err)
                 }</span>
@@ -1595,11 +1619,12 @@ func (r *RedisBackend) Reserve(group string, id string) error <span class="cov8"
 
 // Returns the current number of locks for the given group
 func (r *RedisBackend) GetLocks(group string) (int, error) <span class="cov8" title="1">{
-        result := r.client.SCard(context.Background(), group)
-        if err := result.Err(); err != nil </span><span class="cov0" title="0">{
+        cmdSCard := r.client.B().Scard().Key(group).Build()
+        result, err := r.client.Do(context.Background(), cmdSCard).AsInt64()
+        if err != nil </span><span class="cov0" title="0">{
                 return 0, fmt.Errorf("failed to get locks from database: %w", err)
         }</span>
-        <span class="cov8" title="1">return int(result.Val()), nil</span>
+        <span class="cov8" title="1">return int(result), nil</span>
 }
 
 // Release the lock currently held by the id.
@@ -1608,12 +1633,15 @@ func (r *RedisBackend) Release(group string, id string) error <span class="cov8"
         key := fmt.Sprintf(keyformat, group, id)
         ctx := context.Background()
 
-        err := r.client.Del(ctx, key).Err()
+        cmdDel := r.client.B().Del().Key(key).Build()
+        cmdSRem := r.client.B().Srem().Key(group).Member(key).Build()
+
+        err := r.client.Do(ctx, cmdDel).Error()
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to delete key in database: %w", err)
         }</span>
 
-        <span class="cov8" title="1">err = r.client.SRem(ctx, group, key).Err()
+        <span class="cov8" title="1">err = r.client.Do(ctx, cmdSRem).Error()
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to remove key from group: %w", err)
         }</span>
@@ -1630,7 +1658,8 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span clas
         key := fmt.Sprintf(keyformat, group, id)
         ctx := context.Background()
 
-        count, err := r.client.Exists(ctx, key).Result()
+        cmdExists := r.client.B().Exists().Key(key).Build()
+        count, err := r.client.Do(ctx, cmdExists).AsInt64()
         if err != nil </span><span class="cov0" title="0">{
                 return false, fmt.Errorf("failed to count keys in group: %w", err)
         }</span>
@@ -1639,10 +1668,11 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span clas
 
 // Calls all necessary finalization if necessary
 func (r *RedisBackend) Close() error <span class="cov8" title="1">{
-        if r.lb != nil </span><span class="cov8" title="1">{
+        if r.lb != nil </span><span class="cov0" title="0">{
                 r.lb.Close()
         }</span>
-        <span class="cov8" title="1">return r.client.Close()</span>
+        <span class="cov8" title="1">r.client.Close()
+        return nil</span>
 }
 </pre>
 		
