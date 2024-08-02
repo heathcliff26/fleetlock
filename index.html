@@ -87,7 +87,7 @@
 				
 				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (90.9%)</option>
 				
-				<option value="file16">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (86.2%)</option>
+				<option value="file16">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (86.4%)</option>
 				
 				<option value="file17">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (91.7%)</option>
 				
@@ -684,6 +684,8 @@ import (
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
+
+        //nolint:staticcheck
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
@@ -788,6 +790,8 @@ import (
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+
+        //nolint:staticcheck
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
@@ -843,6 +847,7 @@ func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) <
         case "mysql":<span class="cov8" title="1">
                 storage, err = sql.NewMySQLBackend(storageCfg.MySQL)</span>
         case "redis":<span class="cov8" title="1">
+                //nolint:staticcheck
                 storage, err = redis.NewRedisBackend(storageCfg.Redis)</span>
         case "valkey":<span class="cov8" title="1">
                 storage, err = valkey.NewValkeyBackend(storageCfg.Valkey)</span>
@@ -1392,7 +1397,11 @@ func (g *group) hasLock(id string) bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package redis
+		<pre class="file" id="file15" style="display: none">// Deprecated: The redis package has been replaced by valkey. It will be removed in 2025.
+// See: https://github.com/heathcliff26/fleetlock/issues/67
+//
+// This package is frozen and no new functionality will be added.
+package redis
 
 import (
         "context"
@@ -1423,6 +1432,9 @@ type loadbalancer struct {
         rwlock   sync.RWMutex
 }
 
+// Deprecated: Use valkey.NewValkeyLoadbalancer instead
+// See: https://github.com/heathcliff26/fleetlock/issues/67
+//
 // Create a new redis client with loadbalanced connections
 func NewRedisLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalancer, error) <span class="cov8" title="1">{
         opt.ForceSingleClient = true
@@ -1516,12 +1528,17 @@ func (lb *loadbalancer) Close() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package redis
+		<pre class="file" id="file16" style="display: none">// Deprecated: The redis package has been replaced by valkey. It will be removed in 2025.
+// See: https://github.com/heathcliff26/fleetlock/issues/67
+//
+// This package is frozen and no new functionality will be added.
+package redis
 
 import (
         "context"
         "crypto/tls"
         "fmt"
+        "log/slog"
         "time"
 
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
@@ -1553,10 +1570,14 @@ type RedisSentinelConfig struct {
         Password   string   `yaml:"password,omitempty"`
 }
 
+// Deprecated: Use valkey.NewValkeyBackend instead
+// See: https://github.com/heathcliff26/fleetlock/issues/67
 func NewRedisBackend(cfg RedisConfig) (*RedisBackend, error) <span class="cov8" title="1">{
         var client valkey.Client
         var lb *loadbalancer
         var tlsConfig *tls.Config
+
+        slog.Warn("DEPRECATED: The redis backend type has been renamed to valkey. The redis option will be removed in 2025. See: https://github.com/heathcliff26/fleetlock/issues/67")
 
         if cfg.TLS </span><span class="cov0" title="0">{
                 tlsConfig = &amp;tls.Config{}
