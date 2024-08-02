@@ -4,6 +4,8 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
+
+	//nolint:staticcheck
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"

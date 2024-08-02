@@ -8,6 +8,8 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+
+	//nolint:staticcheck
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
@@ -63,6 +65,7 @@ func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) {
 	case "mysql":
 		storage, err = sql.NewMySQLBackend(storageCfg.MySQL)
 	case "redis":
+		//nolint:staticcheck
 		storage, err = redis.NewRedisBackend(storageCfg.Redis)
 	case "valkey":
 		storage, err = valkey.NewValkeyBackend(storageCfg.Valkey)

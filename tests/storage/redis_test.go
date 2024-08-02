@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
+	//nolint:staticcheck
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/tests/utils"
 )
@@ -17,6 +18,7 @@ func TestRedisBackend(t *testing.T) {
 		Addr: mr.Addr(),
 	}
 
+	//nolint:staticcheck
 	storage, err := redis.NewRedisBackend(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create storage backend: %v", err)
@@ -33,6 +35,7 @@ func TestRedisLoadbalancerBackend(t *testing.T) {
 		Addrs: []string{mr1.Addr(), mr2.Addr()},
 	}
 
+	//nolint:staticcheck
 	storage, err := redis.NewRedisBackend(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create storage backend: %v", err)
@@ -89,6 +92,7 @@ func TestRedisSentinelBackend(t *testing.T) {
 		},
 	}
 
+	//nolint:staticcheck
 	storage, err := redis.NewRedisBackend(cfg)
 	if err != nil {
 		cmd := utils.GetCommand("logs", "fleetlock-redis-sentinel-sentinel")
