@@ -104,7 +104,7 @@ func TestNewManager(t *testing.T) {
 					Addr: "",
 				},
 			},
-			Error: "failed to ping redis server",
+			Error: "no alive address in InitAddress",
 		},
 		{
 			Name: "ErrorNewEtcdBackend",
