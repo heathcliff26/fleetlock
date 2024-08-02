@@ -56,6 +56,8 @@ func NewValkeyLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalance
 
 // Determine the first healthy master node
 func (lb *loadbalancer) HealthCheck() {
+	found := false
+
 	for i, addr := range lb.addrs {
 		opt := lb.options
 		opt.InitAddress = []string{addr}
@@ -84,8 +86,14 @@ func (lb *loadbalancer) HealthCheck() {
 				// valkey keeps a connection. Try to ping it to ensure it gets terminated and the next try will be a new connection
 				_ = lb.client.Do(context.Background(), client.B().Ping().Build())
 			}
+
+			found = true
 			break
 		}
+	}
+
+	if found {
+		slog.Info("Could not connect to any valkey database, all connections are down")
 	}
 }
 
