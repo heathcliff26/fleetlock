@@ -46,7 +46,7 @@ func TestRedisSentinelBackend(t *testing.T) {
 	}
 
 	err := utils.ExecCRI("run", "--name", "fleetlock-redis-sentinel-db", "-d", "--net", "host",
-		"docker.io/valkey/valkey:7.2",
+		"docker.io/valkey/valkey:latest",
 		"--port", "6379",
 	)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestRedisSentinelBackend(t *testing.T) {
 
 	err = utils.ExecCRI("run", "--name", "fleetlock-redis-sentinel-sentinel", "-d", "--net", "host",
 		"-v", "./testdata/redis-sentinel.conf:/config/sentinel.conf", "--userns=keep-id",
-		"docker.io/valkey/valkey:7.2",
+		"docker.io/valkey/valkey:latest",
 		"/config/sentinel.conf", "--sentinel",
 	)
 	if err != nil {
