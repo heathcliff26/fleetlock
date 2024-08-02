@@ -85,7 +85,7 @@
 				
 				<option value="file14">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (90.9%)</option>
+				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (95.5%)</option>
 				
 				<option value="file16">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (86.2%)</option>
 				
@@ -1454,7 +1454,7 @@ func (lb *loadbalancer) HealthCheck() <span class="cov8" title="1">{
 
                 cmdInfo := client.B().Info().Build()
                 res, err := client.Do(context.Background(), cmdInfo).ToString()
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         slog.Error("Failed to get endpoint info", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
