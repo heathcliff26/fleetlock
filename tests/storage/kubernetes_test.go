@@ -18,7 +18,7 @@ func TestKubernetesBackend(t *testing.T) {
 			Name: nsName,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 
 	RunLockManagerTestsuiteWithStorage(t, storage)
 }
