@@ -26,10 +26,11 @@ func TestRedisBackend(t *testing.T) {
 }
 
 func TestRedisLoadbalancerBackend(t *testing.T) {
-	mr := miniredis.RunT(t)
+	mr1 := miniredis.RunT(t)
+	mr2 := miniredis.RunT(t)
 
 	cfg := redis.RedisConfig{
-		Addrs: []string{mr.Addr()},
+		Addrs: []string{mr1.Addr(), mr2.Addr()},
 	}
 
 	storage, err := redis.NewRedisBackend(cfg)
