@@ -421,7 +421,7 @@ func NewFakeClient() (*Client, *fake.Clientset) <span class="cov8" title="1">{
 // Drain a node from all pods and set it to unschedulable.
 // Status will be tracked in lease, only one drain will be run at a time.
 func (c *Client) DrainNode(node string) error <span class="cov8" title="1">{
-        lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.TODO(), drainLeaseName(node), metav1.GetOptions{})
+        lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.Background(), drainLeaseName(node), metav1.GetOptions{})
         if errors.IsNotFound(err) </span><span class="cov8" title="1">{
                 lease = &amp;coordv1.Lease{
                         ObjectMeta: metav1.ObjectMeta{
@@ -435,7 +435,7 @@ func (c *Client) DrainNode(node string) error <span class="cov8" title="1">{
                         },
                 }
 
-                lease, err = c.client.CoordinationV1().Leases(c.namespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+                lease, err = c.client.CoordinationV1().Leases(c.namespace).Create(context.Background(), lease, metav1.CreateOptions{})
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
@@ -443,7 +443,7 @@ func (c *Client) DrainNode(node string) error <span class="cov8" title="1">{
                 return err
         }</span> else<span class="cov8" title="1"> if lease.Spec.AcquireTime != nil &amp;&amp; time.Now().After(lease.Spec.AcquireTime.Time.Add(5*time.Minute)) </span><span class="cov8" title="1">{
                 lease.Spec.AcquireTime = &amp;metav1.MicroTime{Time: time.Now()}
-                lease, err = c.client.CoordinationV1().Leases(c.namespace).Update(context.TODO(), lease, metav1.UpdateOptions{})
+                lease, err = c.client.CoordinationV1().Leases(c.namespace).Update(context.Background(), lease, metav1.UpdateOptions{})
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
@@ -456,18 +456,18 @@ func (c *Client) DrainNode(node string) error <span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">_, err = c.client.CoordinationV1().Leases(c.namespace).Patch(context.TODO(), lease.GetName(), types.MergePatchType, []byte("{\"spec\":{\"holderIdentity\":\"done\"}}"), metav1.PatchOptions{})
+        <span class="cov8" title="1">_, err = c.client.CoordinationV1().Leases(c.namespace).Patch(context.Background(), lease.GetName(), types.MergePatchType, []byte("{\"spec\":{\"holderIdentity\":\"done\"}}"), metav1.PatchOptions{})
         return err</span>
 }
 
 // Drain a node of all pods, skipping daemonsets
 func (c *Client) drainNode(node string) error <span class="cov8" title="1">{
-        _, err := c.client.CoreV1().Nodes().Patch(context.TODO(), node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
+        _, err := c.client.CoreV1().Nodes().Patch(context.Background(), node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(context.TODO(), metav1.ListOptions{
+        <span class="cov8" title="1">pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{
                 FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node}).String(),
         })
         if err != nil </span><span class="cov0" title="0">{
@@ -486,7 +486,7 @@ func (c *Client) drainNode(node string) error <span class="cov8" title="1">{
                         continue</span>
                 }
 
-                <span class="cov8" title="1">err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(context.TODO(), &amp;policyv1.Eviction{
+                <span class="cov8" title="1">err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(context.Background(), &amp;policyv1.Eviction{
                         TypeMeta: metav1.TypeMeta{
                                 APIVersion: "policy/v1",
                                 Kind:       "Eviction",
@@ -510,7 +510,7 @@ func (c *Client) drainNode(node string) error <span class="cov8" title="1">{
 
 // Find the node in the cluster with the matching machine id
 func (c *Client) FindNodeByZincatiID(zincatiID string) (string, error) <span class="cov8" title="1">{
-        nodes, err := c.client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+        nodes, err := c.client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
@@ -533,11 +533,11 @@ func (c *Client) FindNodeByZincatiID(zincatiID string) (string, error) <span cla
 
 // Uncordon a node
 func (c *Client) UncordonNode(node string) error <span class="cov8" title="1">{
-        _, err := c.client.CoreV1().Nodes().Patch(context.TODO(), node, types.MergePatchType, nodeUnschedulablePatch(false), metav1.PatchOptions{})
+        _, err := c.client.CoreV1().Nodes().Patch(context.Background(), node, types.MergePatchType, nodeUnschedulablePatch(false), metav1.PatchOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov8" title="1">err = c.client.CoordinationV1().Leases(c.namespace).Delete(context.TODO(), drainLeaseName(node), metav1.DeleteOptions{})
+        <span class="cov8" title="1">err = c.client.CoordinationV1().Leases(c.namespace).Delete(context.Background(), drainLeaseName(node), metav1.DeleteOptions{})
         if errors.IsNotFound(err) </span><span class="cov8" title="1">{
                 return nil
         }</span> else<span class="cov8" title="1"> {
@@ -547,7 +547,7 @@ func (c *Client) UncordonNode(node string) error <span class="cov8" title="1">{
 
 // Check if a node has been drained
 func (c *Client) IsDrained(node string) (bool, error) <span class="cov8" title="1">{
-        lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.TODO(), drainLeaseName(node), metav1.GetOptions{})
+        lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.Background(), drainLeaseName(node), metav1.GetOptions{})
         if errors.IsNotFound(err) </span><span class="cov8" title="1">{
                 return false, nil
         }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
@@ -1179,7 +1179,7 @@ func (k *KubernetesBackend) Reserve(group string, id string) error <span class="
                         HolderIdentity: &amp;id,
                 },
         }
-        _, err = k.client.Leases(k.namespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+        _, err = k.client.Leases(k.namespace).Create(context.Background(), lease, metav1.CreateOptions{})
 
         return err</span>
 }
@@ -1200,7 +1200,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
 
         <span class="cov8" title="1">for _, lease := range leases </span><span class="cov8" title="1">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov8" title="1">{
-                        return k.client.Leases(k.namespace).Delete(context.TODO(), lease.GetName(), metav1.DeleteOptions{})
+                        return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
         }
 
@@ -1235,7 +1235,7 @@ func (k *KubernetesBackend) Close() error <span class="cov8" title="1">{
 func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, error) <span class="cov8" title="1">{
         // Kubernetes names do not allow uppercase
         group = strings.ToLower(group)
-        leases, err := k.client.Leases(k.namespace).List(context.TODO(), metav1.ListOptions{})
+        leases, err := k.client.Leases(k.namespace).List(context.Background(), metav1.ListOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
