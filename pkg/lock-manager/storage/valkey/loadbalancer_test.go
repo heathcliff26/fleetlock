@@ -73,6 +73,19 @@ func TestLoadbalancer(t *testing.T) {
 			lb.Close()
 			client.Close()
 		})
+		t.Cleanup(func() {
+			if t.Failed() {
+				for _, container := range []string{"fleetlock-valkey-loadbalancer-failover-1", "fleetlock-valkey-loadbalancer-failover-2"} {
+					cmd := utils.GetCommand("logs", container)
+					out, err := cmd.CombinedOutput()
+					if err != nil {
+						t.Logf("Failed to get logs for container %s: %v\n", container, err)
+					} else {
+						t.Logf("Logs for %s:\n%s\n", container, string(out))
+					}
+				}
+			}
+		})
 
 		assert.Equal(0, lb.selected, "Should have currently the first client selected")
 
