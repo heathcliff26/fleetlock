@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 var (
@@ -43,5 +44,10 @@ func ExecCRI(args ...string) error {
 		containerRuntime = findContainerRuntime()
 		initialized = true
 	}
-	return GetCommand(args...).Run()
+	out, err := GetCommand(args...).CombinedOutput()
+	if err != nil {
+		argsStr := strings.Join(args, " ")
+		fmt.Printf("Output from \"%s %s\":\n%s\n", containerRuntime, argsStr, string(out))
+	}
+	return err
 }
