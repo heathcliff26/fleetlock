@@ -1,9 +1,14 @@
+// Deprecated: The redis package has been replaced by valkey. It will be removed in 2025.
+// See: https://github.com/heathcliff26/fleetlock/issues/67
+//
+// This package is frozen and no new functionality will be added.
 package redis
 
 import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
@@ -35,10 +40,14 @@ type RedisSentinelConfig struct {
 	Password   string   `yaml:"password,omitempty"`
 }
 
+// Deprecated: Use valkey.NewValkeyBackend instead
+// See: https://github.com/heathcliff26/fleetlock/issues/67
 func NewRedisBackend(cfg RedisConfig) (*RedisBackend, error) {
 	var client valkey.Client
 	var lb *loadbalancer
 	var tlsConfig *tls.Config
+
+	slog.Warn("DEPRECATED: The redis backend type has been renamed to valkey. The redis option will be removed in 2025. See: https://github.com/heathcliff26/fleetlock/issues/67")
 
 	if cfg.TLS {
 		tlsConfig = &tls.Config{}

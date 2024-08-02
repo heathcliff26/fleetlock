@@ -1,3 +1,7 @@
+// Deprecated: The redis package has been replaced by valkey. It will be removed in 2025.
+// See: https://github.com/heathcliff26/fleetlock/issues/67
+//
+// This package is frozen and no new functionality will be added.
 package redis
 
 import (
