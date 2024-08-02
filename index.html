@@ -87,7 +87,7 @@
 				
 				<option value="file15">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/loadbalancer.go (90.9%)</option>
 				
-				<option value="file16">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (82.8%)</option>
+				<option value="file16">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis/storage.go (86.2%)</option>
 				
 				<option value="file17">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (91.7%)</option>
 				
@@ -1578,7 +1578,7 @@ func NewRedisBackend(cfg RedisConfig) (*RedisBackend, error) <span class="cov8" 
                 opt.InitAddress = cfg.Sentinel.Addresses
 
                 client, err = valkey.NewClient(opt)</span>
-        case len(cfg.Addrs) &gt; 1:<span class="cov0" title="0">
+        case len(cfg.Addrs) &gt; 1:<span class="cov8" title="1">
                 client, lb, err = NewRedisLoadbalancer(opt)</span>
         default:<span class="cov8" title="1">
                 client, err = valkey.NewClient(opt)</span>
@@ -1668,7 +1668,7 @@ func (r *RedisBackend) HasLock(group string, id string) (bool, error) <span clas
 
 // Calls all necessary finalization if necessary
 func (r *RedisBackend) Close() error <span class="cov8" title="1">{
-        if r.lb != nil </span><span class="cov0" title="0">{
+        if r.lb != nil </span><span class="cov8" title="1">{
                 r.lb.Close()
         }</span>
         <span class="cov8" title="1">r.client.Close()
