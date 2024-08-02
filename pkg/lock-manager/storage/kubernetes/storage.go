@@ -94,7 +94,7 @@ func (k *KubernetesBackend) Reserve(group string, id string) error {
 			HolderIdentity: &id,
 		},
 	}
-	_, err = k.client.Leases(k.namespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+	_, err = k.client.Leases(k.namespace).Create(context.Background(), lease, metav1.CreateOptions{})
 
 	return err
 }
@@ -115,7 +115,7 @@ func (k *KubernetesBackend) Release(group string, id string) error {
 
 	for _, lease := range leases {
 		if *lease.Spec.HolderIdentity == id {
-			return k.client.Leases(k.namespace).Delete(context.TODO(), lease.GetName(), metav1.DeleteOptions{})
+			return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
 		}
 	}
 
@@ -150,7 +150,7 @@ func (k *KubernetesBackend) Close() error {
 func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, error) {
 	// Kubernetes names do not allow uppercase
 	group = strings.ToLower(group)
-	leases, err := k.client.Leases(k.namespace).List(context.TODO(), metav1.ListOptions{})
+	leases, err := k.client.Leases(k.namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

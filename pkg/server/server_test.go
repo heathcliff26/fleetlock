@@ -330,12 +330,12 @@ func initTestCluster(client *fake.Clientset) {
 			NodeInfo: v1.NodeSystemInfo{MachineID: testNodeMachineID},
 		},
 	}
-	_, _ = client.CoreV1().Nodes().Create(context.TODO(), testNode, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Nodes().Create(context.Background(), testNode, metav1.CreateOptions{})
 
 	testNS := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNamespace,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.TODO(), testNS, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(context.Background(), testNS, metav1.CreateOptions{})
 }

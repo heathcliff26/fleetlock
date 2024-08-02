@@ -31,14 +31,14 @@ func initTestCluster(client *fake.Clientset) {
 			NodeInfo: v1.NodeSystemInfo{MachineID: testNodeMachineID},
 		},
 	}
-	_, _ = client.CoreV1().Nodes().Create(context.TODO(), testNode, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Nodes().Create(context.Background(), testNode, metav1.CreateOptions{})
 
 	testNS := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNamespace,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.TODO(), testNS, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(context.Background(), testNS, metav1.CreateOptions{})
 
 	testPod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -50,7 +50,7 @@ func initTestCluster(client *fake.Clientset) {
 			TerminationGracePeriodSeconds: utils.Pointer(int64(1)),
 		},
 	}
-	_, _ = client.CoreV1().Pods(testNamespace).Create(context.TODO(), testPod, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Pods(testNamespace).Create(context.Background(), testPod, metav1.CreateOptions{})
 }
 
 func TestNewClient(t *testing.T) {
@@ -87,10 +87,10 @@ func TestDrainNode(t *testing.T) {
 			t.FailNow()
 		}
 
-		node, _ := client.CoreV1().Nodes().Get(context.TODO(), testNodeName, metav1.GetOptions{})
+		node, _ := client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
 
-		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(context.TODO(), drainLeaseName(testNodeName), metav1.GetOptions{})
+		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(utils.Pointer("done"), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(utils.Pointer(int32(300)), lease.Spec.LeaseDurationSeconds, "LeaseDurationSeconds should be set")
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
@@ -110,7 +110,7 @@ func TestDrainNode(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
 
 		err := c.DrainNode(testNodeName)
 		assert.Equal(t, NewErrorDrainIsLocked(), err, "Should return an error signaling that a drain is already in progress")
@@ -130,7 +130,7 @@ func TestDrainNode(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now().Add(-6 * time.Minute)},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
 
 		err := c.DrainNode(testNodeName)
 
@@ -140,10 +140,10 @@ func TestDrainNode(t *testing.T) {
 			t.FailNow()
 		}
 
-		node, _ := client.CoreV1().Nodes().Get(context.TODO(), testNodeName, metav1.GetOptions{})
+		node, _ := client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
 
-		lease, _ = client.CoordinationV1().Leases(testNamespace).Get(context.TODO(), drainLeaseName(testNodeName), metav1.GetOptions{})
+		lease, _ = client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(utils.Pointer("done"), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
 	})
@@ -169,9 +169,9 @@ func TestUncordonNode(t *testing.T) {
 	c, client := NewFakeClient()
 	initTestCluster(client)
 
-	node, _ := client.CoreV1().Nodes().Get(context.TODO(), testNodeName, metav1.GetOptions{})
+	node, _ := client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
 	node.Spec.Unschedulable = true
-	_, _ = client.CoreV1().Nodes().Update(context.TODO(), node, metav1.UpdateOptions{})
+	_, _ = client.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
 	lease := &coordv1.Lease{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.namespace,
@@ -183,7 +183,7 @@ func TestUncordonNode(t *testing.T) {
 			AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 		},
 	}
-	_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+	_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
 
 	err := c.UncordonNode(testNodeName)
 
@@ -191,10 +191,10 @@ func TestUncordonNode(t *testing.T) {
 
 	assert.Nil(err, "Should not return an error")
 
-	_, err = client.CoordinationV1().Leases(testNamespace).Get(context.TODO(), drainLeaseName(testNodeName), metav1.GetOptions{})
+	_, err = client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
 	assert.True(errors.IsNotFound(err), "Lease should be deleted")
 
-	node, _ = client.CoreV1().Nodes().Get(context.TODO(), testNodeName, metav1.GetOptions{})
+	node, _ = client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
 	assert.False(node.Spec.Unschedulable, "Node should be schedulable")
 
 	err = c.UncordonNode(testNodeName)
@@ -228,7 +228,7 @@ func TestIsDrained(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
 
 		res, err := c.IsDrained(testNodeName)
 
@@ -252,7 +252,7 @@ func TestIsDrained(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
 
 		res, err := c.IsDrained(testNodeName)
 

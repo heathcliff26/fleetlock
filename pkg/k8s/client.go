@@ -57,7 +57,7 @@ func NewFakeClient() (*Client, *fake.Clientset) {
 // Drain a node from all pods and set it to unschedulable.
 // Status will be tracked in lease, only one drain will be run at a time.
 func (c *Client) DrainNode(node string) error {
-	lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.TODO(), drainLeaseName(node), metav1.GetOptions{})
+	lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.Background(), drainLeaseName(node), metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		lease = &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -71,7 +71,7 @@ func (c *Client) DrainNode(node string) error {
 			},
 		}
 
-		lease, err = c.client.CoordinationV1().Leases(c.namespace).Create(context.TODO(), lease, metav1.CreateOptions{})
+		lease, err = c.client.CoordinationV1().Leases(c.namespace).Create(context.Background(), lease, metav1.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func (c *Client) DrainNode(node string) error {
 		return err
 	} else if lease.Spec.AcquireTime != nil && time.Now().After(lease.Spec.AcquireTime.Time.Add(5*time.Minute)) {
 		lease.Spec.AcquireTime = &metav1.MicroTime{Time: time.Now()}
-		lease, err = c.client.CoordinationV1().Leases(c.namespace).Update(context.TODO(), lease, metav1.UpdateOptions{})
+		lease, err = c.client.CoordinationV1().Leases(c.namespace).Update(context.Background(), lease, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
@@ -92,18 +92,18 @@ func (c *Client) DrainNode(node string) error {
 		return err
 	}
 
-	_, err = c.client.CoordinationV1().Leases(c.namespace).Patch(context.TODO(), lease.GetName(), types.MergePatchType, []byte("{\"spec\":{\"holderIdentity\":\"done\"}}"), metav1.PatchOptions{})
+	_, err = c.client.CoordinationV1().Leases(c.namespace).Patch(context.Background(), lease.GetName(), types.MergePatchType, []byte("{\"spec\":{\"holderIdentity\":\"done\"}}"), metav1.PatchOptions{})
 	return err
 }
 
 // Drain a node of all pods, skipping daemonsets
 func (c *Client) drainNode(node string) error {
-	_, err := c.client.CoreV1().Nodes().Patch(context.TODO(), node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
+	_, err := c.client.CoreV1().Nodes().Patch(context.Background(), node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
 
-	pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(context.TODO(), metav1.ListOptions{
+	pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{
 		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node}).String(),
 	})
 	if err != nil {
@@ -122,7 +122,7 @@ func (c *Client) drainNode(node string) error {
 			continue
 		}
 
-		err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(context.TODO(), &policyv1.Eviction{
+		err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(context.Background(), &policyv1.Eviction{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: "policy/v1",
 				Kind:       "Eviction",
@@ -146,7 +146,7 @@ func (c *Client) drainNode(node string) error {
 
 // Find the node in the cluster with the matching machine id
 func (c *Client) FindNodeByZincatiID(zincatiID string) (string, error) {
-	nodes, err := c.client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	nodes, err := c.client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -169,11 +169,11 @@ func (c *Client) FindNodeByZincatiID(zincatiID string) (string, error) {
 
 // Uncordon a node
 func (c *Client) UncordonNode(node string) error {
-	_, err := c.client.CoreV1().Nodes().Patch(context.TODO(), node, types.MergePatchType, nodeUnschedulablePatch(false), metav1.PatchOptions{})
+	_, err := c.client.CoreV1().Nodes().Patch(context.Background(), node, types.MergePatchType, nodeUnschedulablePatch(false), metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
-	err = c.client.CoordinationV1().Leases(c.namespace).Delete(context.TODO(), drainLeaseName(node), metav1.DeleteOptions{})
+	err = c.client.CoordinationV1().Leases(c.namespace).Delete(context.Background(), drainLeaseName(node), metav1.DeleteOptions{})
 	if errors.IsNotFound(err) {
 		return nil
 	} else {
@@ -183,7 +183,7 @@ func (c *Client) UncordonNode(node string) error {
 
 // Check if a node has been drained
 func (c *Client) IsDrained(node string) (bool, error) {
-	lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.TODO(), drainLeaseName(node), metav1.GetOptions{})
+	lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.Background(), drainLeaseName(node), metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		return false, nil
 	} else if err != nil {
