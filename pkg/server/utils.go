@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+
+	"github.com/heathcliff26/fleetlock/pkg/server/client"
 )
 
 func ReadUserIP(req *http.Request) string {
@@ -18,7 +20,7 @@ func ReadUserIP(req *http.Request) string {
 }
 
 // Send a response to the writer and handle impossible parse errors
-func sendResponse(rw http.ResponseWriter, res FleetLockResponse) {
+func sendResponse(rw http.ResponseWriter, res client.FleetLockResponse) {
 	b, err := json.Marshal(res)
 	if err != nil {
 		slog.Error("Failed to create Response", "err", err)

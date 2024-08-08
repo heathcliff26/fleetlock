@@ -1,9 +1,7 @@
 package server
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +13,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+	"github.com/heathcliff26/fleetlock/pkg/server/client"
 	"github.com/stretchr/testify/assert"
 
 	v1 "k8s.io/api/core/v1"
@@ -286,12 +285,9 @@ func TestUncordonNode(t *testing.T) {
 	assert.True(s.uncordonNode(rr, params))
 }
 
-func newFleetlockRequest(group, id string) FleetLockRequest {
-	return FleetLockRequest{
-		Client: struct {
-			ID    string "json:\"id\""
-			Group string "json:\"group\""
-		}{
+func newFleetlockRequest(group, id string) client.FleetLockRequest {
+	return client.FleetLockRequest{
+		Client: client.FleetLockRequestClient{
 			ID:    id,
 			Group: group,
 		},
@@ -299,9 +295,8 @@ func newFleetlockRequest(group, id string) FleetLockRequest {
 }
 
 func createFleetLockRequest(group, id string) io.Reader {
-	msg := newFleetlockRequest(group, id)
-	body, _ := json.Marshal(msg)
-	return bytes.NewReader(body)
+	body, _ := client.PrepareRequest(group, id)
+	return body
 }
 
 func createRequest(target, group, id string) *http.Request {
@@ -312,11 +307,10 @@ func createRequest(target, group, id string) *http.Request {
 	return req
 }
 
-func parseResponse(rr *httptest.ResponseRecorder) (*http.Response, FleetLockResponse, error) {
+func parseResponse(rr *httptest.ResponseRecorder) (*http.Response, client.FleetLockResponse, error) {
 	res := rr.Result()
 
-	var response FleetLockResponse
-	err := json.NewDecoder(res.Body).Decode(&response)
+	response, err := client.ParseResponse(res.Body)
 
 	return res, response, err
 }

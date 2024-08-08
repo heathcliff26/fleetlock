@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+	"github.com/heathcliff26/fleetlock/pkg/server/client"
 )
 
 const groupValidationPattern = "^[a-zA-Z0-9.-]+$"
@@ -20,18 +20,6 @@ type Server struct {
 	cfg *ServerConfig
 	lm  *lockmanager.LockManager
 	k8s *k8s.Client
-}
-
-type FleetLockRequest struct {
-	Client struct {
-		ID    string `json:"id"`
-		Group string `json:"group"`
-	} `json:"client_params"`
-}
-
-type FleetLockResponse struct {
-	Kind  string `json:"kind"`
-	Value string `json:"value"`
 }
 
 // Create a new Server
@@ -56,7 +44,7 @@ func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmana
 func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 	slog.Debug("Received request", slog.String("method", req.Method), slog.String("uri", req.RequestURI), slog.String("remote", ReadUserIP(req)))
 
-	var handleFunc func(http.ResponseWriter, FleetLockRequest)
+	var handleFunc func(http.ResponseWriter, client.FleetLockRequest)
 	switch req.URL.String() {
 	case "/v1/pre-reboot":
 		handleFunc = s.handleReserve
@@ -85,8 +73,7 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var params FleetLockRequest
-	err := json.NewDecoder(req.Body).Decode(&params)
+	params, err := client.ParseRequest(req.Body)
 	if err != nil {
 		slog.Debug("Failed to parse request", "error", err, slog.String("remote", ReadUserIP(req)))
 		rw.WriteHeader(http.StatusBadRequest)
@@ -114,7 +101,7 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 // Handle requests to reserve a slot
 //
 //	URL: /v1/pre-reboot
-func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) {
+func (s *Server) handleReserve(rw http.ResponseWriter, params client.FleetLockRequest) {
 	ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
 	if err != nil {
 		slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -139,7 +126,7 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params FleetLockRequest) 
 // Handle requests to release a slot
 //
 //	URL: /v1/steady-state
-func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) {
+func (s *Server) handleRelease(rw http.ResponseWriter, params client.FleetLockRequest) {
 	if s.k8s != nil && !s.uncordonNode(rw, params) {
 		return
 	}
@@ -157,7 +144,7 @@ func (s *Server) handleRelease(rw http.ResponseWriter, params FleetLockRequest) 
 
 // Drain the node after reservation and before sending success to client.
 // Requires k8s client to be non-nil.
-func (s *Server) drainNode(rw http.ResponseWriter, params FleetLockRequest) bool {
+func (s *Server) drainNode(rw http.ResponseWriter, params client.FleetLockRequest) bool {
 	node, ok := s.matchNodeToId(rw, params)
 	if node == "" {
 		return ok
@@ -191,7 +178,7 @@ func (s *Server) drainNode(rw http.ResponseWriter, params FleetLockRequest) bool
 
 // Uncordon the node before release.
 // Requires k8s client to be non-nil.
-func (s *Server) uncordonNode(rw http.ResponseWriter, params FleetLockRequest) bool {
+func (s *Server) uncordonNode(rw http.ResponseWriter, params client.FleetLockRequest) bool {
 	node, ok := s.matchNodeToId(rw, params)
 	if node == "" {
 		return ok
@@ -208,7 +195,7 @@ func (s *Server) uncordonNode(rw http.ResponseWriter, params FleetLockRequest) b
 	return true
 }
 
-func (s *Server) matchNodeToId(rw http.ResponseWriter, params FleetLockRequest) (string, bool) {
+func (s *Server) matchNodeToId(rw http.ResponseWriter, params client.FleetLockRequest) (string, bool) {
 	node, err := s.k8s.FindNodeByZincatiID(params.Client.ID)
 	if err != nil {
 		slog.Error("An error occured when matching client id to node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
