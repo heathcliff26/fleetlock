@@ -19,7 +19,7 @@ func ReadUserIP(req *http.Request) string {
 
 // Send a response to the writer and handle impossible parse errors
 func sendResponse(rw http.ResponseWriter, res any) {
-	b, err := json.Marshal(res)
+	b, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		slog.Error("Failed to create Response", "err", err)
 		return
