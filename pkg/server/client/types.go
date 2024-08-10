@@ -13,3 +13,8 @@ type FleetLockResponse struct {
 	Kind  string `json:"kind"`
 	Value string `json:"value"`
 }
+
+type FleetlockHealthResponse struct {
+	Status string `json:"status"`
+	Error  string `json:"error"`
+}
