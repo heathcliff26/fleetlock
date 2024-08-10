@@ -211,9 +211,20 @@ func (s *Server) matchNodeToId(rw http.ResponseWriter, params client.FleetLockRe
 	return node, true
 }
 
+// Return a health status of the server
+// URL: /healthz
+func (s *Server) handleHealthCheck(rw http.ResponseWriter, _ *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	status := client.FleetlockHealthResponse{
+		Status: "ok",
+	}
+	sendResponse(rw, status)
+}
+
 // Starts the server and exits with error if that fails
 func (s *Server) Run() error {
 	http.HandleFunc("/", s.requestHandler)
+	http.HandleFunc("/healthz", s.handleHealthCheck)
 
 	slog.Info("Starting server", slog.String("listen", s.cfg.Listen), slog.Bool("ssl", s.cfg.SSL.Enabled))
 

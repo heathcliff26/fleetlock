@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -283,6 +284,27 @@ func TestUncordonNode(t *testing.T) {
 	rr = httptest.NewRecorder()
 	params.Client.ID = testNodeZincatiID
 	assert.True(s.uncordonNode(rr, params))
+}
+
+func TestHealthCheck(t *testing.T) {
+	s := &Server{}
+	rr := httptest.NewRecorder()
+
+	assert := assert.New(t)
+
+	s.handleHealthCheck(rr, nil)
+
+	assert.Equal(http.StatusOK, rr.Result().StatusCode, "Health Check should return with 200")
+	assert.Equal("application/json", rr.Header().Get("Content-Type"), "Content type should be json")
+
+	var res client.FleetlockHealthResponse
+	err := json.NewDecoder(rr.Result().Body).Decode(&res)
+
+	assert.NoError(err, "Response should be parsable")
+	expectedRes := client.FleetlockHealthResponse{
+		Status: "ok",
+	}
+	assert.Equal(expectedRes, res, "Response should match")
 }
 
 func newFleetlockRequest(group, id string) client.FleetLockRequest {
