@@ -2694,7 +2694,7 @@ func ReadUserIP(req *http.Request) string <span class="cov8" title="1">{
 
 // Send a response to the writer and handle impossible parse errors
 func sendResponse(rw http.ResponseWriter, res any) <span class="cov8" title="1">{
-        b, err := json.Marshal(res)
+        b, err := json.MarshalIndent(res, "", "  ")
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to create Response", "err", err)
                 return
