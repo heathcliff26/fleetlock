@@ -13,8 +13,9 @@ func TestEtcdBackend(t *testing.T) {
 		t.Skip("Missing Container Runtime")
 	}
 
+	// The latest tag on the etcd image is not being updated
 	err := utils.ExecCRI("run", "--name", "fleetlock-etcd-db", "-d", "-p", "2379:2379", "-p", "2380:2380",
-		"quay.io/coreos/etcd:latest",
+		"quay.io/coreos/etcd:v3.5.15",
 		"etcd",
 		"--listen-client-urls", "http://0.0.0.0:2379",
 		"--advertise-client-urls", "http://localhost:2379",
