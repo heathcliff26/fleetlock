@@ -109,7 +109,7 @@
 				
 				<option value="file26">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
 				
-				<option value="file27">github.com/heathcliff26/fleetlock/pkg/server/server.go (78.4%)</option>
+				<option value="file27">github.com/heathcliff26/fleetlock/pkg/server/server.go (78.3%)</option>
 				
 				<option value="file28">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
 				
@@ -2641,9 +2641,20 @@ func (s *Server) matchNodeToId(rw http.ResponseWriter, params client.FleetLockRe
         <span class="cov8" title="1">return node, true</span>
 }
 
+// Return a health status of the server
+// URL: /healthz
+func (s *Server) handleHealthCheck(rw http.ResponseWriter, _ *http.Request) <span class="cov8" title="1">{
+        rw.Header().Set("Content-Type", "application/json")
+        status := client.FleetlockHealthResponse{
+                Status: "ok",
+        }
+        sendResponse(rw, status)
+}</span>
+
 // Starts the server and exits with error if that fails
 func (s *Server) Run() error <span class="cov0" title="0">{
         http.HandleFunc("/", s.requestHandler)
+        http.HandleFunc("/healthz", s.handleHealthCheck)
 
         slog.Info("Starting server", slog.String("listen", s.cfg.Listen), slog.Bool("ssl", s.cfg.SSL.Enabled))
 
@@ -2668,8 +2679,6 @@ import (
         "encoding/json"
         "log/slog"
         "net/http"
-
-        "github.com/heathcliff26/fleetlock/pkg/server/client"
 )
 
 func ReadUserIP(req *http.Request) string <span class="cov8" title="1">{
@@ -2684,7 +2693,7 @@ func ReadUserIP(req *http.Request) string <span class="cov8" title="1">{
 }
 
 // Send a response to the writer and handle impossible parse errors
-func sendResponse(rw http.ResponseWriter, res client.FleetLockResponse) <span class="cov8" title="1">{
+func sendResponse(rw http.ResponseWriter, res any) <span class="cov8" title="1">{
         b, err := json.Marshal(res)
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to create Response", "err", err)
