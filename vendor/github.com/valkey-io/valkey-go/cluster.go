@@ -19,56 +19,6 @@ import (
 var ErrNoSlot = errors.New("the slot has no valkey node")
 var ErrReplicaOnlyConflict = errors.New("ReplicaOnly conflicts with SendToReplicas option")
 
-type retry struct {
-	cIndexes []int
-	commands []Completed
-	aIndexes []int
-	cAskings []Completed
-}
-
-func (r *retry) Capacity() int {
-	return cap(r.commands)
-}
-
-func (r *retry) ResetLen(n int) {
-	r.cIndexes = r.cIndexes[:n]
-	r.commands = r.commands[:n]
-	r.aIndexes = r.aIndexes[:0]
-	r.cAskings = r.cAskings[:0]
-}
-
-var retryp = util.NewPool(func(capacity int) *retry {
-	return &retry{
-		cIndexes: make([]int, 0, capacity),
-		commands: make([]Completed, 0, capacity),
-	}
-})
-
-type retrycache struct {
-	cIndexes []int
-	commands []CacheableTTL
-	aIndexes []int
-	cAskings []CacheableTTL
-}
-
-func (r *retrycache) Capacity() int {
-	return cap(r.commands)
-}
-
-func (r *retrycache) ResetLen(n int) {
-	r.cIndexes = r.cIndexes[:n]
-	r.commands = r.commands[:n]
-	r.aIndexes = r.aIndexes[:0]
-	r.cAskings = r.cAskings[:0]
-}
-
-var retrycachep = util.NewPool(func(capacity int) *retrycache {
-	return &retrycache{
-		cIndexes: make([]int, 0, capacity),
-		commands: make([]CacheableTTL, 0, capacity),
-	}
-})
-
 type clusterClient struct {
 	pslots [16384]conn
 	rslots []conn
@@ -183,12 +133,14 @@ func (s clusterslots) parse(tls bool) map[string]group {
 	return parseShards(s.reply.val, s.addr, tls)
 }
 
-func getClusterSlots(c conn) clusterslots {
+func getClusterSlots(c conn, timeout time.Duration) clusterslots {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	v := c.Version()
 	if v < 7 {
-		return clusterslots{reply: c.Do(context.Background(), cmds.SlotCmd), addr: c.Addr(), ver: v}
+		return clusterslots{reply: c.Do(ctx, cmds.SlotCmd), addr: c.Addr(), ver: v}
 	}
-	return clusterslots{reply: c.Do(context.Background(), cmds.ShardsCmd), addr: c.Addr(), ver: v}
+	return clusterslots{reply: c.Do(ctx, cmds.ShardsCmd), addr: c.Addr(), ver: v}
 }
 
 func (c *clusterClient) _refresh() (err error) {
@@ -204,9 +156,9 @@ func (c *clusterClient) _refresh() (err error) {
 	for i := 0; i < cap(results); i++ {
 		if i&3 == 0 { // batch CLUSTER SLOTS/CLUSTER SHARDS for every 4 connections
 			for j := i; j < i+4 && j < len(pending); j++ {
-				go func(c conn) {
-					results <- getClusterSlots(c)
-				}(pending[j])
+				go func(c conn, timeout time.Duration) {
+					results <- getClusterSlots(c, timeout)
+				}(pending[j], c.opt.ConnWriteTimeout)
 			}
 		}
 		result = <-results
@@ -1285,60 +1237,3 @@ const (
 	panicMsgCxSlot = "cross slot command in Dedicated is prohibited"
 	panicMixCxSlot = "Mixing no-slot and cross slot commands in DoMulti is prohibited"
 )
-
-type conncount struct {
-	m map[conn]int
-	n int
-}
-
-func (r *conncount) Capacity() int {
-	return r.n
-}
-
-func (r *conncount) ResetLen(n int) {
-	for k := range r.m {
-		delete(r.m, k)
-	}
-}
-
-var conncountp = util.NewPool(func(capacity int) *conncount {
-	return &conncount{m: make(map[conn]int, capacity), n: capacity}
-})
-
-type connretry struct {
-	m map[conn]*retry
-	n int
-}
-
-func (r *connretry) Capacity() int {
-	return r.n
-}
-
-func (r *connretry) ResetLen(n int) {
-	for k := range r.m {
-		delete(r.m, k)
-	}
-}
-
-var connretryp = util.NewPool(func(capacity int) *connretry {
-	return &connretry{m: make(map[conn]*retry, capacity), n: capacity}
-})
-
-type connretrycache struct {
-	m map[conn]*retrycache
-	n int
-}
-
-func (r *connretrycache) Capacity() int {
-	return r.n
-}
-
-func (r *connretrycache) ResetLen(n int) {
-	for k := range r.m {
-		delete(r.m, k)
-	}
-}
-
-var connretrycachep = util.NewPool(func(capacity int) *connretrycache {
-	return &connretrycache{m: make(map[conn]*retrycache, capacity), n: capacity}
-})
