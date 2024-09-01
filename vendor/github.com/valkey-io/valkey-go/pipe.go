@@ -17,11 +17,10 @@ import (
 	"time"
 
 	"github.com/valkey-io/valkey-go/internal/cmds"
-	"github.com/valkey-io/valkey-go/internal/util"
 )
 
 const LibName = "valkey"
-const LibVer = "1.0.44"
+const LibVer = "1.0.45"
 
 var noHello = regexp.MustCompile("unknown command .?(HELLO|hello).?")
 
@@ -42,44 +41,6 @@ type wire interface {
 	SetPubSubHooks(hooks PubSubHooks) <-chan error
 	SetOnCloseHook(fn func(error))
 }
-
-type valkeyresults struct {
-	s []ValkeyResult
-}
-
-func (r *valkeyresults) Capacity() int {
-	return cap(r.s)
-}
-
-func (r *valkeyresults) ResetLen(n int) {
-	r.s = r.s[:n]
-	for i := 0; i < n; i++ {
-		r.s[i] = ValkeyResult{}
-	}
-}
-
-var resultsp = util.NewPool(func(capacity int) *valkeyresults {
-	return &valkeyresults{s: make([]ValkeyResult, 0, capacity)}
-})
-
-type cacheentries struct {
-	e map[int]CacheEntry
-	c int
-}
-
-func (c *cacheentries) Capacity() int {
-	return c.c
-}
-
-func (c *cacheentries) ResetLen(n int) {
-	for k := range c.e {
-		delete(c.e, k)
-	}
-}
-
-var entriesp = util.NewPool(func(capacity int) *cacheentries {
-	return &cacheentries{e: make(map[int]CacheEntry, capacity), c: capacity}
-})
 
 var _ wire = (*pipe)(nil)
 
