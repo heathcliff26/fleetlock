@@ -22,7 +22,7 @@ const (
 	// DefaultRingScale is the default value of ClientOption.RingScaleEachConn, which results into having a ring of size 2^10 for each connection
 	DefaultRingScale = 10
 	// DefaultPoolSize is the default value of ClientOption.BlockingPoolSize
-	DefaultPoolSize = 1000
+	DefaultPoolSize = 1024
 	// DefaultBlockingPipeline is the default value of ClientOption.BlockingPipeline
 	DefaultBlockingPipeline = 2000
 	// DefaultDialTimeout is the default value of ClientOption.Dialer.Timeout
@@ -46,6 +46,8 @@ var (
 	ErrNoCache = errors.New("ClientOption.DisableCache must be true for valkey not supporting client-side caching or not supporting RESP3")
 	// ErrRESP2PubSubMixed means your valkey does not support RESP3 and valkey can't handle SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE in mixed case
 	ErrRESP2PubSubMixed = errors.New("valkey does not support SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE mixed with other commands in RESP2")
+	// ErrBlockingPubSubMixed valkey can't handle SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE mixed with other blocking commands
+	ErrBlockingPubSubMixed = errors.New("valkey does not support SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE mixed with other blocking commands")
 	// ErrDoCacheAborted means valkey abort EXEC request or connection closed
 	ErrDoCacheAborted = errors.New("failed to fetch the cache because EXEC was aborted by valkey or connection closed")
 	// ErrReplicaOnlyNotSupported means ReplicaOnly flag is not supported by
@@ -159,14 +161,25 @@ type ClientOption struct {
 	// produce notable CPU usage reduction under load. Ref: https://github.com/redis/rueidis/issues/156
 	MaxFlushDelay time.Duration
 
+	// DisableTCPNoDelay turns on Nagle's algorithm in pipelining mode by using conn.SetNoDelay(false).
+	// Turning this on can result in lower p99 latencies and lower CPU usages if all your requests are small.
+	// But if you have large requests or fast network, this might degrade the performance. Ref: https://github.com/redis/rueidis/pull/650
+	DisableTCPNoDelay bool
+
 	// ShuffleInit is a handy flag that shuffles the InitAddress after passing to the NewClient() if it is true
 	ShuffleInit bool
 	// ClientNoTouch controls whether commands alter LRU/LFU stats
 	ClientNoTouch bool
 	// DisableRetry disables retrying read-only commands under network errors
 	DisableRetry bool
+	// RetryDelay is the function that returns the delay that should be used before retrying the attempt.
+	// The default is an exponential backoff with a maximum delay of 1 second.
+	// Only used when DisableRetry is false.
+	RetryDelay RetryDelayFn
 	// DisableCache falls back Client.DoCache/Client.DoMultiCache to Client.Do/Client.DoMulti
 	DisableCache bool
+	// DisableAutoPipelining makes valkey.Client always pick a connection from the BlockingPool to serve each request.
+	DisableAutoPipelining bool
 	// AlwaysPipelining makes valkey.Client always pipeline valkey commands even if they are not issued concurrently.
 	AlwaysPipelining bool
 	// AlwaysRESP2 makes valkey.Client always uses RESP2, otherwise it will try using RESP3 first.
@@ -354,6 +367,9 @@ func NewClient(option ClientOption) (client Client, err error) {
 	if option.BlockingPipeline == 0 {
 		option.BlockingPipeline = DefaultBlockingPipeline
 	}
+	if option.DisableAutoPipelining {
+		option.AlwaysPipelining = false
+	}
 	if option.ShuffleInit {
 		util.Shuffle(len(option.InitAddress), func(i, j int) {
 			option.InitAddress[i], option.InitAddress[j] = option.InitAddress[j], option.InitAddress[i]
@@ -362,21 +378,24 @@ func NewClient(option ClientOption) (client Client, err error) {
 	if option.PipelineMultiplex > MaxPipelineMultiplex {
 		return nil, ErrWrongPipelineMultiplex
 	}
+	if option.RetryDelay == nil {
+		option.RetryDelay = defaultRetryDelayFn
+	}
 	if option.Sentinel.MasterSet != "" {
 		option.PipelineMultiplex = singleClientMultiplex(option.PipelineMultiplex)
-		return newSentinelClient(&option, makeConn)
+		return newSentinelClient(&option, makeConn, newRetryer(option.RetryDelay))
 	}
 	if option.ForceSingleClient {
 		option.PipelineMultiplex = singleClientMultiplex(option.PipelineMultiplex)
-		return newSingleClient(&option, nil, makeConn)
+		return newSingleClient(&option, nil, makeConn, newRetryer(option.RetryDelay))
 	}
-	if client, err = newClusterClient(&option, makeConn); err != nil {
+	if client, err = newClusterClient(&option, makeConn, newRetryer(option.RetryDelay)); err != nil {
 		if client == (*clusterClient)(nil) {
 			return nil, err
 		}
 		if len(option.InitAddress) == 1 && (err.Error() == valkeyErrMsgCommandNotAllow || strings.Contains(strings.ToUpper(err.Error()), "CLUSTER")) {
 			option.PipelineMultiplex = singleClientMultiplex(option.PipelineMultiplex)
-			client, err = newSingleClient(&option, client.(*clusterClient).single(), makeConn)
+			client, err = newSingleClient(&option, client.(*clusterClient).single(), makeConn, newRetryer(option.RetryDelay))
 		} else {
 			client.Close()
 			return nil, err
