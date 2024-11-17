@@ -11,7 +11,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
+	clienttesting "k8s.io/client-go/testing"
 )
 
 const (
@@ -164,6 +166,20 @@ func TestDrainNode(t *testing.T) {
 		lease, _ = client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(utils.Pointer("done"), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
+	})
+	t.Run("DrainTimeout", func(t *testing.T) {
+		c, client := NewFakeClient()
+		initTestCluster(client)
+
+		client.PrependReactor("create", "pods", func(action clienttesting.Action) (bool, runtime.Object, error) {
+			time.Sleep(5 * time.Second)
+			return false, nil, nil
+		})
+
+		c.drainTimeoutSeconds = 1
+
+		err := c.DrainNode(testNodeName)
+		assert.Equal(t, context.DeadlineExceeded, err, "Should exceed deadline")
 	})
 }
 

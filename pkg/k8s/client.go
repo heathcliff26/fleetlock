@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/k8s/utils"
 	systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
@@ -18,8 +19,9 @@ import (
 )
 
 type Client struct {
-	client    kubernetes.Interface
-	namespace string
+	client              kubernetes.Interface
+	namespace           string
+	drainTimeoutSeconds int32
 }
 
 // Create a new kubernetes client, defaults to in-cluster if no kubeconfig is provided
@@ -37,8 +39,9 @@ func NewClient(kubeconfig string) (*Client, error) {
 	}
 
 	return &Client{
-		client:    client,
-		namespace: ns,
+		client:              client,
+		namespace:           ns,
+		drainTimeoutSeconds: 300,
 	}, nil
 }
 
@@ -46,36 +49,40 @@ func NewClient(kubeconfig string) (*Client, error) {
 func NewFakeClient() (*Client, *fake.Clientset) {
 	fakeclient := fake.NewSimpleClientset()
 	return &Client{
-		client:    fakeclient,
-		namespace: "fleetlock",
+		client:              fakeclient,
+		namespace:           "fleetlock",
+		drainTimeoutSeconds: 300,
 	}, fakeclient
 }
 
 // Drain a node from all pods and set it to unschedulable.
 // Status will be tracked in lease, only one drain will be run at a time.
 func (c *Client) DrainNode(node string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.drainTimeoutSeconds)*time.Second)
+	defer cancel()
+
 	lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
-	err := lease.Lock(context.Background(), 300)
+	err := lease.Lock(ctx, c.drainTimeoutSeconds)
 	if err != nil {
 		return err
 	}
 
-	err = c.drainNode(node)
+	err = c.drainNode(ctx, node)
 	if err != nil {
 		return err
 	}
 
-	return lease.Done(context.Background())
+	return lease.Done(ctx)
 }
 
 // Drain a node of all pods, skipping daemonsets
-func (c *Client) drainNode(node string) error {
-	_, err := c.client.CoreV1().Nodes().Patch(context.Background(), node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
+func (c *Client) drainNode(ctx context.Context, node string) error {
+	_, err := c.client.CoreV1().Nodes().Patch(ctx, node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
 
-	pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{
+	pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(ctx, metav1.ListOptions{
 		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node}).String(),
 	})
 	if err != nil {
@@ -94,7 +101,7 @@ func (c *Client) drainNode(node string) error {
 			continue
 		}
 
-		err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(context.Background(), &policyv1.Eviction{
+		err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(ctx, &policyv1.Eviction{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: "policy/v1",
 				Kind:       "Eviction",
@@ -111,6 +118,21 @@ func (c *Client) drainNode(node string) error {
 			continue
 		}
 		slog.Info("Evicted pod", slog.String("node", node), slog.String("pod", pod.GetName()), slog.String("namespace", pod.GetNamespace()))
+
+		done := false
+		select {
+		case <-ctx.Done():
+			slog.Error("Aborting node drain", slog.String("node", node), "err", ctx.Err())
+			if returnError == nil {
+				returnError = ctx.Err()
+			}
+			done = true
+		default:
+		}
+
+		if done {
+			break
+		}
 	}
 
 	return returnError
