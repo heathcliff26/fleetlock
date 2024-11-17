@@ -115,6 +115,24 @@ func TestDrainNode(t *testing.T) {
 		err := c.DrainNode(testNodeName)
 		assert.Equal(t, NewErrorDrainIsLocked(), err, "Should return an error signaling that a drain is already in progress")
 	})
+	t.Run("LeaseInvalid", func(t *testing.T) {
+		c, client := NewFakeClient()
+		initTestCluster(client)
+
+		lease := &coordv1.Lease{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: c.namespace,
+				Name:      drainLeaseName(testNodeName),
+			},
+			Spec: coordv1.LeaseSpec{
+				HolderIdentity: utils.Pointer("draining"),
+			},
+		}
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+
+		err := c.DrainNode(testNodeName)
+		assert.Equal(t, NewErrorInvalidLease(), err, "Should return an error signaling that the lease is invalid")
+	})
 	t.Run("LeaseExpired", func(t *testing.T) {
 		c, client := NewFakeClient()
 		initTestCluster(client)

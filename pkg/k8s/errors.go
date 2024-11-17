@@ -19,3 +19,23 @@ func NewErrorDrainIsLocked() error {
 func (e ErrorDrainIsLocked) Error() string {
 	return "Can't drain node, as another drain is already in progress"
 }
+
+type ErrorInvalidLease struct{}
+
+func NewErrorInvalidLease() error {
+	return ErrorInvalidLease{}
+}
+
+func (e ErrorInvalidLease) Error() string {
+	return "Invalid lease, either AcquireTime or LeaseDurationSeconds are nil"
+}
+
+type ErrorLeaseNil struct{}
+
+func NewErrorLeaseNil() error {
+	return ErrorLeaseNil{}
+}
+
+func (e ErrorLeaseNil) Error() string {
+	return "Tried changing lease, but lease status on cluster is unknown"
+}
