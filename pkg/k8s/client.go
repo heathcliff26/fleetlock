@@ -3,15 +3,12 @@ package k8s
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/k8s/utils"
 	systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
 
-	coordv1 "k8s.io/api/coordination/v1"
 	v1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -57,34 +54,10 @@ func NewFakeClient() (*Client, *fake.Clientset) {
 // Drain a node from all pods and set it to unschedulable.
 // Status will be tracked in lease, only one drain will be run at a time.
 func (c *Client) DrainNode(node string) error {
-	lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.Background(), drainLeaseName(node), metav1.GetOptions{})
-	if errors.IsNotFound(err) {
-		lease = &coordv1.Lease{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: c.namespace,
-				Name:      drainLeaseName(node),
-			},
-			Spec: coordv1.LeaseSpec{
-				HolderIdentity:       utils.Pointer("draining"),
-				LeaseDurationSeconds: utils.Pointer(int32(300)),
-				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
-			},
-		}
-
-		lease, err = c.client.CoordinationV1().Leases(c.namespace).Create(context.Background(), lease, metav1.CreateOptions{})
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
+	lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
+	err := lease.Lock(context.Background(), 300)
+	if err != nil {
 		return err
-	} else if lease.Spec.AcquireTime != nil && time.Now().After(lease.Spec.AcquireTime.Time.Add(5*time.Minute)) {
-		lease.Spec.AcquireTime = &metav1.MicroTime{Time: time.Now()}
-		lease, err = c.client.CoordinationV1().Leases(c.namespace).Update(context.Background(), lease, metav1.UpdateOptions{})
-		if err != nil {
-			return err
-		}
-	} else {
-		return NewErrorDrainIsLocked()
 	}
 
 	err = c.drainNode(node)
@@ -92,8 +65,7 @@ func (c *Client) DrainNode(node string) error {
 		return err
 	}
 
-	_, err = c.client.CoordinationV1().Leases(c.namespace).Patch(context.Background(), lease.GetName(), types.MergePatchType, []byte("{\"spec\":{\"holderIdentity\":\"done\"}}"), metav1.PatchOptions{})
-	return err
+	return lease.Done(context.Background())
 }
 
 // Drain a node of all pods, skipping daemonsets
@@ -173,22 +145,11 @@ func (c *Client) UncordonNode(node string) error {
 	if err != nil {
 		return err
 	}
-	err = c.client.CoordinationV1().Leases(c.namespace).Delete(context.Background(), drainLeaseName(node), metav1.DeleteOptions{})
-	if errors.IsNotFound(err) {
-		return nil
-	} else {
-		return err
-	}
+
+	return NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace)).Delete(context.Background())
 }
 
 // Check if a node has been drained
 func (c *Client) IsDrained(node string) (bool, error) {
-	lease, err := c.client.CoordinationV1().Leases(c.namespace).Get(context.Background(), drainLeaseName(node), metav1.GetOptions{})
-	if errors.IsNotFound(err) {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-
-	return *lease.Spec.HolderIdentity == "done", nil
+	return NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace)).IsDone(context.Background())
 }
