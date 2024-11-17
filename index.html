@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/heathcliff26/fleetlock/pkg/config/errors.go (50.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/fleetlock/pkg/k8s/client.go (78.6%)</option>
+				<option value="file4">github.com/heathcliff26/fleetlock/pkg/k8s/client.go (83.3%)</option>
 				
 				<option value="file5">github.com/heathcliff26/fleetlock/pkg/k8s/errors.go (25.0%)</option>
 				
@@ -375,6 +375,7 @@ func (e *ErrUnknownLogLevel) Error() string <span class="cov0" title="0">{
 import (
         "context"
         "log/slog"
+        "time"
 
         "github.com/heathcliff26/fleetlock/pkg/k8s/utils"
         systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
@@ -390,8 +391,9 @@ import (
 )
 
 type Client struct {
-        client    kubernetes.Interface
-        namespace string
+        client              kubernetes.Interface
+        namespace           string
+        drainTimeoutSeconds int32
 }
 
 // Create a new kubernetes client, defaults to in-cluster if no kubeconfig is provided
@@ -409,8 +411,9 @@ func NewClient(kubeconfig string) (*Client, error) <span class="cov8" title="1">
         }</span>
 
         <span class="cov8" title="1">return &amp;Client{
-                client:    client,
-                namespace: ns,
+                client:              client,
+                namespace:           ns,
+                drainTimeoutSeconds: 300,
         }, nil</span>
 }
 
@@ -418,36 +421,40 @@ func NewClient(kubeconfig string) (*Client, error) <span class="cov8" title="1">
 func NewFakeClient() (*Client, *fake.Clientset) <span class="cov8" title="1">{
         fakeclient := fake.NewSimpleClientset()
         return &amp;Client{
-                client:    fakeclient,
-                namespace: "fleetlock",
+                client:              fakeclient,
+                namespace:           "fleetlock",
+                drainTimeoutSeconds: 300,
         }, fakeclient
 }</span>
 
 // Drain a node from all pods and set it to unschedulable.
 // Status will be tracked in lease, only one drain will be run at a time.
 func (c *Client) DrainNode(node string) error <span class="cov8" title="1">{
+        ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.drainTimeoutSeconds)*time.Second)
+        defer cancel()
+
         lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
-        err := lease.Lock(context.Background(), 300)
+        err := lease.Lock(ctx, c.drainTimeoutSeconds)
         if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">err = c.drainNode(node)
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">err = c.drainNode(ctx, node)
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">return lease.Done(context.Background())</span>
+        <span class="cov8" title="1">return lease.Done(ctx)</span>
 }
 
 // Drain a node of all pods, skipping daemonsets
-func (c *Client) drainNode(node string) error <span class="cov8" title="1">{
-        _, err := c.client.CoreV1().Nodes().Patch(context.Background(), node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
+func (c *Client) drainNode(ctx context.Context, node string) error <span class="cov8" title="1">{
+        _, err := c.client.CoreV1().Nodes().Patch(ctx, node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{
+        <span class="cov8" title="1">pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(ctx, metav1.ListOptions{
                 FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node}).String(),
         })
         if err != nil </span><span class="cov0" title="0">{
@@ -466,7 +473,7 @@ func (c *Client) drainNode(node string) error <span class="cov8" title="1">{
                         continue</span>
                 }
 
-                <span class="cov8" title="1">err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(context.Background(), &amp;policyv1.Eviction{
+                <span class="cov8" title="1">err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(ctx, &amp;policyv1.Eviction{
                         TypeMeta: metav1.TypeMeta{
                                 APIVersion: "policy/v1",
                                 Kind:       "Eviction",
@@ -482,7 +489,22 @@ func (c *Client) drainNode(node string) error <span class="cov8" title="1">{
                         returnError = NewErrorFailedToEvictAllPods()
                         continue</span>
                 }
-                <span class="cov8" title="1">slog.Info("Evicted pod", slog.String("node", node), slog.String("pod", pod.GetName()), slog.String("namespace", pod.GetNamespace()))</span>
+                <span class="cov8" title="1">slog.Info("Evicted pod", slog.String("node", node), slog.String("pod", pod.GetName()), slog.String("namespace", pod.GetNamespace()))
+
+                done := false
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov8" title="1">
+                        slog.Error("Aborting node drain", slog.String("node", node), "err", ctx.Err())
+                        if returnError == nil </span><span class="cov8" title="1">{
+                                returnError = ctx.Err()
+                        }</span>
+                        <span class="cov8" title="1">done = true</span>
+                default:<span class="cov8" title="1"></span>
+                }
+
+                <span class="cov8" title="1">if done </span><span class="cov8" title="1">{
+                        break</span>
+                }
         }
 
         <span class="cov8" title="1">return returnError</span>
