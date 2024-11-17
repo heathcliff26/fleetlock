@@ -137,7 +137,7 @@ type clusterslots struct {
 }
 
 func (s clusterslots) parse(tls bool) map[string]group {
-	if s.ver < 7 {
+	if s.ver < 8 {
 		return parseSlots(s.reply.val, s.addr)
 	}
 	return parseShards(s.reply.val, s.addr, tls)
@@ -147,7 +147,7 @@ func getClusterSlots(c conn, timeout time.Duration) clusterslots {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	v := c.Version()
-	if v < 7 {
+	if v < 8 {
 		return clusterslots{reply: c.Do(ctx, cmds.SlotCmd), addr: c.Addr(), ver: v}
 	}
 	return clusterslots{reply: c.Do(ctx, cmds.ShardsCmd), addr: c.Addr(), ver: v}
@@ -349,12 +349,15 @@ func parseShards(shards ValkeyMessage, defaultAddr string, tls bool) map[string]
 		}
 		for _, n := range nodes {
 			dict, _ := n.AsMap()
+			if dict["health"].string == "fail" {
+				continue
+			}
 			port := dict["port"].integer
 			if tls && dict["tls-port"].integer > 0 {
 				port = dict["tls-port"].integer
 			}
 			if dst := parseEndpoint(defaultAddr, dict["endpoint"].string, port); dst != "" {
-				if dict["role"].string == "master" {
+				if dict["role"].string == "master" && dict["health"].string == "online" {
 					m = len(g.nodes)
 				}
 				g.nodes = append(g.nodes, dst)
@@ -1123,13 +1126,13 @@ func (c *clusterClient) Close() {
 }
 
 func (c *clusterClient) shouldRefreshRetry(err error, ctx context.Context) (addr string, mode RedirectMode) {
-	if err != nil && atomic.LoadUint32(&c.stop) == 0 {
+	if err != nil && err != Nil && err != ErrDoCacheAborted && atomic.LoadUint32(&c.stop) == 0 {
 		if err, ok := err.(*ValkeyError); ok {
 			if addr, ok = err.IsMoved(); ok {
 				mode = RedirectMove
 			} else if addr, ok = err.IsAsk(); ok {
 				mode = RedirectAsk
-			} else if err.IsClusterDown() || err.IsTryAgain() {
+			} else if err.IsClusterDown() || err.IsTryAgain() || err.IsLoading() {
 				mode = RedirectRetry
 			}
 		} else if ctx.Err() == nil {
