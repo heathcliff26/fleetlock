@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
@@ -15,7 +16,8 @@ import (
 
 func TestValidConfigs(t *testing.T) {
 	c1 := &Config{
-		LogLevel: "debug",
+		LogLevel:         "debug",
+		KubernetesConfig: k8s.NewDefaultConfig(),
 		Server: &server.ServerConfig{
 			Listen: "127.0.0.1:8443",
 			SSL: server.SSLConfig{
@@ -60,7 +62,8 @@ func TestValidConfigs(t *testing.T) {
 			Kubeconfig: "some-path",
 		},
 	}
-	cfgKubernetes.Kubeconfig = "some-path"
+	cfgKubernetes.KubernetesConfig.Kubeconfig = "some-path"
+	cfgKubernetes.KubernetesConfig.DrainTimeoutSeconds = 60
 
 	tMatrix := []struct {
 		Name, Path string
@@ -87,7 +90,7 @@ func TestValidConfigs(t *testing.T) {
 			Result: defaultConfig,
 		},
 		{
-			Name:   "ValidConfig3",
+			Name:   "ValidConfigKubernetes",
 			Path:   "testdata/valid-config-kubernetes.yaml",
 			Result: cfgKubernetes,
 		},

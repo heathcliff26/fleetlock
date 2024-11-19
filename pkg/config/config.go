@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/heathcliff26/fleetlock/pkg/server"
 	"gopkg.in/yaml.v3"
@@ -27,11 +28,11 @@ func init() {
 }
 
 type Config struct {
-	LogLevel   string                    `yaml:"logLevel,omitempty"`
-	Kubeconfig string                    `yaml:"kubeconfig,omitempty"`
-	Server     *server.ServerConfig      `yaml:"server,omitempty"`
-	Storage    lockmanager.StorageConfig `yaml:"storage,omitempty"`
-	Groups     lockmanager.Groups        `yaml:"groups,omitempty"`
+	LogLevel         string                    `yaml:"logLevel,omitempty"`
+	KubernetesConfig k8s.Config                `yaml:"kubernetes,omitempty"`
+	Server           *server.ServerConfig      `yaml:"server,omitempty"`
+	Storage          lockmanager.StorageConfig `yaml:"storage,omitempty"`
+	Groups           lockmanager.Groups        `yaml:"groups,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
@@ -53,9 +54,10 @@ func setLogLevel(level string) error {
 
 func DefaultConfig() *Config {
 	return &Config{
-		LogLevel: DEFAULT_LOG_LEVEL,
-		Server:   server.NewDefaultServerConfig(),
-		Storage:  lockmanager.NewDefaultStorageConfig(),
+		LogLevel:         DEFAULT_LOG_LEVEL,
+		KubernetesConfig: k8s.NewDefaultConfig(),
+		Server:           server.NewDefaultServerConfig(),
+		Storage:          lockmanager.NewDefaultStorageConfig(),
 	}
 }
 
@@ -100,7 +102,7 @@ func (c *Config) Defaults() {
 		c.Groups = lockmanager.NewDefaultGroups()
 	}
 
-	c.Storage.Kubernetes.Kubeconfig = c.Kubeconfig
+	c.Storage.Kubernetes.Kubeconfig = c.KubernetesConfig.Kubeconfig
 }
 
 func (c *Config) Validate() error {

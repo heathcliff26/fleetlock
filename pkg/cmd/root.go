@@ -60,7 +60,7 @@ func run(cmd *cobra.Command, configPath string, env bool) {
 		exitError(cmd, fmt.Errorf("failed to load configuration: %w", err))
 	}
 
-	k8s, err := k8s.NewClient(cfg.Kubeconfig)
+	k8s, err := k8s.NewClient(cfg.KubernetesConfig)
 	if err != nil {
 		exitError(cmd, fmt.Errorf("failed to create kubernetes client: %w", err))
 	}

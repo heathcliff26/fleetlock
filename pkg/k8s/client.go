@@ -25,8 +25,8 @@ type Client struct {
 }
 
 // Create a new kubernetes client, defaults to in-cluster if no kubeconfig is provided
-func NewClient(kubeconfig string) (*Client, error) {
-	client, err := utils.CreateNewClientset(kubeconfig)
+func NewClient(config Config) (*Client, error) {
+	client, err := utils.CreateNewClientset(config.Kubeconfig)
 	if err == rest.ErrNotInCluster {
 		return nil, nil
 	} else if err != nil {
@@ -38,10 +38,14 @@ func NewClient(kubeconfig string) (*Client, error) {
 		return nil, err
 	}
 
+	if config.DrainTimeoutSeconds < 1 {
+		return nil, NewErrorDrainTimeoutSecondsInvalid()
+	}
+
 	return &Client{
 		client:              client,
 		namespace:           ns,
-		drainTimeoutSeconds: 300,
+		drainTimeoutSeconds: config.DrainTimeoutSeconds,
 	}, nil
 }
 
