@@ -2,9 +2,13 @@
 # The level of loggin output
 logLevel: info
 
-# The path to the kubeconfig file. Used for draining nodes and the kubernetes storage option if used.
-# Falls back to in-cluster serviceaccount if left empty (recommended)
-kubeconfig: ""
+kubernetes:
+  # The path to the kubeconfig file. Used for draining nodes and the kubernetes storage option if used.
+  # Falls back to in-cluster serviceaccount if left empty (recommended)
+  kubeconfig: ""
+  # The timeout for drain node in seconds.
+  # Defaults to 5m.
+  drainTimeoutSeconds: 300
 
 server:
   # The listen address of the server in the form of <ip>:<port>

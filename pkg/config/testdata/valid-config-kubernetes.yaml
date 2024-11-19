@@ -3,4 +3,6 @@ storage:
   type: kubernetes
   kubernetes:
     namespace: "test"
-kubeconfig: "some-path"
+kubernetes:
+  kubeconfig: "some-path"
+  drainTimeoutSeconds: 60

@@ -57,22 +57,39 @@ func initTestCluster(client *fake.Clientset) {
 
 func TestNewClient(t *testing.T) {
 	t.Run("NotInCluster", func(t *testing.T) {
-		c, err := NewClient("")
+		c, err := NewClient(NewDefaultConfig())
 		assert.Nil(t, c, "Should not return a client")
 		assert.Nil(t, err, "Should not return an error if not in cluster and no kubeconfig provided")
 	})
 	t.Run("KubeconfigNotFound", func(t *testing.T) {
-		c, err := NewClient("not-a-file")
+		cfg := NewDefaultConfig()
+		cfg.Kubeconfig = "not-a-file"
+
+		c, err := NewClient(cfg)
 		assert.Nil(t, c, "Should not return a client")
 		assert.Error(t, err, "Should return an error if it can't find a kubeconfig")
 	})
-	t.Run("Kubeconfig", func(t *testing.T) {
-		c, err := NewClient("testdata/kubeconfig")
+	t.Run("InvalidDrainTimeout", func(t *testing.T) {
+		cfg := NewDefaultConfig()
+		cfg.Kubeconfig = "testdata/kubeconfig"
+		cfg.DrainTimeoutSeconds = 0
+
+		c, err := NewClient(cfg)
+		assert.Nil(t, c, "Should not return a client")
+		assert.Error(t, err, "Should return an error")
+	})
+	t.Run("Success", func(t *testing.T) {
+		cfg := NewDefaultConfig()
+		cfg.Kubeconfig = "testdata/kubeconfig"
+		cfg.DrainTimeoutSeconds = 5
+
+		c, err := NewClient(cfg)
 		assert.Nil(t, err, "Should not return an error")
 		if !assert.NotNil(t, c, "Should return a client") {
 			t.FailNow()
 		}
 		assert.Equal(t, "fleetlock", c.namespace)
+		assert.Equal(t, cfg.DrainTimeoutSeconds, c.drainTimeoutSeconds)
 	})
 }
 

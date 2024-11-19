@@ -39,3 +39,13 @@ func NewErrorLeaseNil() error {
 func (e ErrorLeaseNil) Error() string {
 	return "Tried changing lease, but lease status on cluster is unknown"
 }
+
+type ErrorDrainTimeoutSecondsInvalid struct{}
+
+func NewErrorDrainTimeoutSecondsInvalid() error {
+	return ErrorDrainTimeoutSecondsInvalid{}
+}
+
+func (e ErrorDrainTimeoutSecondsInvalid) Error() string {
+	return "drainTimeoutSeconds value needs to be greater than 0"
+}
