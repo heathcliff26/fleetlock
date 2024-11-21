@@ -82,14 +82,20 @@ func TestNewClient(t *testing.T) {
 		cfg := NewDefaultConfig()
 		cfg.Kubeconfig = "testdata/kubeconfig"
 		cfg.DrainTimeoutSeconds = 5
+		cfg.DrainRetries = 3
 
 		c, err := NewClient(cfg)
-		assert.Nil(t, err, "Should not return an error")
-		if !assert.NotNil(t, c, "Should return a client") {
+
+		assert := assert.New(t)
+
+		assert.Nil(err, "Should not return an error")
+		if !assert.NotNil(c, "Should return a client") {
 			t.FailNow()
 		}
-		assert.Equal(t, "fleetlock", c.namespace)
-		assert.Equal(t, cfg.DrainTimeoutSeconds, c.drainTimeoutSeconds)
+		assert.Equal("fleetlock", c.namespace, "Namespace should be set")
+		assert.Equal(cfg.DrainTimeoutSeconds, c.drainTimeoutSeconds, "Drain timeout should be set")
+		assert.Equal(3, c.drainRetries, "Drain retries should be set")
+
 	})
 }
 
@@ -317,5 +323,65 @@ func TestIsDrained(t *testing.T) {
 
 		assert.Nil(err, "Should not return an error")
 		assert.False(res, "Should return false")
+	})
+	t.Run("LeaseError", func(t *testing.T) {
+		c, client := NewFakeClient()
+		initTestCluster(client)
+
+		lease := &coordv1.Lease{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: c.namespace,
+				Name:      drainLeaseName(testNodeName),
+			},
+			Spec: coordv1.LeaseSpec{
+				HolderIdentity:       utils.Pointer(leaseStateError),
+				LeaseDurationSeconds: utils.Pointer(int32(300)),
+				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
+			},
+		}
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+
+		res, err := c.IsDrained(testNodeName)
+
+		assert := assert.New(t)
+
+		assert.Nil(err, "Should not return an error")
+		assert.False(res, "Should return false")
+	})
+	t.Run("LeaseRetries", func(t *testing.T) {
+		c, client := NewFakeClient()
+		initTestCluster(client)
+		c.drainRetries = 3
+
+		lease := &coordv1.Lease{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: c.namespace,
+				Name:      drainLeaseName(testNodeName),
+				Annotations: map[string]string{
+					leaseFailCounterName: "2",
+				},
+			},
+			Spec: coordv1.LeaseSpec{
+				HolderIdentity:       utils.Pointer(leaseStateError),
+				LeaseDurationSeconds: utils.Pointer(int32(300)),
+				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
+			},
+		}
+		lease, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+
+		res, err := c.IsDrained(testNodeName)
+
+		assert := assert.New(t)
+
+		assert.Nil(err, "Should not return an error")
+		assert.False(res, "Should return false")
+
+		lease.Annotations[leaseFailCounterName] = "3"
+		_, _ = client.CoordinationV1().Leases(testNamespace).Update(context.Background(), lease, metav1.UpdateOptions{})
+
+		res, err = c.IsDrained(testNodeName)
+
+		assert.Nil(err, "Should not return an error")
+		assert.True(res, "Should return true")
 	})
 }

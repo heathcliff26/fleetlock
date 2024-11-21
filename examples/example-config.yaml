@@ -9,6 +9,9 @@ kubernetes:
   # The timeout for drain node in seconds.
   # Defaults to 5m.
   drainTimeoutSeconds: 300
+  # The amount of times draining the node will be retried before giving up.
+  # Default value of 0 means infinite retries.
+  drainRetries: 0
 
 server:
   # The listen address of the server in the form of <ip>:<port>

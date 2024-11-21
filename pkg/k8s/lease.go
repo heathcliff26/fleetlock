@@ -79,8 +79,7 @@ func (l *lease) update(ctx context.Context) error {
 	return nil
 }
 
-// Return the count of failed attempts
-func (l *lease) GetFailCounter(ctx context.Context) (int, error) {
+func (l *lease) getFailCounter(ctx context.Context) (int, error) {
 	if l.lease == nil {
 		err := l.get(ctx)
 		if err != nil {
@@ -95,10 +94,19 @@ func (l *lease) GetFailCounter(ctx context.Context) (int, error) {
 	return strconv.Atoi(failCounterStr)
 }
 
+// Return the count of failed attempts, defaults to 0 if no lease is found
+func (l *lease) GetFailCounter(ctx context.Context) (int, error) {
+	count, err := l.getFailCounter(ctx)
+	if errors.IsNotFound(err) {
+		return 0, nil
+	}
+	return count, err
+}
+
 // Increase the fail counter by 1.
 // Does not call update!!!
 func (l *lease) increaseFailCounter(ctx context.Context) error {
-	failCount, err := l.GetFailCounter(ctx)
+	failCount, err := l.getFailCounter(ctx)
 	if err != nil {
 		return err
 	}
