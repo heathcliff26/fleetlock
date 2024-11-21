@@ -110,7 +110,7 @@ func TestDrainNode(t *testing.T) {
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
 
 		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
-		assert.Equal(utils.Pointer("done"), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
+		assert.Equal(utils.Pointer(leaseStateDone), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(utils.Pointer(int32(300)), lease.Spec.LeaseDurationSeconds, "LeaseDurationSeconds should be set")
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
 	})
@@ -124,7 +124,7 @@ func TestDrainNode(t *testing.T) {
 				Name:      drainLeaseName(testNodeName),
 			},
 			Spec: coordv1.LeaseSpec{
-				HolderIdentity:       utils.Pointer("draining"),
+				HolderIdentity:       utils.Pointer(leaseStateDraining),
 				LeaseDurationSeconds: utils.Pointer(int32(300)),
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
@@ -144,7 +144,7 @@ func TestDrainNode(t *testing.T) {
 				Name:      drainLeaseName(testNodeName),
 			},
 			Spec: coordv1.LeaseSpec{
-				HolderIdentity: utils.Pointer("draining"),
+				HolderIdentity: utils.Pointer(leaseStateDraining),
 			},
 		}
 		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
@@ -162,7 +162,7 @@ func TestDrainNode(t *testing.T) {
 				Name:      drainLeaseName(testNodeName),
 			},
 			Spec: coordv1.LeaseSpec{
-				HolderIdentity:       utils.Pointer("draining"),
+				HolderIdentity:       utils.Pointer(leaseStateDraining),
 				LeaseDurationSeconds: utils.Pointer(int32(300)),
 				AcquireTime:          &metav1.MicroTime{Time: time.Now().Add(-6 * time.Minute)},
 			},
@@ -181,7 +181,7 @@ func TestDrainNode(t *testing.T) {
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
 
 		lease, _ = client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
-		assert.Equal(utils.Pointer("done"), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
+		assert.Equal(utils.Pointer(leaseStateDone), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("DrainTimeout", func(t *testing.T) {
@@ -196,7 +196,13 @@ func TestDrainNode(t *testing.T) {
 		c.drainTimeoutSeconds = 1
 
 		err := c.DrainNode(testNodeName)
-		assert.Equal(t, context.DeadlineExceeded, err, "Should exceed deadline")
+
+		assert := assert.New(t)
+
+		assert.Equal(context.DeadlineExceeded, err, "Should exceed deadline")
+		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
+		assert.Equal(leaseStateError, *lease.Spec.HolderIdentity, "Lease state should be error")
+		assert.Equal("1", lease.GetAnnotations()[leaseFailCounterName], "Lease fail counter should be 1")
 	})
 }
 
@@ -229,7 +235,7 @@ func TestUncordonNode(t *testing.T) {
 			Name:      drainLeaseName(testNodeName),
 		},
 		Spec: coordv1.LeaseSpec{
-			HolderIdentity:       utils.Pointer("done"),
+			HolderIdentity:       utils.Pointer(leaseStateDone),
 			LeaseDurationSeconds: utils.Pointer(int32(300)),
 			AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 		},
@@ -274,7 +280,7 @@ func TestIsDrained(t *testing.T) {
 				Name:      drainLeaseName(testNodeName),
 			},
 			Spec: coordv1.LeaseSpec{
-				HolderIdentity:       utils.Pointer("done"),
+				HolderIdentity:       utils.Pointer(leaseStateDone),
 				LeaseDurationSeconds: utils.Pointer(int32(300)),
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
@@ -298,7 +304,7 @@ func TestIsDrained(t *testing.T) {
 				Name:      drainLeaseName(testNodeName),
 			},
 			Spec: coordv1.LeaseSpec{
-				HolderIdentity:       utils.Pointer("draining"),
+				HolderIdentity:       utils.Pointer(leaseStateDraining),
 				LeaseDurationSeconds: utils.Pointer(int32(300)),
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
@@ -312,5 +318,4 @@ func TestIsDrained(t *testing.T) {
 		assert.Nil(err, "Should not return an error")
 		assert.False(res, "Should return false")
 	})
-
 }

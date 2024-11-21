@@ -73,6 +73,10 @@ func (c *Client) DrainNode(node string) error {
 
 	err = c.drainNode(ctx, node)
 	if err != nil {
+		err2 := lease.Error(ctx)
+		if err2 != nil {
+			slog.Error("Failed to set drain lease to error state", slog.String("node", node), "err", err)
+		}
 		return err
 	}
 
