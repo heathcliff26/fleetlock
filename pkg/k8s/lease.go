@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/k8s/utils"
@@ -10,6 +11,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client "k8s.io/client-go/kubernetes/typed/coordination/v1"
 )
+
+const (
+	leaseStateDone     = "done"
+	leaseStateDraining = "draining"
+	leaseStateError    = "error"
+)
+
+const leaseFailCounterName = "fleetlock.heathcliff.eu/DrainFailCount"
 
 type lease struct {
 	name   string
@@ -44,7 +53,7 @@ func (l *lease) create(ctx context.Context, duration int32) error {
 			Name: l.name,
 		},
 		Spec: coordv1.LeaseSpec{
-			HolderIdentity:       utils.Pointer("draining"),
+			HolderIdentity:       utils.Pointer(leaseStateDraining),
 			LeaseDurationSeconds: utils.Pointer(duration),
 			AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 		},
@@ -70,6 +79,41 @@ func (l *lease) update(ctx context.Context) error {
 	return nil
 }
 
+// Return the count of failed attempts
+func (l *lease) GetFailCounter(ctx context.Context) (int, error) {
+	if l.lease == nil {
+		err := l.get(ctx)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
+	if !ok {
+		return 0, nil
+	}
+	return strconv.Atoi(failCounterStr)
+}
+
+// Increase the fail counter by 1.
+// Does not call update!!!
+func (l *lease) increaseFailCounter(ctx context.Context) error {
+	failCount, err := l.GetFailCounter(ctx)
+	if err != nil {
+		return err
+	}
+
+	if l.lease.Annotations == nil {
+		l.lease.Annotations = make(map[string]string)
+	}
+
+	failCount++
+	l.lease.Annotations[leaseFailCounterName] = strconv.Itoa(failCount)
+
+	return nil
+}
+
+// Aquire the lease for draining
 func (l *lease) Lock(ctx context.Context, duration int32) error {
 	err := l.get(ctx)
 	if errors.IsNotFound(err) {
@@ -78,14 +122,23 @@ func (l *lease) Lock(ctx context.Context, duration int32) error {
 		return err
 	}
 
-	if l.lease.Spec.AcquireTime == nil || l.lease.Spec.LeaseDurationSeconds == nil {
+	if l.lease.Spec.AcquireTime == nil || l.lease.Spec.LeaseDurationSeconds == nil || l.lease.Spec.HolderIdentity == nil {
 		return NewErrorInvalidLease()
 	}
 
 	validUntil := l.lease.Spec.AcquireTime.Time.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
 
 	if time.Now().After(validUntil) {
+		if *l.lease.Spec.HolderIdentity == leaseStateDraining {
+			err = l.increaseFailCounter(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		*l.lease.Spec.HolderIdentity = leaseStateDraining
 		l.lease.Spec.AcquireTime = &metav1.MicroTime{Time: time.Now()}
+
 		err = l.update(ctx)
 		if err != nil {
 			return err
@@ -106,7 +159,7 @@ func (l *lease) Done(ctx context.Context) error {
 		}
 	}
 
-	*l.lease.Spec.HolderIdentity = "done"
+	*l.lease.Spec.HolderIdentity = leaseStateDone
 	err := l.update(ctx)
 	if err != nil {
 		return err
@@ -136,5 +189,21 @@ func (l *lease) IsDone(ctx context.Context) (bool, error) {
 		}
 	}
 
-	return *l.lease.Spec.HolderIdentity == "done", nil
+	return *l.lease.Spec.HolderIdentity == leaseStateDone, nil
+}
+
+// Set the lease to an error state and increase the fail counter by one
+func (l *lease) Error(ctx context.Context) error {
+	err := l.increaseFailCounter(ctx)
+	if err != nil {
+		return err
+	}
+
+	*l.lease.Spec.HolderIdentity = leaseStateError
+
+	err = l.update(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }

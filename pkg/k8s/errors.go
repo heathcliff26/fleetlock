@@ -27,7 +27,7 @@ func NewErrorInvalidLease() error {
 }
 
 func (e ErrorInvalidLease) Error() string {
-	return "Invalid lease, either AcquireTime or LeaseDurationSeconds are nil"
+	return "Invalid lease, either AcquireTime, LeaseDurationSeconds or HolderIdentity are nil"
 }
 
 type ErrorDrainTimeoutSecondsInvalid struct{}
