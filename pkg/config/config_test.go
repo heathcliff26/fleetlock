@@ -64,6 +64,7 @@ func TestValidConfigs(t *testing.T) {
 	}
 	cfgKubernetes.KubernetesConfig.Kubeconfig = "some-path"
 	cfgKubernetes.KubernetesConfig.DrainTimeoutSeconds = 60
+	cfgKubernetes.KubernetesConfig.DrainRetries = 3
 
 	tMatrix := []struct {
 		Name, Path string

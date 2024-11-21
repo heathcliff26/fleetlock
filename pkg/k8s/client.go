@@ -22,6 +22,7 @@ type Client struct {
 	client              kubernetes.Interface
 	namespace           string
 	drainTimeoutSeconds int32
+	drainRetries        int
 }
 
 // Create a new kubernetes client, defaults to in-cluster if no kubeconfig is provided
@@ -46,6 +47,7 @@ func NewClient(config Config) (*Client, error) {
 		client:              client,
 		namespace:           ns,
 		drainTimeoutSeconds: config.DrainTimeoutSeconds,
+		drainRetries:        config.DrainRetries,
 	}, nil
 }
 
@@ -181,5 +183,20 @@ func (c *Client) UncordonNode(node string) error {
 
 // Check if a node has been drained
 func (c *Client) IsDrained(node string) (bool, error) {
-	return NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace)).IsDone(context.Background())
+	ctx := context.Background()
+	lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
+	done, err := lease.IsDone(ctx)
+	if err != nil || done {
+		return done, err
+	}
+	fails, err := lease.GetFailCounter(ctx)
+	if err != nil || fails == 0 {
+		return false, err
+	}
+
+	if c.drainRetries > 0 && fails >= c.drainRetries {
+		slog.Info("Exhausted retries for draining node, marking as drained", slog.String("node", node), slog.Int("fails", fails), slog.Int("maxRetries", c.drainRetries))
+		return true, nil
+	}
+	return false, nil
 }

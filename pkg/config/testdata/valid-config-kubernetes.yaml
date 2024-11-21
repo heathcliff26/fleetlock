@@ -6,3 +6,4 @@ storage:
 kubernetes:
   kubeconfig: "some-path"
   drainTimeoutSeconds: 60
+  drainRetries: 3
