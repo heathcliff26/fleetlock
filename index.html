@@ -63,13 +63,13 @@
 				
 				<option value="file3">github.com/heathcliff26/fleetlock/pkg/config/errors.go (50.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/fleetlock/pkg/k8s/client.go (83.8%)</option>
+				<option value="file4">github.com/heathcliff26/fleetlock/pkg/k8s/client.go (85.4%)</option>
 				
 				<option value="file5">github.com/heathcliff26/fleetlock/pkg/k8s/config.go (100.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/fleetlock/pkg/k8s/errors.go (30.0%)</option>
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/k8s/errors.go (37.5%)</option>
 				
-				<option value="file7">github.com/heathcliff26/fleetlock/pkg/k8s/lease.go (85.4%)</option>
+				<option value="file7">github.com/heathcliff26/fleetlock/pkg/k8s/lease.go (84.7%)</option>
 				
 				<option value="file8">github.com/heathcliff26/fleetlock/pkg/k8s/utils.go (100.0%)</option>
 				
@@ -398,6 +398,7 @@ type Client struct {
         client              kubernetes.Interface
         namespace           string
         drainTimeoutSeconds int32
+        drainRetries        int
 }
 
 // Create a new kubernetes client, defaults to in-cluster if no kubeconfig is provided
@@ -422,6 +423,7 @@ func NewClient(config Config) (*Client, error) <span class="cov8" title="1">{
                 client:              client,
                 namespace:           ns,
                 drainTimeoutSeconds: config.DrainTimeoutSeconds,
+                drainRetries:        config.DrainRetries,
         }, nil</span>
 }
 
@@ -449,8 +451,12 @@ func (c *Client) DrainNode(node string) error <span class="cov8" title="1">{
 
         <span class="cov8" title="1">err = c.drainNode(ctx, node)
         if err != nil </span><span class="cov8" title="1">{
-                return err
-        }</span>
+                err2 := lease.Error(ctx)
+                if err2 != nil </span><span class="cov0" title="0">{
+                        slog.Error("Failed to set drain lease to error state", slog.String("node", node), "err", err)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
 
         <span class="cov8" title="1">return lease.Done(ctx)</span>
 }
@@ -553,8 +559,23 @@ func (c *Client) UncordonNode(node string) error <span class="cov8" title="1">{
 
 // Check if a node has been drained
 func (c *Client) IsDrained(node string) (bool, error) <span class="cov8" title="1">{
-        return NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace)).IsDone(context.Background())
-}</span>
+        ctx := context.Background()
+        lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
+        done, err := lease.IsDone(ctx)
+        if err != nil || done </span><span class="cov8" title="1">{
+                return done, err
+        }</span>
+        <span class="cov8" title="1">fails, err := lease.GetFailCounter(ctx)
+        if err != nil || fails == 0 </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">if c.drainRetries &gt; 0 &amp;&amp; fails &gt;= c.drainRetries </span><span class="cov8" title="1">{
+                slog.Info("Exhausted retries for draining node, marking as drained", slog.String("node", node), slog.Int("fails", fails), slog.Int("maxRetries", c.drainRetries))
+                return true, nil
+        }</span>
+        <span class="cov8" title="1">return false, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file5" style="display: none">package k8s
@@ -562,6 +583,7 @@ func (c *Client) IsDrained(node string) (bool, error) <span class="cov8" title="
 type Config struct {
         Kubeconfig          string `yaml:"kubeconfig,omitempty"`
         DrainTimeoutSeconds int32  `yaml:"drainTimeoutSeconds,omitempty"`
+        DrainRetries        int    `yaml:"drainRetries,omitempty"`
 }
 
 func NewDefaultConfig() Config <span class="cov8" title="1">{
@@ -600,17 +622,7 @@ func NewErrorInvalidLease() error <span class="cov8" title="1">{
 }</span>
 
 func (e ErrorInvalidLease) Error() string <span class="cov0" title="0">{
-        return "Invalid lease, either AcquireTime or LeaseDurationSeconds are nil"
-}</span>
-
-type ErrorLeaseNil struct{}
-
-func NewErrorLeaseNil() error <span class="cov0" title="0">{
-        return ErrorLeaseNil{}
-}</span>
-
-func (e ErrorLeaseNil) Error() string <span class="cov0" title="0">{
-        return "Tried changing lease, but lease status on cluster is unknown"
+        return "Invalid lease, either AcquireTime, LeaseDurationSeconds or HolderIdentity are nil"
 }</span>
 
 type ErrorDrainTimeoutSecondsInvalid struct{}
@@ -628,6 +640,7 @@ func (e ErrorDrainTimeoutSecondsInvalid) Error() string <span class="cov0" title
 
 import (
         "context"
+        "strconv"
         "time"
 
         "github.com/heathcliff26/fleetlock/pkg/k8s/utils"
@@ -637,12 +650,21 @@ import (
         client "k8s.io/client-go/kubernetes/typed/coordination/v1"
 )
 
+const (
+        leaseStateDone     = "done"
+        leaseStateDraining = "draining"
+        leaseStateError    = "error"
+)
+
+const leaseFailCounterName = "fleetlock.heathcliff.eu/DrainFailCount"
+
 type lease struct {
         name   string
         lease  *coordv1.Lease
         client client.LeaseInterface
 }
 
+// Create a new lease instance. Does not create a lease on the kubernetes side.
 func NewLease(name string, client client.LeaseInterface) *lease <span class="cov8" title="1">{
         return &amp;lease{
                 name:   name,
@@ -650,41 +672,26 @@ func NewLease(name string, client client.LeaseInterface) *lease <span class="cov
         }
 }</span>
 
-func (l *lease) Lock(ctx context.Context, duration int32) error <span class="cov8" title="1">{
+// Fetch the lease from the kubernetes server and store it in the local object.
+// Does not need to be called manually.
+func (l *lease) get(ctx context.Context) error <span class="cov8" title="1">{
         lease, err := l.client.Get(ctx, l.name, metav1.GetOptions{})
-        if errors.IsNotFound(err) </span><span class="cov8" title="1">{
-                return l.create(ctx, duration)
-        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
-        }</span>
-
-        <span class="cov8" title="1">if lease.Spec.AcquireTime == nil || lease.Spec.LeaseDurationSeconds == nil </span><span class="cov8" title="1">{
-                return NewErrorInvalidLease()
-        }</span>
-
-        <span class="cov8" title="1">validUntil := lease.Spec.AcquireTime.Time.Add(time.Duration(*lease.Spec.LeaseDurationSeconds) * time.Second)
-
-        if time.Now().After(validUntil) </span><span class="cov8" title="1">{
-                lease.Spec.AcquireTime = &amp;metav1.MicroTime{Time: time.Now()}
-                lease, err = l.client.Update(ctx, lease, metav1.UpdateOptions{})
-                if err != nil </span><span class="cov0" title="0">{
-                        return err
-                }</span>
-        } else<span class="cov8" title="1"> {
-                return NewErrorDrainIsLocked()
         }</span>
 
         <span class="cov8" title="1">l.lease = lease
         return nil</span>
 }
 
+// Create the lease in the kubernetes server.
 func (l *lease) create(ctx context.Context, duration int32) error <span class="cov8" title="1">{
         lease := &amp;coordv1.Lease{
                 ObjectMeta: metav1.ObjectMeta{
                         Name: l.name,
                 },
                 Spec: coordv1.LeaseSpec{
-                        HolderIdentity:       utils.Pointer("draining"),
+                        HolderIdentity:       utils.Pointer(leaseStateDraining),
                         LeaseDurationSeconds: utils.Pointer(duration),
                         AcquireTime:          &amp;metav1.MicroTime{Time: time.Now()},
                 },
@@ -699,12 +706,8 @@ func (l *lease) create(ctx context.Context, duration int32) error <span class="c
         return nil</span>
 }
 
-func (l *lease) Done(ctx context.Context) error <span class="cov8" title="1">{
-        if l.lease == nil </span><span class="cov0" title="0">{
-                return NewErrorLeaseNil()
-        }</span>
-
-        <span class="cov8" title="1">*l.lease.Spec.HolderIdentity = "done"
+// Update the lease on the kubernetes server
+func (l *lease) update(ctx context.Context) error <span class="cov8" title="1">{
         lease, err := l.client.Update(ctx, l.lease, metav1.UpdateOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return err
@@ -714,6 +717,103 @@ func (l *lease) Done(ctx context.Context) error <span class="cov8" title="1">{
         return nil</span>
 }
 
+func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="cov8" title="1">{
+        if l.lease == nil </span><span class="cov8" title="1">{
+                err := l.get(ctx)
+                if err != nil </span><span class="cov8" title="1">{
+                        return 0, err
+                }</span>
+        }
+
+        <span class="cov8" title="1">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
+        if !ok </span><span class="cov8" title="1">{
+                return 0, nil
+        }</span>
+        <span class="cov8" title="1">return strconv.Atoi(failCounterStr)</span>
+}
+
+// Return the count of failed attempts, defaults to 0 if no lease is found
+func (l *lease) GetFailCounter(ctx context.Context) (int, error) <span class="cov8" title="1">{
+        count, err := l.getFailCounter(ctx)
+        if errors.IsNotFound(err) </span><span class="cov8" title="1">{
+                return 0, nil
+        }</span>
+        <span class="cov8" title="1">return count, err</span>
+}
+
+// Increase the fail counter by 1.
+// Does not call update!!!
+func (l *lease) increaseFailCounter(ctx context.Context) error <span class="cov8" title="1">{
+        failCount, err := l.getFailCounter(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if l.lease.Annotations == nil </span><span class="cov8" title="1">{
+                l.lease.Annotations = make(map[string]string)
+        }</span>
+
+        <span class="cov8" title="1">failCount++
+        l.lease.Annotations[leaseFailCounterName] = strconv.Itoa(failCount)
+
+        return nil</span>
+}
+
+// Aquire the lease for draining
+func (l *lease) Lock(ctx context.Context, duration int32) error <span class="cov8" title="1">{
+        err := l.get(ctx)
+        if errors.IsNotFound(err) </span><span class="cov8" title="1">{
+                return l.create(ctx, duration)
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if l.lease.Spec.AcquireTime == nil || l.lease.Spec.LeaseDurationSeconds == nil || l.lease.Spec.HolderIdentity == nil </span><span class="cov8" title="1">{
+                return NewErrorInvalidLease()
+        }</span>
+
+        <span class="cov8" title="1">validUntil := l.lease.Spec.AcquireTime.Time.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
+
+        if time.Now().After(validUntil) </span><span class="cov8" title="1">{
+                if *l.lease.Spec.HolderIdentity == leaseStateDraining </span><span class="cov8" title="1">{
+                        err = l.increaseFailCounter(ctx)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                }
+
+                <span class="cov8" title="1">*l.lease.Spec.HolderIdentity = leaseStateDraining
+                l.lease.Spec.AcquireTime = &amp;metav1.MicroTime{Time: time.Now()}
+
+                err = l.update(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        } else<span class="cov8" title="1"> {
+                return NewErrorDrainIsLocked()
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Set the lease to done
+func (l *lease) Done(ctx context.Context) error <span class="cov8" title="1">{
+        if l.lease == nil </span><span class="cov0" title="0">{
+                err := l.get(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov8" title="1">*l.lease.Spec.HolderIdentity = leaseStateDone
+        err := l.update(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Delete the lease
 func (l *lease) Delete(ctx context.Context) error <span class="cov8" title="1">{
         err := l.client.Delete(ctx, l.name, metav1.DeleteOptions{})
         if errors.IsNotFound(err) </span><span class="cov8" title="1">{
@@ -723,15 +823,35 @@ func (l *lease) Delete(ctx context.Context) error <span class="cov8" title="1">{
         }</span>
 }
 
+// Return true if the lease is done.
+// Does not return an error if the lease does not exist.
 func (l *lease) IsDone(ctx context.Context) (bool, error) <span class="cov8" title="1">{
-        lease, err := l.client.Get(context.Background(), l.name, metav1.GetOptions{})
-        if errors.IsNotFound(err) </span><span class="cov8" title="1">{
-                return false, nil
-        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
-                return false, err
+        if l.lease == nil </span><span class="cov8" title="1">{
+                err := l.get(ctx)
+                if errors.IsNotFound(err) </span><span class="cov8" title="1">{
+                        return false, nil
+                }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                        return false, err
+                }</span>
+        }
+
+        <span class="cov8" title="1">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
+}
+
+// Set the lease to an error state and increase the fail counter by one
+func (l *lease) Error(ctx context.Context) error <span class="cov8" title="1">{
+        err := l.increaseFailCounter(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
         }</span>
 
-        <span class="cov8" title="1">return *lease.Spec.HolderIdentity == "done", nil</span>
+        <span class="cov8" title="1">*l.lease.Spec.HolderIdentity = leaseStateError
+
+        err = l.update(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
