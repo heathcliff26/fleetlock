@@ -17,6 +17,7 @@ type lease struct {
 	client client.LeaseInterface
 }
 
+// Create a new lease instance. Does not create a lease on the kubernetes side.
 func NewLease(name string, client client.LeaseInterface) *lease {
 	return &lease{
 		name:   name,
@@ -24,34 +25,19 @@ func NewLease(name string, client client.LeaseInterface) *lease {
 	}
 }
 
-func (l *lease) Lock(ctx context.Context, duration int32) error {
+// Fetch the lease from the kubernetes server and store it in the local object.
+// Does not need to be called manually.
+func (l *lease) get(ctx context.Context) error {
 	lease, err := l.client.Get(ctx, l.name, metav1.GetOptions{})
-	if errors.IsNotFound(err) {
-		return l.create(ctx, duration)
-	} else if err != nil {
+	if err != nil {
 		return err
-	}
-
-	if lease.Spec.AcquireTime == nil || lease.Spec.LeaseDurationSeconds == nil {
-		return NewErrorInvalidLease()
-	}
-
-	validUntil := lease.Spec.AcquireTime.Time.Add(time.Duration(*lease.Spec.LeaseDurationSeconds) * time.Second)
-
-	if time.Now().After(validUntil) {
-		lease.Spec.AcquireTime = &metav1.MicroTime{Time: time.Now()}
-		lease, err = l.client.Update(ctx, lease, metav1.UpdateOptions{})
-		if err != nil {
-			return err
-		}
-	} else {
-		return NewErrorDrainIsLocked()
 	}
 
 	l.lease = lease
 	return nil
 }
 
+// Create the lease in the kubernetes server.
 func (l *lease) create(ctx context.Context, duration int32) error {
 	lease := &coordv1.Lease{
 		ObjectMeta: metav1.ObjectMeta{
@@ -73,12 +59,8 @@ func (l *lease) create(ctx context.Context, duration int32) error {
 	return nil
 }
 
-func (l *lease) Done(ctx context.Context) error {
-	if l.lease == nil {
-		return NewErrorLeaseNil()
-	}
-
-	*l.lease.Spec.HolderIdentity = "done"
+// Update the lease on the kubernetes server
+func (l *lease) update(ctx context.Context) error {
 	lease, err := l.client.Update(ctx, l.lease, metav1.UpdateOptions{})
 	if err != nil {
 		return err
@@ -88,6 +70,51 @@ func (l *lease) Done(ctx context.Context) error {
 	return nil
 }
 
+func (l *lease) Lock(ctx context.Context, duration int32) error {
+	err := l.get(ctx)
+	if errors.IsNotFound(err) {
+		return l.create(ctx, duration)
+	} else if err != nil {
+		return err
+	}
+
+	if l.lease.Spec.AcquireTime == nil || l.lease.Spec.LeaseDurationSeconds == nil {
+		return NewErrorInvalidLease()
+	}
+
+	validUntil := l.lease.Spec.AcquireTime.Time.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
+
+	if time.Now().After(validUntil) {
+		l.lease.Spec.AcquireTime = &metav1.MicroTime{Time: time.Now()}
+		err = l.update(ctx)
+		if err != nil {
+			return err
+		}
+	} else {
+		return NewErrorDrainIsLocked()
+	}
+
+	return nil
+}
+
+// Set the lease to done
+func (l *lease) Done(ctx context.Context) error {
+	if l.lease == nil {
+		err := l.get(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	*l.lease.Spec.HolderIdentity = "done"
+	err := l.update(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Delete the lease
 func (l *lease) Delete(ctx context.Context) error {
 	err := l.client.Delete(ctx, l.name, metav1.DeleteOptions{})
 	if errors.IsNotFound(err) {
@@ -97,13 +124,17 @@ func (l *lease) Delete(ctx context.Context) error {
 	}
 }
 
+// Return true if the lease is done.
+// Does not return an error if the lease does not exist.
 func (l *lease) IsDone(ctx context.Context) (bool, error) {
-	lease, err := l.client.Get(context.Background(), l.name, metav1.GetOptions{})
-	if errors.IsNotFound(err) {
-		return false, nil
-	} else if err != nil {
-		return false, err
+	if l.lease == nil {
+		err := l.get(ctx)
+		if errors.IsNotFound(err) {
+			return false, nil
+		} else if err != nil {
+			return false, err
+		}
 	}
 
-	return *lease.Spec.HolderIdentity == "done", nil
+	return *l.lease.Spec.HolderIdentity == "done", nil
 }
