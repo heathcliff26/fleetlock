@@ -4,7 +4,8 @@ logLevel: info
 
 kubernetes:
   # The path to the kubeconfig file. Used for draining nodes and the kubernetes storage option if used.
-  # Falls back to in-cluster serviceaccount if left empty (recommended)
+  # Intended to be used for development purposes. It is recommended to leave it empty when using kubernetes, as this
+  # then uses the in-cluster configuration mechanism via serviceaccount.
   kubeconfig: ""
   # The timeout for drain node in seconds.
   # Defaults to 5m.
