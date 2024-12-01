@@ -7,8 +7,8 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/spf13/cobra v1.8.1
-	github.com/stretchr/testify v1.9.0
-	github.com/valkey-io/valkey-go v1.0.49
+	github.com/stretchr/testify v1.10.0
+	github.com/valkey-io/valkey-go v1.0.50
 	go.etcd.io/etcd/client/pkg/v3 v3.5.17
 	go.etcd.io/etcd/client/v3 v3.5.17
 	gopkg.in/yaml.v3 v3.0.1
