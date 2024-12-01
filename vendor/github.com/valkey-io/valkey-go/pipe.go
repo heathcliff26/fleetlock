@@ -3,6 +3,7 @@ package valkey
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -321,10 +322,19 @@ func (p *pipe) _exit(err error) {
 	p.clhks.Load().(func(error))(err)
 }
 
+func disableNoDelay(conn net.Conn) {
+	if c, ok := conn.(*tls.Conn); ok {
+		conn = c.NetConn()
+	}
+	if c, ok := conn.(*net.TCPConn); ok {
+		c.SetNoDelay(false)
+	}
+}
+
 func (p *pipe) _background() {
 	p.conn.SetDeadline(time.Time{})
-	if conn, ok := p.conn.(*net.TCPConn); ok && p.noNoDelay {
-		conn.SetNoDelay(false)
+	if p.noNoDelay {
+		disableNoDelay(p.conn)
 	}
 	go func() {
 		p._exit(p._backgroundWrite())
@@ -590,7 +600,7 @@ func (p *pipe) backgroundPing() {
 			go func() { ch <- p.Do(context.Background(), cmds.PingCmd).NonValkeyError() }()
 			select {
 			case <-tm.C:
-				err = context.DeadlineExceeded
+				err = os.ErrDeadlineExceeded
 			case err = <-ch:
 				tm.Stop()
 			}
@@ -741,7 +751,9 @@ func (p *pipe) Receive(ctx context.Context, subscribe Completed, fn func(message
 }
 
 func (p *pipe) CleanSubscriptions() {
-	if atomic.LoadInt32(&p.state) == 1 {
+	if atomic.LoadInt32(&p.blcksig) != 0 {
+		p.Close()
+	} else if atomic.LoadInt32(&p.state) == 1 {
 		if p.version >= 7 {
 			p.DoMulti(context.Background(), cmds.UnsubscribeCmd, cmds.PUnsubscribeCmd, cmds.SUnsubscribeCmd, cmds.DiscardCmd)
 		} else {
@@ -1050,7 +1062,7 @@ func (p *pipe) DoStream(ctx context.Context, pool *pool, cmd Completed) ValkeyRe
 		}
 		dl, ok := ctx.Deadline()
 		if ok {
-			if p.timeout > 0 {
+			if p.timeout > 0 && !cmd.IsBlock() {
 				defaultDeadline := time.Now().Add(p.timeout)
 				if dl.After(defaultDeadline) {
 					dl = defaultDeadline
@@ -1101,6 +1113,12 @@ func (p *pipe) DoMultiStream(ctx context.Context, pool *pool, multi ...Completed
 		dl, ok := ctx.Deadline()
 		if ok {
 			if p.timeout > 0 {
+				for _, cmd := range multi {
+					if cmd.IsBlock() {
+						p.conn.SetDeadline(dl)
+						goto process
+					}
+				}
 				defaultDeadline := time.Now().Add(p.timeout)
 				if dl.After(defaultDeadline) {
 					dl = defaultDeadline
@@ -1138,10 +1156,11 @@ func (p *pipe) DoMultiStream(ctx context.Context, pool *pool, multi ...Completed
 
 func (p *pipe) syncDo(dl time.Time, dlOk bool, cmd Completed) (resp ValkeyResult) {
 	if dlOk {
-		if p.timeout > 0 {
+		if p.timeout > 0 && !cmd.IsBlock() {
 			defaultDeadline := time.Now().Add(p.timeout)
 			if dl.After(defaultDeadline) {
 				dl = defaultDeadline
+				dlOk = false
 			}
 		}
 		p.conn.SetDeadline(dl)
@@ -1157,7 +1176,7 @@ func (p *pipe) syncDo(dl time.Time, dlOk bool, cmd Completed) (resp ValkeyResult
 		msg, err = syncRead(p.r)
 	}
 	if err != nil {
-		if errors.Is(err, os.ErrDeadlineExceeded) {
+		if dlOk && errors.Is(err, os.ErrDeadlineExceeded) {
 			err = context.DeadlineExceeded
 		}
 		p.error.CompareAndSwap(nil, &errs{error: err})
@@ -1170,9 +1189,16 @@ func (p *pipe) syncDo(dl time.Time, dlOk bool, cmd Completed) (resp ValkeyResult
 func (p *pipe) syncDoMulti(dl time.Time, dlOk bool, resp []ValkeyResult, multi []Completed) {
 	if dlOk {
 		if p.timeout > 0 {
+			for _, cmd := range multi {
+				if cmd.IsBlock() {
+					p.conn.SetDeadline(dl)
+					goto process
+				}
+			}
 			defaultDeadline := time.Now().Add(p.timeout)
 			if dl.After(defaultDeadline) {
 				dl = defaultDeadline
+				dlOk = false
 			}
 		}
 		p.conn.SetDeadline(dl)
@@ -1204,7 +1230,7 @@ process:
 	}
 	return
 abort:
-	if errors.Is(err, os.ErrDeadlineExceeded) {
+	if dlOk && errors.Is(err, os.ErrDeadlineExceeded) {
 		err = context.DeadlineExceeded
 	}
 	p.error.CompareAndSwap(nil, &errs{error: err})
