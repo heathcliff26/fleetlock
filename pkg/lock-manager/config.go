@@ -4,9 +4,6 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
-
-	//nolint:staticcheck
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 )
@@ -17,7 +14,6 @@ type StorageConfig struct {
 	Postgres   sql.PostgresConfig          `yaml:"postgres,omitempty"`
 	MySQL      sql.MySQLConfig             `yaml:"mysql,omitempty"`
 	Valkey     valkey.ValkeyConfig         `yaml:"valkey,omitempty"`
-	Redis      redis.RedisConfig           `yaml:"redis,omitempty"`
 	Etcd       etcd.EtcdConfig             `yaml:"etcd,omitempty"`
 	Kubernetes kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
 }

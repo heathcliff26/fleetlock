@@ -7,9 +7,6 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
-
-	//nolint:staticcheck
-	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/redis"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/stretchr/testify/assert"
@@ -84,30 +81,6 @@ func TestNewManager(t *testing.T) {
 				},
 			},
 			Error: "failed to open mysql database",
-		},
-		{
-			Name: "RedisBackend",
-			Storage: StorageConfig{
-				Type: "redis",
-				Redis: redis.RedisConfig{
-					Addr: mr.Addr(),
-				},
-			},
-			Result: result{
-				groups:  initGroups(NewDefaultGroups()),
-				storage: "*redis.RedisBackend",
-			},
-			Error: "",
-		},
-		{
-			Name: "ErrorNewRedisBackend",
-			Storage: StorageConfig{
-				Type: "redis",
-				Redis: redis.RedisConfig{
-					Addr: "",
-				},
-			},
-			Error: "no alive address in InitAddress",
 		},
 		{
 			Name: "ValkeyBackend",
