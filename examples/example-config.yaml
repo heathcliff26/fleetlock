@@ -37,8 +37,6 @@ storage:
   #   etcd:       Use etcd database
   #   kubernetes: Use kubernetes leases
   #
-  #   redis:      DEPRECATED, use valkey instead. This option will be removed in a future release in 2025
-  #
   # Default: memory
   #
   type: memory
