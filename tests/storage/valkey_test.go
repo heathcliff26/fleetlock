@@ -59,7 +59,7 @@ func TestValkeySentinelBackend(t *testing.T) {
 	})
 
 	err = utils.ExecCRI("run", "--name", "fleetlock-valkey-sentinel-sentinel", "-d", "--net", "host",
-		"-v", "./testdata/valkey-sentinel.conf:/config/sentinel.conf", "--userns=keep-id",
+		"-v", "./testdata/valkey-sentinel.conf:/config/sentinel.conf:z", "--userns=keep-id",
 		"docker.io/valkey/valkey:latest",
 		"/config/sentinel.conf", "--sentinel",
 	)
