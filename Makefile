@@ -21,7 +21,7 @@ update-deps:
 coverprofile:
 	hack/coverprofile.sh
 
-lint:
+lint: golangci-lint
 	golangci-lint run -v
 
 fmt:
@@ -29,6 +29,9 @@ fmt:
 
 validate:
 	hack/validate.sh
+
+golangci-lint:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 .PHONY: \
 	default \
