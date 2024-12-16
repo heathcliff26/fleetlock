@@ -24,6 +24,12 @@ coverprofile:
 lint:
 	golangci-lint run -v
 
+fmt:
+	gofmt -s -w ./cmd ./pkg ./tests
+
+validate:
+	hack/validate.sh
+
 .PHONY: \
 	default \
 	build \
@@ -32,4 +38,6 @@ lint:
 	update-deps \
 	coverprofile \
 	lint \
+	fmt \
+	validate \
 	$(NULL)
