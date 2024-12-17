@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/heathcliff26/fleetlock/pkg/api"
 	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
-	"github.com/heathcliff26/fleetlock/pkg/server/client"
 )
 
 const groupValidationPattern = "^[a-zA-Z0-9.-]+$"
@@ -44,7 +44,7 @@ func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmana
 func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 	slog.Debug("Received request", slog.String("method", req.Method), slog.String("uri", req.RequestURI), slog.String("remote", ReadUserIP(req)))
 
-	var handleFunc func(http.ResponseWriter, client.FleetLockRequest)
+	var handleFunc func(http.ResponseWriter, api.FleetLockRequest)
 	switch req.URL.String() {
 	case "/v1/pre-reboot":
 		handleFunc = s.handleReserve
@@ -73,7 +73,7 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	params, err := client.ParseRequest(req.Body)
+	params, err := api.ParseRequest(req.Body)
 	if err != nil {
 		slog.Debug("Failed to parse request", "error", err, slog.String("remote", ReadUserIP(req)))
 		rw.WriteHeader(http.StatusBadRequest)
@@ -101,7 +101,7 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
 // Handle requests to reserve a slot
 //
 //	URL: /v1/pre-reboot
-func (s *Server) handleReserve(rw http.ResponseWriter, params client.FleetLockRequest) {
+func (s *Server) handleReserve(rw http.ResponseWriter, params api.FleetLockRequest) {
 	ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
 	if err != nil {
 		slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -126,7 +126,7 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params client.FleetLockRe
 // Handle requests to release a slot
 //
 //	URL: /v1/steady-state
-func (s *Server) handleRelease(rw http.ResponseWriter, params client.FleetLockRequest) {
+func (s *Server) handleRelease(rw http.ResponseWriter, params api.FleetLockRequest) {
 	if s.k8s != nil && !s.uncordonNode(rw, params) {
 		return
 	}
@@ -142,9 +142,9 @@ func (s *Server) handleRelease(rw http.ResponseWriter, params client.FleetLockRe
 	sendResponse(rw, msgSuccess)
 }
 
-// Drain the node after reservation and before sending success to client.
+// Drain the node after reservation and before sending success to api.
 // Requires k8s client to be non-nil.
-func (s *Server) drainNode(rw http.ResponseWriter, params client.FleetLockRequest) bool {
+func (s *Server) drainNode(rw http.ResponseWriter, params api.FleetLockRequest) bool {
 	node, ok := s.matchNodeToId(rw, params)
 	if node == "" {
 		return ok
@@ -178,7 +178,7 @@ func (s *Server) drainNode(rw http.ResponseWriter, params client.FleetLockReques
 
 // Uncordon the node before release.
 // Requires k8s client to be non-nil.
-func (s *Server) uncordonNode(rw http.ResponseWriter, params client.FleetLockRequest) bool {
+func (s *Server) uncordonNode(rw http.ResponseWriter, params api.FleetLockRequest) bool {
 	node, ok := s.matchNodeToId(rw, params)
 	if node == "" {
 		return ok
@@ -195,7 +195,7 @@ func (s *Server) uncordonNode(rw http.ResponseWriter, params client.FleetLockReq
 	return true
 }
 
-func (s *Server) matchNodeToId(rw http.ResponseWriter, params client.FleetLockRequest) (string, bool) {
+func (s *Server) matchNodeToId(rw http.ResponseWriter, params api.FleetLockRequest) (string, bool) {
 	node, err := s.k8s.FindNodeByZincatiID(params.Client.ID)
 	if err != nil {
 		slog.Error("An error occured when matching client id to node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -215,7 +215,7 @@ func (s *Server) matchNodeToId(rw http.ResponseWriter, params client.FleetLockRe
 // URL: /healthz
 func (s *Server) handleHealthCheck(rw http.ResponseWriter, _ *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-	status := client.FleetlockHealthResponse{
+	status := api.FleetlockHealthResponse{
 		Status: "ok",
 	}
 	sendResponse(rw, status)

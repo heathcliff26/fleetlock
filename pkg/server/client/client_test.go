@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/heathcliff26/fleetlock/pkg/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -138,13 +139,13 @@ func NewFakeServer(t *testing.T, statusCode int, path string) (*FleetlockClient,
 		assert.Equal(http.MethodPost, req.Method, "Should be POST request")
 		assert.Equal("true", strings.ToLower(req.Header.Get("fleet-lock-protocol")), "fleet-lock-protocol header should be set")
 
-		params, err := ParseRequest(req.Body)
+		params, err := api.ParseRequest(req.Body)
 		assert.NoError(err, "Request should have the correct format")
 		assert.Equal("testGroup", params.Client.Group, "Should have Group set")
 		assert.Equal("testID", params.Client.ID, "Should have ID set")
 
 		rw.WriteHeader(statusCode)
-		b, err := json.MarshalIndent(FleetLockResponse{
+		b, err := json.MarshalIndent(api.FleetLockResponse{
 			Kind:  "ok",
 			Value: "Success",
 		}, "", "  ")
