@@ -1,13 +1,10 @@
 package client
 
 import (
-	"encoding/json"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/heathcliff26/fleetlock/pkg/api"
+	"github.com/heathcliff26/fleetlock/pkg/fake"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -131,35 +128,17 @@ func TestGetAndSet(t *testing.T) {
 	})
 }
 
-func NewFakeServer(t *testing.T, statusCode int, path string) (*FleetlockClient, *httptest.Server) {
-	assert := assert.New(t)
+func NewFakeServer(t *testing.T, statusCode int, path string) (*FleetlockClient, *fake.FakeServer) {
+	testGroup, testID := "testGroup", "testID"
 
-	srv := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		assert.Equal(path, req.URL.String(), "Request use the correct request URL")
-		assert.Equal(http.MethodPost, req.Method, "Should be POST request")
-		assert.Equal("true", strings.ToLower(req.Header.Get("fleet-lock-protocol")), "fleet-lock-protocol header should be set")
+	srv := fake.NewFakeServer(t, statusCode, path)
+	srv.Group = testGroup
+	srv.ID = testID
 
-		params, err := api.ParseRequest(req.Body)
-		assert.NoError(err, "Request should have the correct format")
-		assert.Equal("testGroup", params.Client.Group, "Should have Group set")
-		assert.Equal("testID", params.Client.ID, "Should have ID set")
-
-		rw.WriteHeader(statusCode)
-		b, err := json.MarshalIndent(api.FleetLockResponse{
-			Kind:  "ok",
-			Value: "Success",
-		}, "", "  ")
-		if !assert.NoError(err, "Error in fake server: failed to prepare response") {
-			return
-		}
-
-		_, err = rw.Write(b)
-		assert.NoError(err, "Error in fake server: failed to send response")
-	}))
 	c := &FleetlockClient{
-		url:   srv.URL,
-		group: "testGroup",
-		appID: "testID",
+		url:   srv.URL(),
+		group: testGroup,
+		appID: testID,
 	}
 	return c, srv
 }
