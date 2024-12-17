@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/heathcliff26/fleetlock/pkg/api"
 	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
-	"github.com/heathcliff26/fleetlock/pkg/server/client"
 	"github.com/stretchr/testify/assert"
 
 	v1 "k8s.io/api/core/v1"
@@ -297,19 +297,19 @@ func TestHealthCheck(t *testing.T) {
 	assert.Equal(http.StatusOK, rr.Result().StatusCode, "Health Check should return with 200")
 	assert.Equal("application/json", rr.Header().Get("Content-Type"), "Content type should be json")
 
-	var res client.FleetlockHealthResponse
+	var res api.FleetlockHealthResponse
 	err := json.NewDecoder(rr.Result().Body).Decode(&res)
 
 	assert.NoError(err, "Response should be parsable")
-	expectedRes := client.FleetlockHealthResponse{
+	expectedRes := api.FleetlockHealthResponse{
 		Status: "ok",
 	}
 	assert.Equal(expectedRes, res, "Response should match")
 }
 
-func newFleetlockRequest(group, id string) client.FleetLockRequest {
-	return client.FleetLockRequest{
-		Client: client.FleetLockRequestClient{
+func newFleetlockRequest(group, id string) api.FleetLockRequest {
+	return api.FleetLockRequest{
+		Client: api.FleetLockRequestClient{
 			ID:    id,
 			Group: group,
 		},
@@ -317,7 +317,7 @@ func newFleetlockRequest(group, id string) client.FleetLockRequest {
 }
 
 func createFleetLockRequest(group, id string) io.Reader {
-	body, _ := client.PrepareRequest(group, id)
+	body, _ := api.PrepareRequest(group, id)
 	return body
 }
 
@@ -329,10 +329,10 @@ func createRequest(target, group, id string) *http.Request {
 	return req
 }
 
-func parseResponse(rr *httptest.ResponseRecorder) (*http.Response, client.FleetLockResponse, error) {
+func parseResponse(rr *httptest.ResponseRecorder) (*http.Response, api.FleetLockResponse, error) {
 	res := rr.Result()
 
-	response, err := client.ParseResponse(res.Body)
+	response, err := api.ParseResponse(res.Body)
 
 	return res, response, err
 }

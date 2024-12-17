@@ -1,4 +1,4 @@
-package client
+package api
 
 type FleetLockRequest struct {
 	Client FleetLockRequestClient `json:"client_params"`
@@ -14,6 +14,7 @@ type FleetLockResponse struct {
 	Value string `json:"value"`
 }
 
+// Not part of the actual api specification
 type FleetlockHealthResponse struct {
 	Status string `json:"status"`
 	Error  string `json:"error"`
