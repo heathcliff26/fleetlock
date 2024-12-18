@@ -1,0 +1,50 @@
+---
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: "Create draft release"
+        type: boolean
+        default: true
+      update:
+        description: "Update existing release"
+        type: boolean
+        default: false
+      tag:
+        description: "Release tag to use"
+        type: string
+        required: true
+      latest:
+        description: "Tag container as latest"
+        type: boolean
+        default: false
+      prerelease:
+        description: "Mark the release as a prerelease"
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/ci.yaml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      tag: ${{ inputs.tag }}
+      latest: ${{ inputs.latest }}
+    secrets: inherit
+
+  release:
+    uses: heathcliff26/ci/.github/workflows/golang-release.yaml@main
+    needs: build
+    permissions:
+      contents: write
+    with:
+      draft: ${{ inputs.draft }}
+      update: ${{ inputs.update }}
+      tag: ${{ inputs.tag }}
+      release-artifacts: "release/*"
+      artifacts: "{manifests}"
+      prerelease: ${{ inputs.prerelease }}

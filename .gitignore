@@ -1,8 +1,11 @@
 # Ignore binaries
 /bin
 
+# Ignore generated manifests
+/manifests/release
+
 # Generated go-test coverage reports
-coverprofiles/
+/coverprofiles
 
 # Ignore files created for testing
 test-config.yaml

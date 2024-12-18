@@ -27,6 +27,9 @@ lint: golangci-lint
 fmt:
 	gofmt -s -w ./cmd ./pkg ./tests
 
+manifests:
+	hack/manifests.sh
+
 validate:
 	hack/validate.sh
 
@@ -42,5 +45,7 @@ golangci-lint:
 	coverprofile \
 	lint \
 	fmt \
+	manifests \
 	validate \
+	golangci-lint \
 	$(NULL)
