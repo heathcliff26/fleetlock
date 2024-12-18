@@ -48,7 +48,7 @@ podman run -d -p 8080:8080 -v fleetlock-data:/data -v /path/to/config.yaml:/conf
 
 ## Examples
 
-An example configuration can be found [here](examples/example-config.yaml)
+An example configuration can be found [here](examples/config.yaml)
 
 ### Zincati configuration
 
@@ -64,14 +64,19 @@ base_url = "http://fleetlock.example.org:8080/"
 
 ### Deploying to kubernetes
 
-An example deployment can be found [here](examples/example-deployment.yaml).
+An example deployment can be found [here](examples/deployment.yaml).
 
 To deploy it to your cluster, run:
 ```
-kubectl apply -f https://raw.githubusercontent.com/heathcliff26/fleetlock/main/examples/example-deployment.yaml
+kubectl apply -f https://raw.githubusercontent.com/heathcliff26/fleetlock/main/examples/deployment.yaml
 ```
 
-This will deploy the app to your cluster into the namespace `fleetlock`. You can then access the app under `fleetlock.example.org`
+This will deploy the app to your cluster into the namespace `fleetlock`. You can then access the app under `fleetlock.example.org`.
+
+You should edit the url to a domain of your choosing with
+```
+kubectl -n fleetlock edit ingress fleetlock
+```
 
 ## Links
 

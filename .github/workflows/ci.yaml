@@ -19,6 +19,23 @@ on:
         type: boolean
         default: false
         required: false
+  workflow_call:
+    inputs:
+      tag:
+        description: "Use to set tag, default: rolling"
+        type: string
+        default: "rolling"
+        required: false
+      dry-run:
+        description: "Do not push image"
+        type: boolean
+        default: false
+        required: false
+      latest:
+        description: "Tag latest"
+        type: boolean
+        default: false
+        required: false
   push:
     branches: ["main"]
     paths:
@@ -59,4 +76,17 @@ jobs:
       tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
       build-args: "RELEASE_VERSION=${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+    secrets: inherit
+
+  build-manifests:
+    uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+    needs:
+      - validate
+    with:
+      release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
+      artifact: "manifests/release/*.yaml"
+      artifact-name: "manifests"
+      cmd: "make manifests"
+      cache: false
     secrets: inherit
