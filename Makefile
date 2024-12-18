@@ -33,6 +33,9 @@ manifests:
 validate:
 	hack/validate.sh
 
+clean:
+	rm -rf bin manifests/release coverprofiles
+
 golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
@@ -47,5 +50,6 @@ golangci-lint:
 	fmt \
 	manifests \
 	validate \
+	clean \
 	golangci-lint \
 	$(NULL)
