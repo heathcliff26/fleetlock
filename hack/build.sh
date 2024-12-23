@@ -6,6 +6,8 @@ base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
 bin_dir="${base_dir}/bin"
 
+target="${1}"
+
 GOOS="${GOOS:-$(go env GOOS)}"
 GOARCH="${GOARCH:-$(go env GOARCH)}"
 
@@ -16,7 +18,12 @@ if [ "${RELEASE_VERSION}" != "" ]; then
     GO_LD_FLAGS+=" -X github.com/heathcliff26/fleetlock/pkg/version.version=${RELEASE_VERSION}"
 fi
 
-output_name="${bin_dir}/fleetlock"
+output_name="${bin_dir}/${target}"
+
+if [ "${2}" != "" ]; then
+    output_name="${bin_dir}/${2}"
+fi
+
 if [ "${GOOS}" == "windows" ]; then
     output_name="${output_name}.exe"
 fi
@@ -24,4 +31,4 @@ fi
 pushd "${base_dir}" >/dev/null
 
 echo "Building $(basename "${output_name}")"
-GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build -ldflags="${GO_LD_FLAGS}" -o "${output_name}" ./cmd/...
+GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build -ldflags="${GO_LD_FLAGS}" -o "${output_name}" "./cmd/${target}"

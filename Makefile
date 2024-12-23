@@ -4,10 +4,13 @@ REPOSITORY ?= localhost
 CONTAINER_NAME ?= fleetlock
 TAG ?= latest
 
-default: build
+build: build-fleetctl build-fleetlock
 
-build:
-	hack/build.sh
+build-fleetctl:
+	hack/build.sh fleetctl
+
+build-fleetlock:
+	hack/build.sh fleetlock
 
 image:
 	podman build -t $(REPOSITORY)/$(CONTAINER_NAME):$(TAG) .
