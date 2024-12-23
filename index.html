@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/heathcliff26/fleetlock/pkg/api/utils.go (86.7%)</option>
 				
-				<option value="file3">github.com/heathcliff26/fleetlock/pkg/client/client.go (87.7%)</option>
+				<option value="file3">github.com/heathcliff26/fleetlock/pkg/client/client.go (89.5%)</option>
 				
 				<option value="file4">github.com/heathcliff26/fleetlock/pkg/client/utils.go (81.2%)</option>
 				
@@ -77,7 +77,7 @@
 				
 				<option value="file10">github.com/heathcliff26/fleetlock/pkg/fleetctl/root.go (40.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/fleetlock/pkg/fleetctl/utils.go (11.1%)</option>
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/fleetctl/utils.go (10.0%)</option>
 				
 				<option value="file12">github.com/heathcliff26/fleetlock/pkg/fleetlock/root.go (18.2%)</option>
 				
@@ -356,6 +356,30 @@ func (c *FleetlockClient) SetGroup(group string) error <span class="cov8" title=
                 return fmt.Errorf("the fleetlock group can't be empty")
         }</span>
         <span class="cov8" title="1">c.group = group
+        return nil</span>
+}
+
+// Get the fleetlock id
+func (c *FleetlockClient) GetID() string <span class="cov8" title="1">{
+        if c == nil </span><span class="cov8" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
+        return c.appID</span>
+}
+
+// Change the fleetlock id
+func (c *FleetlockClient) SetID(id string) error <span class="cov8" title="1">{
+        c.mutex.Lock()
+        defer c.mutex.Unlock()
+
+        if id == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("the fleetlock id can't be empty")
+        }</span>
+        <span class="cov8" title="1">c.appID = id
         return nil</span>
 }
 </pre>
@@ -685,7 +709,7 @@ import (
         "github.com/spf13/cobra"
 )
 
-// Create a new lock command
+// Create a new release command
 func NewReleaseCommand() *cobra.Command <span class="cov8" title="1">{
         cmd := &amp;cobra.Command{
                 Use:   "release",
@@ -766,21 +790,42 @@ import (
 
 const (
         flagNameGroup = "group"
+        flagNameID    = "id"
 )
 
 func addCommonFlagsToCMD(cmd *cobra.Command) <span class="cov8" title="1">{
         cmd.Flags().StringP(flagNameGroup, "g", "default", "Name of the lock group")
+        cmd.Flags().StringP(flagNameID, "i", "", "Specify the id to use, defaults to zincati appID")
 }</span>
 
+// Takes care if parsing the arguments and creating a client from them
 func getClientFromCMD(cmd *cobra.Command, args []string) (*client.FleetlockClient, error) <span class="cov0" title="0">{
         group, err := cmd.Flags().GetString(flagNameGroup)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
+
+        <span class="cov0" title="0">id, err := cmd.Flags().GetString(flagNameID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
         <span class="cov0" title="0">if len(args) &lt; 1 </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("missing url")
         }</span>
-        <span class="cov0" title="0">return client.NewClient(args[0], group)</span>
+        <span class="cov0" title="0">c, err := client.NewClient(args[0], group)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">if id != "" </span><span class="cov0" title="0">{
+                err = c.SetID(id)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return c, nil</span>
 }
 
 // Print the error information on stderr and exit with code 1
