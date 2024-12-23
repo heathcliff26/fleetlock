@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/heathcliff26/fleetlock/pkg/server/client"
+	"github.com/heathcliff26/fleetlock/pkg/client"
 	"github.com/spf13/cobra"
 )
 
