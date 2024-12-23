@@ -11,16 +11,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const Name = "fleetlock"
+
 func NewRootCommand() *cobra.Command {
 	cobra.AddTemplateFunc(
 		"ProgramName", func() string {
-			return version.Name
+			return Name
 		},
 	)
 
 	rootCmd := &cobra.Command{
-		Use:   version.Name,
-		Short: version.Name + " runs a fleetlock server for use in coordinating Fedora CoreOS node updates.",
+		Use:   Name,
+		Short: Name + " runs a fleetlock server for use in coordinating Fedora CoreOS node updates.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cfg, err := cmd.Flags().GetString("config")
 			if err != nil {
@@ -40,7 +42,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.Flags().StringP("config", "c", "", "Path to config file")
 	rootCmd.Flags().Bool("env", false, "Expand enviroment variables in config file")
 	rootCmd.AddCommand(
-		version.NewCommand(),
+		version.NewCommand(Name),
 	)
 
 	return rootCmd
