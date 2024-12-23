@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Create a new lock command
+// Create a new release command
 func NewReleaseCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "release",

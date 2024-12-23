@@ -145,3 +145,27 @@ func (c *FleetlockClient) SetGroup(group string) error {
 	c.group = group
 	return nil
 }
+
+// Get the fleetlock id
+func (c *FleetlockClient) GetID() string {
+	if c == nil {
+		return ""
+	}
+
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	return c.appID
+}
+
+// Change the fleetlock id
+func (c *FleetlockClient) SetID(id string) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if id == "" {
+		return fmt.Errorf("the fleetlock id can't be empty")
+	}
+	c.appID = id
+	return nil
+}
