@@ -126,6 +126,19 @@ func TestGetAndSet(t *testing.T) {
 
 		assert.Error(c.SetGroup(""), "Should not accept empty group")
 	})
+	t.Run("ID", func(t *testing.T) {
+		assert := assert.New(t)
+
+		var c *FleetlockClient
+		assert.Empty(c.GetID(), "Should not panic when reading id from nil pointer")
+
+		c = &FleetlockClient{}
+
+		assert.NoError(c.SetID("testid"), "Should set id without error")
+		assert.Equal("testid", c.GetID(), "id should match")
+
+		assert.Error(c.SetID(""), "Should not accept empty id")
+	})
 }
 
 func NewFakeServer(t *testing.T, statusCode int, path string) (*FleetlockClient, *fake.FakeServer) {
