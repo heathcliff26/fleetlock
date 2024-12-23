@@ -125,7 +125,7 @@
 				
 				<option value="file34">github.com/heathcliff26/fleetlock/tests/storage/testsuite.go (98.2%)</option>
 				
-				<option value="file35">github.com/heathcliff26/fleetlock/tests/utils/container.go (69.6%)</option>
+				<option value="file35">github.com/heathcliff26/fleetlock/tests/utils/container.go (78.3%)</option>
 				
 				</select>
 			</div>
@@ -156,7 +156,7 @@ import (
         "io"
 )
 
-// Parse an http request         body and extract the parameters
+// Parse an http request body and extract the parameters
 func ParseRequest(body io.ReadCloser) (FleetLockRequest, error) <span class="cov8" title="1">{
         var res FleetLockRequest
         err := json.NewDecoder(body).Decode(&amp;res)
@@ -433,16 +433,24 @@ import (
         "github.com/stretchr/testify/assert"
 )
 
+// Fake server is a fake fleetlock server.
+// It will always return the choosen http code and validate the request.
 type FakeServer struct {
         server *httptest.Server
         assert *assert.Assertions
 
-        Path       string
+        // Expected path to call, ignored when empty
+        Path string
+        // The http status code that will be returned
         StatusCode int
-        Group      string
-        ID         string
+        // The expected group, ignored when empty
+        Group string
+        // The expected id, ignored when empty
+        ID string
 }
 
+// Create a new fake server.
+// Takes the testing variable, the http return code it should give and optional an expected path to call.
 func NewFakeServer(t *testing.T, statusCode int, path string) *FakeServer <span class="cov8" title="1">{
         s := &amp;FakeServer{
                 assert:     assert.New(t),
@@ -491,10 +499,12 @@ func (s *FakeServer) handleRequest(rw http.ResponseWriter, req *http.Request) <s
         s.assert.NoError(err, "Error in fake server: failed to send response")</span>
 }
 
+// Return the url the server is listening on
 func (s *FakeServer) URL() string <span class="cov8" title="1">{
         return s.server.URL
 }</span>
 
+// Close the server.
 func (s *FakeServer) Close() <span class="cov8" title="1">{
         if s != nil &amp;&amp; s.server != nil </span><span class="cov8" title="1">{
                 s.server.Close()
@@ -3269,7 +3279,7 @@ func ExecCRI(args ...string) error <span class="cov8" title="1">{
                 initialized = true
         }</span>
         <span class="cov8" title="1">out, err := GetCommand(args...).CombinedOutput()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 argsStr := strings.Join(args, " ")
                 fmt.Printf("Output from \"%s %s\":\n%s\n", containerRuntime, argsStr, string(out))
         }</span>
