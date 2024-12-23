@@ -11,16 +11,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Fake server is a fake fleetlock server.
+// It will always return the choosen http code and validate the request.
 type FakeServer struct {
 	server *httptest.Server
 	assert *assert.Assertions
 
-	Path       string
+	// Expected path to call, ignored when empty
+	Path string
+	// The http status code that will be returned
 	StatusCode int
-	Group      string
-	ID         string
+	// The expected group, ignored when empty
+	Group string
+	// The expected id, ignored when empty
+	ID string
 }
 
+// Create a new fake server.
+// Takes the testing variable, the http return code it should give and optional an expected path to call.
 func NewFakeServer(t *testing.T, statusCode int, path string) *FakeServer {
 	s := &FakeServer{
 		assert:     assert.New(t),
@@ -69,10 +77,12 @@ func (s *FakeServer) handleRequest(rw http.ResponseWriter, req *http.Request) {
 	s.assert.NoError(err, "Error in fake server: failed to send response")
 }
 
+// Return the url the server is listening on
 func (s *FakeServer) URL() string {
 	return s.server.URL
 }
 
+// Close the server.
 func (s *FakeServer) Close() {
 	if s != nil && s.server != nil {
 		s.server.Close()
