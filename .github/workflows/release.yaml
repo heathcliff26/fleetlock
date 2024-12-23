@@ -46,5 +46,5 @@ jobs:
       update: ${{ inputs.update }}
       tag: ${{ inputs.tag }}
       release-artifacts: "release/*"
-      artifacts: "{manifests}"
+      artifacts: "{fleetctl-*,manifests}"
       prerelease: ${{ inputs.prerelease }}
