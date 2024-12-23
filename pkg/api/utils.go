@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-// Parse an http request	 body and extract the parameters
+// Parse an http request body and extract the parameters
 func ParseRequest(body io.ReadCloser) (FleetLockRequest, error) {
 	var res FleetLockRequest
 	err := json.NewDecoder(body).Decode(&res)
