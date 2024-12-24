@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/heathcliff26/fleetlock/pkg/fake/server.go (88.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/fleetlock/pkg/fleetctl/appid.go (21.4%)</option>
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/fleetctl/appid.go (85.7%)</option>
 				
 				<option value="file9">github.com/heathcliff26/fleetlock/pkg/fleetctl/lock.go (27.3%)</option>
 				
@@ -79,7 +79,7 @@
 				
 				<option value="file11">github.com/heathcliff26/fleetlock/pkg/fleetctl/root.go (40.0%)</option>
 				
-				<option value="file12">github.com/heathcliff26/fleetlock/pkg/fleetctl/utils.go (10.0%)</option>
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/fleetctl/utils.go (65.0%)</option>
 				
 				<option value="file13">github.com/heathcliff26/fleetlock/pkg/fleetlock/root.go (18.2%)</option>
 				
@@ -671,8 +671,6 @@ func (s *FakeServer) Close() <span class="cov8" title="1">{
 		<pre class="file" id="file8" style="display: none">package fleetctl
 
 import (
-        "fmt"
-
         "github.com/heathcliff26/fleetlock/pkg/client"
         systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
         "github.com/spf13/cobra"
@@ -685,22 +683,22 @@ func NewIDCommand() *cobra.Command <span class="cov8" title="1">{
         cmd := &amp;cobra.Command{
                 Use:   "id",
                 Short: "display this node zincati app id",
-                RunE: func(cmd *cobra.Command, _ []string) error </span><span class="cov0" title="0">{
+                RunE: func(cmd *cobra.Command, _ []string) error </span><span class="cov8" title="1">{
                         input, err := cmd.Flags().GetString(flagNameMachineID)
                         if err != nil </span><span class="cov0" title="0">{
                                 return err
                         }</span>
 
-                        <span class="cov0" title="0">var id string
-                        if input == "" </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">var id string
+                        if input == "" </span><span class="cov8" title="1">{
                                 id, err = client.GetZincateAppID()
-                        }</span> else<span class="cov0" title="0"> {
+                        }</span> else<span class="cov8" title="1"> {
                                 id, err = systemdutils.ZincatiMachineID(input)
                         }</span>
-                        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
                                 exitError(cmd, err)
                         }</span>
-                        <span class="cov0" title="0">fmt.Println(id)
+                        <span class="cov8" title="1">cmd.Println(id)
 
                         return nil</span>
                 },
@@ -714,8 +712,6 @@ func NewIDCommand() *cobra.Command <span class="cov8" title="1">{
 		<pre class="file" id="file9" style="display: none">package fleetctl
 
 import (
-        "fmt"
-
         "github.com/spf13/cobra"
 )
 
@@ -736,7 +732,7 @@ func NewLockCommand() *cobra.Command <span class="cov8" title="1">{
                                 exitError(cmd, err)
                         }</span>
 
-                        <span class="cov0" title="0">fmt.Println("Success")
+                        <span class="cov0" title="0">cmd.Println("Success")
                         return nil</span>
                 },
         }
@@ -749,8 +745,6 @@ func NewLockCommand() *cobra.Command <span class="cov8" title="1">{
 		<pre class="file" id="file10" style="display: none">package fleetctl
 
 import (
-        "fmt"
-
         "github.com/spf13/cobra"
 )
 
@@ -771,7 +765,7 @@ func NewReleaseCommand() *cobra.Command <span class="cov8" title="1">{
                                 exitError(cmd, err)
                         }</span>
 
-                        <span class="cov0" title="0">fmt.Println("Success")
+                        <span class="cov0" title="0">cmd.Println("Success")
                         return nil</span>
                 },
         }
@@ -845,38 +839,38 @@ func addCommonFlagsToCMD(cmd *cobra.Command) <span class="cov8" title="1">{
 }</span>
 
 // Takes care if parsing the arguments and creating a client from them
-func getClientFromCMD(cmd *cobra.Command, args []string) (*client.FleetlockClient, error) <span class="cov0" title="0">{
+func getClientFromCMD(cmd *cobra.Command, args []string) (*client.FleetlockClient, error) <span class="cov8" title="1">{
         group, err := cmd.Flags().GetString(flagNameGroup)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">id, err := cmd.Flags().GetString(flagNameID)
+        <span class="cov8" title="1">id, err := cmd.Flags().GetString(flagNameID)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">if len(args) &lt; 1 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if len(args) &lt; 1 </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("missing url")
         }</span>
-        <span class="cov0" title="0">c, err := client.NewClient(args[0], group)
+        <span class="cov8" title="1">c, err := client.NewClient(args[0], group)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">if id != "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if id != "" </span><span class="cov8" title="1">{
                 err = c.SetID(id)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
         }
 
-        <span class="cov0" title="0">return c, nil</span>
+        <span class="cov8" title="1">return c, nil</span>
 }
 
 // Print the error information on stderr and exit with code 1
 func exitError(cmd *cobra.Command, err error) <span class="cov0" title="0">{
-        fmt.Fprintln(cmd.Root().ErrOrStderr(), "Fatal: "+err.Error())
+        cmd.PrintErrln("Fatal: " + err.Error())
         os.Exit(1)
 }</span>
 </pre>
@@ -3255,7 +3249,6 @@ func AppSpecificID(machineID, appID string) (string, error) <span class="cov8" t
 		<pre class="file" id="file39" style="display: none">package version
 
 import (
-        "fmt"
         "runtime"
         "runtime/debug"
 
@@ -3270,7 +3263,7 @@ func NewCommand(name string) *cobra.Command <span class="cov8" title="1">{
                 Use:   "version",
                 Short: "Print version information and exit",
                 Run: func(cmd *cobra.Command, args []string) </span><span class="cov0" title="0">{
-                        fmt.Print(VersionInfoString(name))
+                        cmd.Print(VersionInfoString(name))
                 }</span>,
         }
         // Override to prevent parent function from running
