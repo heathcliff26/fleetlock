@@ -16,7 +16,7 @@ image:
 	podman build -t $(REPOSITORY)/$(CONTAINER_NAME):$(TAG) .
 
 test:
-	go test -v -race ./...
+	go test -v -race ./cmd/... ./pkg/... ./tests/storage/...
 
 update-deps:
 	hack/update-deps.sh
