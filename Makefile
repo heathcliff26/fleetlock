@@ -18,6 +18,9 @@ image:
 test:
 	go test -v -race ./cmd/... ./pkg/... ./tests/storage/...
 
+test-e2e:
+	go test -count=1 -v ./tests/e2e/...
+
 update-deps:
 	hack/update-deps.sh
 
@@ -37,7 +40,7 @@ validate:
 	hack/validate.sh
 
 clean:
-	rm -rf bin manifests/release coverprofiles
+	rm -rf bin manifests/release coverprofiles logs tmp_fleetlock_image_fleetlock-e2e-*.tar
 
 golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
@@ -47,6 +50,7 @@ golangci-lint:
 	build \
 	image \
 	test \
+	test-e2e \
 	update-deps \
 	coverprofile \
 	lint \

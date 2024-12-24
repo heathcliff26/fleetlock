@@ -11,3 +11,7 @@
 test-config.yaml
 test.db
 test-deployment.yaml
+
+# Ignore e2e test outputs
+/logs
+tmp_fleetlock_image_fleetlock-e2e-*.tar
