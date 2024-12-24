@@ -1,8 +1,6 @@
 package fleetctl
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +21,7 @@ func NewReleaseCommand() *cobra.Command {
 				exitError(cmd, err)
 			}
 
-			fmt.Println("Success")
+			cmd.Println("Success")
 			return nil
 		},
 	}
