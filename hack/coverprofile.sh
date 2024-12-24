@@ -12,7 +12,7 @@ if [ ! -d "${OUT_DIR}" ]; then
     mkdir "${OUT_DIR}"
 fi
 
-go test -coverprofile="${OUT_DIR}/cover.out" -coverpkg "./..." "./..."
+go test -coverprofile="${OUT_DIR}/cover.out" -coverpkg "./pkg/..." "./pkg/..." "./tests/storage/..."
 go tool cover -html "${OUT_DIR}/cover.out" -o "${OUT_DIR}/index.html"
 rm "${OUT_DIR}/cover.out"
 
