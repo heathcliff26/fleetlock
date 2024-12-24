@@ -1,8 +1,6 @@
 package fleetctl
 
 import (
-	"fmt"
-
 	"github.com/heathcliff26/fleetlock/pkg/client"
 	systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
 	"github.com/spf13/cobra"
@@ -30,7 +28,7 @@ func NewIDCommand() *cobra.Command {
 			if err != nil {
 				exitError(cmd, err)
 			}
-			fmt.Println(id)
+			cmd.Println(id)
 
 			return nil
 		},

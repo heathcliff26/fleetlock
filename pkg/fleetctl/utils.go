@@ -50,6 +50,6 @@ func getClientFromCMD(cmd *cobra.Command, args []string) (*client.FleetlockClien
 
 // Print the error information on stderr and exit with code 1
 func exitError(cmd *cobra.Command, err error) {
-	fmt.Fprintln(cmd.Root().ErrOrStderr(), "Fatal: "+err.Error())
+	cmd.PrintErrln("Fatal: " + err.Error())
 	os.Exit(1)
 }

@@ -1,7 +1,6 @@
 package version
 
 import (
-	"fmt"
 	"runtime"
 	"runtime/debug"
 
@@ -16,7 +15,7 @@ func NewCommand(name string) *cobra.Command {
 		Use:   "version",
 		Short: "Print version information and exit",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Print(VersionInfoString(name))
+			cmd.Print(VersionInfoString(name))
 		},
 	}
 	// Override to prevent parent function from running
