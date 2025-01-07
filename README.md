@@ -1,3 +1,9 @@
+[![CI](https://github.com/heathcliff26/fleetlock/actions/workflows/ci.yaml/badge.svg?event=push)](https://github.com/heathcliff26/fleetlock/actions/workflows/ci.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/heathcliff26/fleetlock/badge.svg)](https://coveralls.io/github/heathcliff26/fleetlock)
+[![Editorconfig Check](https://github.com/heathcliff26/fleetlock/actions/workflows/editorconfig-check.yaml/badge.svg?event=push)](https://github.com/heathcliff26/fleetlock/actions/workflows/editorconfig-check.yaml)
+[![Generate go test cover report](https://github.com/heathcliff26/fleetlock/actions/workflows/go-testcover-report.yaml/badge.svg)](https://github.com/heathcliff26/fleetlock/actions/workflows/go-testcover-report.yaml)
+[![Renovate](https://github.com/heathcliff26/fleetlock/actions/workflows/renovate.yaml/badge.svg)](https://github.com/heathcliff26/fleetlock/actions/workflows/renovate.yaml)
+
 # FleetLock
 
 Implements the [FleetLock protocol](https://coreos.github.io/zincati/development/fleetlock/protocol/) of [Zincati](https://coreos.github.io/zincati/) for coordinating upgrades of multiple [Fedora CoreOS](https://docs.fedoraproject.org/en-US/fedora-coreos/auto-updates/) nodes.
