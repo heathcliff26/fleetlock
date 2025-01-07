@@ -16,7 +16,7 @@ image:
 	podman build -t $(REPOSITORY)/$(CONTAINER_NAME):$(TAG) .
 
 test:
-	go test -v -race ./cmd/... ./pkg/... ./tests/storage/...
+	go test -v -race -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./cmd/... ./pkg/... ./tests/storage/...
 
 test-e2e:
 	go test -count=1 -v ./tests/e2e/...
@@ -40,7 +40,7 @@ validate:
 	hack/validate.sh
 
 clean:
-	rm -rf bin manifests/release coverprofiles logs tmp_fleetlock_image_fleetlock-e2e-*.tar
+	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_fleetlock_image_fleetlock-e2e-*.tar
 
 golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
