@@ -79,9 +79,6 @@ jobs:
       - unit-tests
       - validate
     with:
-      # Need to use newer version of podman here
-      # TODO: Change back to latest when it tracks 24.04
-      os: ubuntu-24.04
       cmd: "make test-e2e"
 
   build-fleetctl:
