@@ -129,7 +129,7 @@
 				
 				<option value="file36">github.com/heathcliff26/fleetlock/pkg/systemd-utils/utils.go (100.0%)</option>
 				
-				<option value="file37">github.com/heathcliff26/fleetlock/pkg/version/version.go (75.0%)</option>
+				<option value="file37">github.com/heathcliff26/fleetlock/pkg/version/version.go (81.0%)</option>
 				
 				</select>
 			</div>
@@ -1748,17 +1748,17 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
         <span class="cov9" title="401">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov4" title="15">{
+        if err != nil || !ok </span><span class="cov4" title="10">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov9" title="386">lGroup.RWLock.Lock()
+        <span class="cov9" title="391">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov5" title="40">{
+        if err != nil || !ok </span><span class="cov6" title="45">{
                 return false, err
         }</span>
 
@@ -1766,13 +1766,13 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="787">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="792">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov10" title="787">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov10" title="792">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
 func (lm *LockManager) Release(group, id string) error <span class="cov8" title="212">{
@@ -2042,7 +2042,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="42">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="43">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2091,8 +2091,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1957">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="754">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1961">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="758">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2163,13 +2163,13 @@ func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov6
 }
 
 // Returns the current number of locks for the given group
-func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="125">{
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="130">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 return 0, nil
         }</span>
 
-        <span class="cov8" title="125">return len(g.slots), nil</span>
+        <span class="cov8" title="130">return len(g.slots), nil</span>
 }
 
 // Release the lock currently held by the id.
@@ -2182,7 +2182,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="69">{
+        for i, l = range g.slots </span><span class="cov7" title="62">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2218,7 +2218,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="298">{
+        for _, lock := range g.slots </span><span class="cov10" title="278">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -3238,10 +3238,8 @@ import (
         "github.com/spf13/cobra"
 )
 
-var version = "devel"
-
 // Create a new version command with the given app name
-func NewCommand(name string) *cobra.Command <span class="cov10" title="3">{
+func NewCommand(name string) *cobra.Command <span class="cov4" title="3">{
         cmd := &amp;cobra.Command{
                 Use:   "version",
                 Short: "Print version information and exit",
@@ -3250,21 +3248,22 @@ func NewCommand(name string) *cobra.Command <span class="cov10" title="3">{
                 }</span>,
         }
         // Override to prevent parent function from running
-        <span class="cov10" title="3">cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) </span>{<span class="cov0" title="0">}</span>
+        <span class="cov4" title="3">cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) </span>{<span class="cov0" title="0">}</span>
 
-        <span class="cov10" title="3">return cmd</span>
+        <span class="cov4" title="3">return cmd</span>
 }
 
 // Return the version string
 func Version() string <span class="cov1" title="1">{
-        return version
+        buildinfo, _ := debug.ReadBuildInfo()
+        return buildinfo.Main.Version
 }</span>
 
 // Return a formated string containing the version, git commit and go version the app was compiled with.
 func VersionInfoString(name string) string <span class="cov1" title="1">{
         var commit string
         buildinfo, _ := debug.ReadBuildInfo()
-        for _, item := range buildinfo.Settings </span><span class="cov0" title="0">{
+        for _, item := range buildinfo.Settings </span><span class="cov10" title="12">{
                 if item.Key == "vcs.revision" </span><span class="cov0" title="0">{
                         commit = item.Value
                         break</span>
@@ -3277,7 +3276,7 @@ func VersionInfoString(name string) string <span class="cov1" title="1">{
         }</span>
 
         <span class="cov1" title="1">result := name + ":\n"
-        result += "    Version: " + version + "\n"
+        result += "    Version: " + buildinfo.Main.Version + "\n"
         result += "    Commit:  " + commit + "\n"
         result += "    Go:      " + runtime.Version() + "\n"
 
