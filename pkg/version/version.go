@@ -7,8 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "devel"
-
 // Create a new version command with the given app name
 func NewCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
@@ -26,7 +24,8 @@ func NewCommand(name string) *cobra.Command {
 
 // Return the version string
 func Version() string {
-	return version
+	buildinfo, _ := debug.ReadBuildInfo()
+	return buildinfo.Main.Version
 }
 
 // Return a formated string containing the version, git commit and go version the app was compiled with.
@@ -46,7 +45,7 @@ func VersionInfoString(name string) string {
 	}
 
 	result := name + ":\n"
-	result += "    Version: " + version + "\n"
+	result += "    Version: " + buildinfo.Main.Version + "\n"
 	result += "    Commit:  " + commit + "\n"
 	result += "    Go:      " + runtime.Version() + "\n"
 

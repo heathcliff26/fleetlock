@@ -2,6 +2,7 @@ package version
 
 import (
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -20,14 +21,9 @@ func TestNewVersionCommand(t *testing.T) {
 func TestVersion(t *testing.T) {
 	assert := assert.New(t)
 
-	oldVersion := version
-	t.Cleanup(func() {
-		version = oldVersion
-	})
+	buildinfo, _ := debug.ReadBuildInfo()
 
-	version = "v0.0.0-unit-test"
-
-	assert.Equal(version, Version(), "Version should return the content of the version variable")
+	assert.Equal(buildinfo.Main.Version, Version(), "Version should return the version from build info")
 }
 
 func TestVersionInfoString(t *testing.T) {
@@ -37,11 +33,13 @@ func TestVersionInfoString(t *testing.T) {
 
 	assert := assert.New(t)
 
+	buildinfo, _ := debug.ReadBuildInfo()
+
 	if !assert.Equal(5, len(lines), "Should have enough lines") {
 		t.FailNow()
 	}
 	assert.Contains(lines[0], "test")
-	assert.Contains(lines[1], version)
+	assert.Contains(lines[1], buildinfo.Main.Version)
 
 	commit := strings.Split(lines[2], ":")
 	assert.NotEmpty(strings.TrimSpace(commit[1]))
