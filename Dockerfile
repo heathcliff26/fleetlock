@@ -1,21 +1,16 @@
 ###############################################################################
 # BEGIN build-stage
 # Compile the binary
-FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.23.5@sha256:8c10f21bec412f08f73aa7b97ca5ac5f28a39d8a88030ad8a339fd0a781d72b4 AS build-stage
+FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.24.0@sha256:2b1cbf278ce05a2a310a3d695ebb176420117a8cfcfcc4e5e68a1bef5f6354da AS build-stage
 
 ARG BUILDPLATFORM
 ARG TARGETARCH
-ARG RELEASE_VERSION
 
 WORKDIR /app
 
-COPY vendor ./vendor
-COPY go.mod go.sum ./
-COPY cmd ./cmd
-COPY pkg ./pkg
-COPY hack ./hack
+COPY . ./
 
-RUN --mount=type=bind,target=/app/.git,source=.git GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh fleetlock
+RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh fleetlock
 
 #
 # END build-stage
