@@ -1748,17 +1748,17 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
         <span class="cov9" title="401">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov4" title="10">{
+        if err != nil || !ok </span><span class="cov4" title="15">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov9" title="391">lGroup.RWLock.Lock()
+        <span class="cov9" title="386">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov6" title="45">{
+        if err != nil || !ok </span><span class="cov5" title="40">{
                 return false, err
         }</span>
 
@@ -1766,13 +1766,13 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="792">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="787">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov10" title="792">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov10" title="787">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
 func (lm *LockManager) Release(group, id string) error <span class="cov8" title="212">{
@@ -2042,7 +2042,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="43">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="37">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2091,8 +2091,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1961">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="758">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1953">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="750">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2163,13 +2163,13 @@ func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov6
 }
 
 // Returns the current number of locks for the given group
-func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="130">{
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="125">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 return 0, nil
         }</span>
 
-        <span class="cov8" title="130">return len(g.slots), nil</span>
+        <span class="cov8" title="125">return len(g.slots), nil</span>
 }
 
 // Release the lock currently held by the id.
@@ -2182,7 +2182,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="62">{
+        for i, l = range g.slots </span><span class="cov7" title="60">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2218,7 +2218,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="278">{
+        for _, lock := range g.slots </span><span class="cov10" title="315">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
