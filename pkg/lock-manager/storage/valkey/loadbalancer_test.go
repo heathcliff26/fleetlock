@@ -1,7 +1,6 @@
 package valkey
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -32,7 +31,7 @@ func TestLoadbalancer(t *testing.T) {
 			client.Close()
 		})
 
-		res, err := client.Do(context.Background(), client.B().Ping().Build()).ToString()
+		res, err := client.Do(t.Context(), client.B().Ping().Build()).ToString()
 
 		assert.Nil(err, "Can reach client")
 		assert.Equal("PONG", res, "Can reach client")
@@ -99,7 +98,7 @@ func TestLoadbalancer(t *testing.T) {
 			t.FailNow()
 		}
 
-		res, err := client.Do(context.Background(), client.B().Ping().Build()).ToString()
+		res, err := client.Do(t.Context(), client.B().Ping().Build()).ToString()
 
 		assert.NoError(err, "Should have failed over")
 		assert.Equal("PONG", res, "Should have failed over")
@@ -139,7 +138,7 @@ func TestLoadbalancer(t *testing.T) {
 			close(done)
 		}()
 		go func() {
-			_, err = client.Do(context.Background(), client.B().Ping().Build()).ToString()
+			_, err = client.Do(t.Context(), client.B().Ping().Build()).ToString()
 
 			assert.Error(err, "Call should fail")
 		}()

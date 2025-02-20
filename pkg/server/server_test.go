@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -228,7 +227,7 @@ func TestDrainNode(t *testing.T) {
 		lm:  lm,
 		k8s: k8s,
 	}
-	initTestCluster(fakeclient)
+	initTestCluster(t, fakeclient)
 
 	assert := assert.New(t)
 
@@ -268,7 +267,7 @@ func TestUncordonNode(t *testing.T) {
 		lm:  lm,
 		k8s: k8s,
 	}
-	initTestCluster(fakeclient)
+	initTestCluster(t, fakeclient)
 
 	assert := assert.New(t)
 
@@ -337,7 +336,7 @@ func parseResponse(rr *httptest.ResponseRecorder) (*http.Response, api.FleetLock
 	return res, response, err
 }
 
-func initTestCluster(client *fake.Clientset) {
+func initTestCluster(t *testing.T, client *fake.Clientset) {
 	testNode := &v1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNodeName,
@@ -346,12 +345,12 @@ func initTestCluster(client *fake.Clientset) {
 			NodeInfo: v1.NodeSystemInfo{MachineID: testNodeMachineID},
 		},
 	}
-	_, _ = client.CoreV1().Nodes().Create(context.Background(), testNode, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Nodes().Create(t.Context(), testNode, metav1.CreateOptions{})
 
 	testNS := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNamespace,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.Background(), testNS, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(t.Context(), testNS, metav1.CreateOptions{})
 }

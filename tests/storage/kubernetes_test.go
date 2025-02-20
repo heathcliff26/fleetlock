@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
@@ -18,7 +17,7 @@ func TestKubernetesBackend(t *testing.T) {
 			Name: nsName,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(t.Context(), ns, metav1.CreateOptions{})
 
 	RunLockManagerTestsuiteWithStorage(t, storage)
 }

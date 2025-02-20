@@ -24,7 +24,9 @@ const (
 	testPodName       = "Pod1"
 )
 
-func initTestCluster(client *fake.Clientset) {
+func initTestCluster(t *testing.T, client *fake.Clientset) {
+	ctx := t.Context()
+
 	testNode := &v1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNodeName,
@@ -33,14 +35,14 @@ func initTestCluster(client *fake.Clientset) {
 			NodeInfo: v1.NodeSystemInfo{MachineID: testNodeMachineID},
 		},
 	}
-	_, _ = client.CoreV1().Nodes().Create(context.Background(), testNode, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Nodes().Create(ctx, testNode, metav1.CreateOptions{})
 
 	testNS := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNamespace,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.Background(), testNS, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(ctx, testNS, metav1.CreateOptions{})
 
 	testPod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -52,7 +54,7 @@ func initTestCluster(client *fake.Clientset) {
 			TerminationGracePeriodSeconds: utils.Pointer(int64(1)),
 		},
 	}
-	_, _ = client.CoreV1().Pods(testNamespace).Create(context.Background(), testPod, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Pods(testNamespace).Create(ctx, testPod, metav1.CreateOptions{})
 }
 
 func TestNewClient(t *testing.T) {
@@ -102,7 +104,9 @@ func TestNewClient(t *testing.T) {
 func TestDrainNode(t *testing.T) {
 	t.Run("NoLease", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
+
+		ctx := t.Context()
 
 		err := c.DrainNode(testNodeName)
 
@@ -112,17 +116,17 @@ func TestDrainNode(t *testing.T) {
 			t.FailNow()
 		}
 
-		node, _ := client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
+		node, _ := client.CoreV1().Nodes().Get(ctx, testNodeName, metav1.GetOptions{})
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
 
-		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
+		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(ctx, drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(utils.Pointer(leaseStateDone), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(utils.Pointer(int32(300)), lease.Spec.LeaseDurationSeconds, "LeaseDurationSeconds should be set")
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("LeaseValid", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -135,14 +139,14 @@ func TestDrainNode(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(t.Context(), lease, metav1.CreateOptions{})
 
 		err := c.DrainNode(testNodeName)
 		assert.Equal(t, NewErrorDrainIsLocked(), err, "Should return an error signaling that a drain is already in progress")
 	})
 	t.Run("LeaseInvalid", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -153,14 +157,16 @@ func TestDrainNode(t *testing.T) {
 				HolderIdentity: utils.Pointer(leaseStateDraining),
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(t.Context(), lease, metav1.CreateOptions{})
 
 		err := c.DrainNode(testNodeName)
 		assert.Equal(t, NewErrorInvalidLease(), err, "Should return an error signaling that the lease is invalid")
 	})
 	t.Run("LeaseExpired", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
+
+		ctx := t.Context()
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -173,7 +179,7 @@ func TestDrainNode(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now().Add(-6 * time.Minute)},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(ctx, lease, metav1.CreateOptions{})
 
 		err := c.DrainNode(testNodeName)
 
@@ -183,16 +189,16 @@ func TestDrainNode(t *testing.T) {
 			t.FailNow()
 		}
 
-		node, _ := client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
+		node, _ := client.CoreV1().Nodes().Get(ctx, testNodeName, metav1.GetOptions{})
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
 
-		lease, _ = client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
+		lease, _ = client.CoordinationV1().Leases(testNamespace).Get(ctx, drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(utils.Pointer(leaseStateDone), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("DrainTimeout", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 
 		client.PrependReactor("create", "pods", func(action clienttesting.Action) (bool, runtime.Object, error) {
 			time.Sleep(5 * time.Second)
@@ -206,7 +212,7 @@ func TestDrainNode(t *testing.T) {
 		assert := assert.New(t)
 
 		assert.Equal(context.DeadlineExceeded, err, "Should exceed deadline")
-		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
+		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(t.Context(), drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(leaseStateError, *lease.Spec.HolderIdentity, "Lease state should be error")
 		assert.Equal("1", lease.GetAnnotations()[leaseFailCounterName], "Lease fail counter should be 1")
 	})
@@ -214,7 +220,7 @@ func TestDrainNode(t *testing.T) {
 
 func TestFindNodeByZincatiID(t *testing.T) {
 	c, client := NewFakeClient()
-	initTestCluster(client)
+	initTestCluster(t, client)
 
 	node, err := c.FindNodeByZincatiID(testNodeZincatiID)
 
@@ -230,11 +236,13 @@ func TestFindNodeByZincatiID(t *testing.T) {
 
 func TestUncordonNode(t *testing.T) {
 	c, client := NewFakeClient()
-	initTestCluster(client)
+	initTestCluster(t, client)
 
-	node, _ := client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
+	ctx := t.Context()
+
+	node, _ := client.CoreV1().Nodes().Get(ctx, testNodeName, metav1.GetOptions{})
 	node.Spec.Unschedulable = true
-	_, _ = client.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
+	_, _ = client.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
 	lease := &coordv1.Lease{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.namespace,
@@ -246,7 +254,7 @@ func TestUncordonNode(t *testing.T) {
 			AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 		},
 	}
-	_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+	_, _ = client.CoordinationV1().Leases(testNamespace).Create(ctx, lease, metav1.CreateOptions{})
 
 	err := c.UncordonNode(testNodeName)
 
@@ -254,10 +262,10 @@ func TestUncordonNode(t *testing.T) {
 
 	assert.Nil(err, "Should not return an error")
 
-	_, err = client.CoordinationV1().Leases(testNamespace).Get(context.Background(), drainLeaseName(testNodeName), metav1.GetOptions{})
+	_, err = client.CoordinationV1().Leases(testNamespace).Get(ctx, drainLeaseName(testNodeName), metav1.GetOptions{})
 	assert.True(errors.IsNotFound(err), "Lease should be deleted")
 
-	node, _ = client.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
+	node, _ = client.CoreV1().Nodes().Get(ctx, testNodeName, metav1.GetOptions{})
 	assert.False(node.Spec.Unschedulable, "Node should be schedulable")
 
 	err = c.UncordonNode(testNodeName)
@@ -267,7 +275,7 @@ func TestUncordonNode(t *testing.T) {
 func TestIsDrained(t *testing.T) {
 	t.Run("NoLease", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 
 		res, err := c.IsDrained(testNodeName)
 
@@ -278,7 +286,7 @@ func TestIsDrained(t *testing.T) {
 	})
 	t.Run("LeaseDone", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -291,7 +299,7 @@ func TestIsDrained(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(t.Context(), lease, metav1.CreateOptions{})
 
 		res, err := c.IsDrained(testNodeName)
 
@@ -302,7 +310,7 @@ func TestIsDrained(t *testing.T) {
 	})
 	t.Run("LeaseDraining", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -315,7 +323,7 @@ func TestIsDrained(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(t.Context(), lease, metav1.CreateOptions{})
 
 		res, err := c.IsDrained(testNodeName)
 
@@ -326,7 +334,7 @@ func TestIsDrained(t *testing.T) {
 	})
 	t.Run("LeaseError", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -339,7 +347,7 @@ func TestIsDrained(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		_, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Create(t.Context(), lease, metav1.CreateOptions{})
 
 		res, err := c.IsDrained(testNodeName)
 
@@ -350,8 +358,10 @@ func TestIsDrained(t *testing.T) {
 	})
 	t.Run("LeaseRetries", func(t *testing.T) {
 		c, client := NewFakeClient()
-		initTestCluster(client)
+		initTestCluster(t, client)
 		c.drainRetries = 3
+
+		ctx := t.Context()
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -367,7 +377,7 @@ func TestIsDrained(t *testing.T) {
 				AcquireTime:          &metav1.MicroTime{Time: time.Now()},
 			},
 		}
-		lease, _ = client.CoordinationV1().Leases(testNamespace).Create(context.Background(), lease, metav1.CreateOptions{})
+		lease, _ = client.CoordinationV1().Leases(testNamespace).Create(ctx, lease, metav1.CreateOptions{})
 
 		res, err := c.IsDrained(testNodeName)
 
@@ -377,7 +387,7 @@ func TestIsDrained(t *testing.T) {
 		assert.False(res, "Should return false")
 
 		lease.Annotations[leaseFailCounterName] = "3"
-		_, _ = client.CoordinationV1().Leases(testNamespace).Update(context.Background(), lease, metav1.UpdateOptions{})
+		_, _ = client.CoordinationV1().Leases(testNamespace).Update(ctx, lease, metav1.UpdateOptions{})
 
 		res, err = c.IsDrained(testNodeName)
 
