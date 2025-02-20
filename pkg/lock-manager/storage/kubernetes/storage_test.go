@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"context"
 	"regexp"
 	"strconv"
 	"testing"
@@ -19,7 +18,7 @@ func TestConflictingGroupNames(t *testing.T) {
 			Name: nsName,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(t.Context(), ns, metav1.CreateOptions{})
 
 	assert := assert.New(t)
 
@@ -39,6 +38,8 @@ func TestConflictingGroupNames(t *testing.T) {
 }
 
 func TestCompliantLeaseNames(t *testing.T) {
+	ctx := t.Context()
+
 	nsName := "fleetlock"
 	storage, client := NewKubernetesBackendWithFakeClient(nsName)
 	ns := &v1.Namespace{
@@ -46,14 +47,14 @@ func TestCompliantLeaseNames(t *testing.T) {
 			Name: nsName,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Namespaces().Create(ctx, ns, metav1.CreateOptions{})
 
 	assert := assert.New(t)
 
 	err := storage.Reserve("default", "User")
 	assert.Nil(err, "Should reserve slot")
 
-	leases, _ := client.CoordinationV1().Leases(nsName).List(context.Background(), metav1.ListOptions{})
+	leases, _ := client.CoordinationV1().Leases(nsName).List(ctx, metav1.ListOptions{})
 
 	validationRegex := regexp.MustCompile("^[a-z0-9.-]+$")
 
