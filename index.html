@@ -425,7 +425,7 @@ import (
         "github.com/heathcliff26/fleetlock/pkg/k8s"
         lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
         "github.com/heathcliff26/fleetlock/pkg/server"
-        "gopkg.in/yaml.v3"
+        "sigs.k8s.io/yaml"
 )
 
 const (
@@ -445,11 +445,11 @@ func init() <span class="cov3" title="2">{
 }</span>
 
 type Config struct {
-        LogLevel         string                    `yaml:"logLevel,omitempty"`
-        KubernetesConfig k8s.Config                `yaml:"kubernetes,omitempty"`
-        Server           *server.ServerConfig      `yaml:"server,omitempty"`
-        Storage          lockmanager.StorageConfig `yaml:"storage,omitempty"`
-        Groups           lockmanager.Groups        `yaml:"groups,omitempty"`
+        LogLevel         string                    `json:"logLevel,omitempty"`
+        KubernetesConfig k8s.Config                `json:"kubernetes,omitempty"`
+        Server           *server.ServerConfig      `json:"server,omitempty"`
+        Storage          lockmanager.StorageConfig `json:"storage,omitempty"`
+        Groups           lockmanager.Groups        `json:"groups,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
@@ -1151,9 +1151,9 @@ func (c *Client) IsDrained(node string) (bool, error) <span class="cov7" title="
 		<pre class="file" id="file13" style="display: none">package k8s
 
 type Config struct {
-        Kubeconfig          string `yaml:"kubeconfig,omitempty"`
-        DrainTimeoutSeconds int32  `yaml:"drainTimeoutSeconds,omitempty"`
-        DrainRetries        int    `yaml:"drainRetries,omitempty"`
+        Kubeconfig          string `json:"kubeconfig,omitempty"`
+        DrainTimeoutSeconds int32  `json:"drainTimeoutSeconds,omitempty"`
+        DrainRetries        int    `json:"drainRetries,omitempty"`
 }
 
 func NewDefaultConfig() Config <span class="cov10" title="21">{
@@ -1529,19 +1529,19 @@ import (
 )
 
 type StorageConfig struct {
-        Type       string                      `yaml:"type"`
-        SQLite     sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
-        Postgres   sql.PostgresConfig          `yaml:"postgres,omitempty"`
-        MySQL      sql.MySQLConfig             `yaml:"mysql,omitempty"`
-        Valkey     valkey.ValkeyConfig         `yaml:"valkey,omitempty"`
-        Etcd       etcd.EtcdConfig             `yaml:"etcd,omitempty"`
-        Kubernetes kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
+        Type       string                      `json:"type"`
+        SQLite     sql.SQLiteConfig            `json:"sqlite,omitempty"`
+        Postgres   sql.PostgresConfig          `json:"postgres,omitempty"`
+        MySQL      sql.MySQLConfig             `json:"mysql,omitempty"`
+        Valkey     valkey.ValkeyConfig         `json:"valkey,omitempty"`
+        Etcd       etcd.EtcdConfig             `json:"etcd,omitempty"`
+        Kubernetes kubernetes.KubernetesConfig `json:"kubernetes,omitempty"`
 }
 
 type Groups map[string]GroupConfig
 
 type GroupConfig struct {
-        Slots int `yaml:"slots"`
+        Slots int `json:"slots"`
 }
 
 // Create a new storage config with default values
@@ -1748,17 +1748,17 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
         <span class="cov9" title="401">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov4" title="15">{
+        if err != nil || !ok </span><span class="cov4" title="10">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov9" title="386">lGroup.RWLock.Lock()
+        <span class="cov9" title="391">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov5" title="40">{
+        if err != nil || !ok </span><span class="cov6" title="45">{
                 return false, err
         }</span>
 
@@ -1766,13 +1766,13 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="787">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="792">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov10" title="787">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov10" title="792">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
 func (lm *LockManager) Release(group, id string) error <span class="cov8" title="212">{
@@ -1817,11 +1817,11 @@ type EtcdBackend struct {
 }
 
 type EtcdConfig struct {
-        Endpoints []string `yaml:"endpoints,omitempty"`
-        Username  string   `yaml:"username,omitempty"`
-        Password  string   `yaml:"password,omitempty"`
-        CertFile  string   `yaml:"cert,omitempty"`
-        KeyFile   string   `yaml:"key,omitempty"`
+        Endpoints []string `json:"endpoints,omitempty"`
+        Username  string   `json:"username,omitempty"`
+        Password  string   `json:"password,omitempty"`
+        CertFile  string   `json:"cert,omitempty"`
+        KeyFile   string   `json:"key,omitempty"`
 }
 
 func NewEtcdBackend(cfg EtcdConfig) (*EtcdBackend, error) <span class="cov2" title="2">{
@@ -1955,8 +1955,8 @@ type KubernetesBackend struct {
 }
 
 type KubernetesConfig struct {
-        Kubeconfig string `yaml:"-"`
-        Namespace  string `yaml:"namespace,omitempty"`
+        Kubeconfig string `json:"-"`
+        Namespace  string `json:"namespace,omitempty"`
 }
 
 func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) <span class="cov1" title="1">{
@@ -2042,7 +2042,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="37">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="53">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2091,8 +2091,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1953">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="750">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1961">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="758">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2163,13 +2163,13 @@ func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov6
 }
 
 // Returns the current number of locks for the given group
-func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="125">{
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="130">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 return 0, nil
         }</span>
 
-        <span class="cov8" title="125">return len(g.slots), nil</span>
+        <span class="cov8" title="130">return len(g.slots), nil</span>
 }
 
 // Release the lock currently held by the id.
@@ -2182,7 +2182,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="60">{
+        for i, l = range g.slots </span><span class="cov7" title="54">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2218,7 +2218,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="315">{
+        for _, lock := range g.slots </span><span class="cov10" title="283">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -2237,14 +2237,14 @@ import (
 )
 
 type MySQLConfig struct {
-        Address  string `yaml:"address"`
-        Username string `yaml:"username"`
-        Password string `yaml:"password"`
-        Database string `yaml:"database"`
-        Options  string `yaml:"options,omitempty"`
+        Address  string `json:"address"`
+        Username string `json:"username"`
+        Password string `json:"password"`
+        Database string `json:"database"`
+        Options  string `json:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="8">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="7">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -2252,8 +2252,8 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
                 return nil, fmt.Errorf("failed to open mysql database: %w", err)
         }</span>
 
-        <span class="cov9" title="7">err = db.Ping()
-        if err != nil </span><span class="cov8" title="6">{
+        <span class="cov9" title="6">err = db.Ping()
+        if err != nil </span><span class="cov8" title="5">{
                 return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
@@ -2296,11 +2296,11 @@ const (
 )
 
 type PostgresConfig struct {
-        Address  string `yaml:"address"`
-        Username string `yaml:"username"`
-        Password string `yaml:"password"`
-        Database string `yaml:"database"`
-        Options  string `yaml:"options,omitempty"`
+        Address  string `json:"address"`
+        Username string `json:"username"`
+        Password string `json:"password"`
+        Database string `json:"database"`
+        Options  string `json:"options,omitempty"`
 }
 
 func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="4">{
@@ -2339,7 +2339,7 @@ import (
 )
 
 type SQLiteConfig struct {
-        File string `yaml:"file"`
+        File string `json:"file"`
 }
 
 func NewSQLiteBackend(cfg SQLiteConfig) (*SQLBackend, error) <span class="cov10" title="3">{
@@ -2531,21 +2531,21 @@ func (s *SQLBackend) Close() error <span class="cov2" title="3">{
 		
 		<pre class="file" id="file29" style="display: none">package sql
 
-func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="12">{
+func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="11">{
         var connStr string
-        if username != "" </span><span class="cov9" title="10">{
+        if username != "" </span><span class="cov9" title="9">{
                 connStr += username
-                if password != "" </span><span class="cov9" title="10">{
+                if password != "" </span><span class="cov9" title="9">{
                         connStr += ":" + password
                 }</span>
-                <span class="cov9" title="10">connStr += "@"</span>
+                <span class="cov9" title="9">connStr += "@"</span>
         }
-        <span class="cov10" title="12">connStr += address + "/" + database
+        <span class="cov10" title="11">connStr += address + "/" + database
         if options != "" </span><span class="cov0" title="0">{
                 connStr += "?" + options
         }</span>
 
-        <span class="cov10" title="12">return connStr</span>
+        <span class="cov10" title="11">return connStr</span>
 }
 </pre>
 		
@@ -2701,20 +2701,20 @@ type ValkeyBackend struct {
 }
 
 type ValkeyConfig struct {
-        Addrs    []string             `yaml:"addresses,omitempty"`
-        Username string               `yaml:"username,omitempty"`
-        Password string               `yaml:"password,omitempty"`
-        DB       int                  `yaml:"db,omitempty"`
-        TLS      bool                 `yaml:"tls,omitempty"`
-        Sentinel ValkeySentinelConfig `yaml:"sentinel,omitempty"`
+        Addrs    []string             `json:"addresses,omitempty"`
+        Username string               `json:"username,omitempty"`
+        Password string               `json:"password,omitempty"`
+        DB       int                  `json:"db,omitempty"`
+        TLS      bool                 `json:"tls,omitempty"`
+        Sentinel ValkeySentinelConfig `json:"sentinel,omitempty"`
 }
 
 type ValkeySentinelConfig struct {
-        Enabled    bool     `yaml:"enabled,omitempty"`
-        MasterName string   `yaml:"master,omitempty"`
-        Addresses  []string `yaml:"addresses,omitempty"`
-        Username   string   `yaml:"username,omitempty"`
-        Password   string   `yaml:"password,omitempty"`
+        Enabled    bool     `json:"enabled,omitempty"`
+        MasterName string   `json:"master,omitempty"`
+        Addresses  []string `json:"addresses,omitempty"`
+        Username   string   `json:"username,omitempty"`
+        Password   string   `json:"password,omitempty"`
 }
 
 func NewValkeyBackend(cfg ValkeyConfig) (*ValkeyBackend, error) <span class="cov3" title="5">{
@@ -2857,14 +2857,14 @@ const (
 )
 
 type ServerConfig struct {
-        Listen string    `yaml:"listen"`
-        SSL    SSLConfig `yaml:"ssl,omitempty"`
+        Listen string    `json:"listen"`
+        SSL    SSLConfig `json:"ssl,omitempty"`
 }
 
 type SSLConfig struct {
-        Enabled bool   `yaml:"enabled,omitempty"`
-        Cert    string `yaml:"cert,omitempty"`
-        Key     string `yaml:"key,omitempty"`
+        Enabled bool   `json:"enabled,omitempty"`
+        Cert    string `json:"cert,omitempty"`
+        Key     string `json:"key,omitempty"`
 }
 
 // Create a default server config with
