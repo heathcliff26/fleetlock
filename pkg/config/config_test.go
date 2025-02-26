@@ -169,7 +169,7 @@ func TestInvalidConfigs(t *testing.T) {
 		{
 			Name:   "NotYaml",
 			Path:   "testdata/invalid-1.yaml",
-			Result: "*yaml.TypeError",
+			Result: "*fmt.wrapError",
 		},
 		{
 			Name:   "InvalidLogLevel",

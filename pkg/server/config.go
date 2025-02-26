@@ -10,14 +10,14 @@ const (
 )
 
 type ServerConfig struct {
-	Listen string    `yaml:"listen"`
-	SSL    SSLConfig `yaml:"ssl,omitempty"`
+	Listen string    `json:"listen"`
+	SSL    SSLConfig `json:"ssl,omitempty"`
 }
 
 type SSLConfig struct {
-	Enabled bool   `yaml:"enabled,omitempty"`
-	Cert    string `yaml:"cert,omitempty"`
-	Key     string `yaml:"key,omitempty"`
+	Enabled bool   `json:"enabled,omitempty"`
+	Cert    string `json:"cert,omitempty"`
+	Key     string `json:"key,omitempty"`
 }
 
 // Create a default server config with
