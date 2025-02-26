@@ -20,11 +20,11 @@ type EtcdBackend struct {
 }
 
 type EtcdConfig struct {
-	Endpoints []string `yaml:"endpoints,omitempty"`
-	Username  string   `yaml:"username,omitempty"`
-	Password  string   `yaml:"password,omitempty"`
-	CertFile  string   `yaml:"cert,omitempty"`
-	KeyFile   string   `yaml:"key,omitempty"`
+	Endpoints []string `json:"endpoints,omitempty"`
+	Username  string   `json:"username,omitempty"`
+	Password  string   `json:"password,omitempty"`
+	CertFile  string   `json:"cert,omitempty"`
+	KeyFile   string   `json:"key,omitempty"`
 }
 
 func NewEtcdBackend(cfg EtcdConfig) (*EtcdBackend, error) {
