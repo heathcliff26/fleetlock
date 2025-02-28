@@ -74,10 +74,6 @@ jobs:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
     permissions:
       contents: read
-    needs:
-      - lint
-      - unit-tests
-      - validate
     with:
       cmd: "make test-e2e"
 
@@ -109,6 +105,8 @@ jobs:
       - lint
       - unit-tests
       - e2e
+      - build-fleetctl
+      - validate
     permissions:
       contents: read
       packages: write
