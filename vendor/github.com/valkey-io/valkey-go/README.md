@@ -21,6 +21,7 @@ A fast Golang Valkey client that does auto pipelining and supports server-assist
 * Pub/Sub, Sharded Pub/Sub, Streams
 * Valkey Cluster, Sentinel, RedisJSON, RedisBloom, RediSearch, RedisTimeseries, etc.
 * [Probabilistic Data Structures without Redis Stack](./valkeyprob)
+* [Availability zone affinity routing](#availability-zone-affinity-routing)
 
 ---
 
@@ -101,9 +102,18 @@ A benchmark result performed on two GCP n2-highcpu-2 machines also shows that va
 
 ### Disable Auto Pipelining
 
-While auto pipelining maximizes throughput, it relys on additional goroutines to process requests and responses and may add some latencies due to goroutine scheduling and head of line blocking.
+While auto pipelining maximizes throughput, it relies on additional goroutines to process requests and responses and may add some latencies due to goroutine scheduling and head of line blocking.
 
 You can avoid this by setting `DisableAutoPipelining` to true, then it will switch to connection pooling approach and serve each request with dedicated connection on the same goroutine.
+
+When `DisableAutoPipelining` is set to true, you can still send commands for auto pipelining with `ToPipe()`:
+
+``` golang
+cmd := client.B().Get().Key("key").Build().ToPipe()
+client.Do(ctx, cmd)
+```
+
+This allows you to use connection pooling approach by default but opt in auto pipelining for a subset of requests.
 
 ### Manual Pipelining
 
@@ -132,7 +142,7 @@ client.DoMultiCache(ctx,
     valkey.CT(client.B().Get().Key("k2").Cache(), 2*time.Minute))
 ```
 
-Cached responses, including Redis Nils, will be invalidated either when being notified by valkey servers or when their client-side TTLs are reached. See https://github.com/redis/rueidis/issues/534 for more details.
+Cached responses, including Valkey Nils, will be invalidated either when being notified by valkey servers or when their client-side TTLs are reached. See https://github.com/redis/rueidis/issues/534 for more details.
 
 ### Benchmark
 
@@ -411,6 +421,26 @@ client, err = valkey.NewClient(valkey.MustParseURL("redis://127.0.0.1:6379/0"))
 client, err = valkey.NewClient(valkey.MustParseURL("redis://127.0.0.1:26379/0?master_set=my_master"))
 ```
 
+### Availability Zone Affinity Routing
+
+Starting from Valkey 8.1, Valkey server provides the `availability-zone` information for clients to know where the server is located.
+For using this information to route requests to the replica located in the same availability zone,
+set the `EnableReplicaAZInfo` option and your `ReplicaSelector` function. For example:
+
+```go
+client, err := valkey.NewClient(valkey.ClientOption{
+	InitAddress:         []string{"address.example.com:6379"},
+	EnableReplicaAZInfo: true,
+	ReplicaSelector: func(slot uint16, replicas []valkey.ReplicaInfo) int {
+		for i, replica := range replicas {
+			if replica.AZ == "us-east-1a" {
+				return i // return the index of the replica.
+			}
+		}
+		return -1 // send to the primary.
+	},
+})
+```
 
 ## Arbitrary Command
 
@@ -573,6 +603,12 @@ if err := valkey.DecodeSliceOfJSON(client.Do(ctx, client.B().Mget().Key("user1")
 
 Contributions are welcome, including [issues](https://github.com/valkey-io/valkey-go/issues), [pull requests](https://github.com/valkey-io/valkey-go/pulls), and [discussions](https://github.com/valkey-io/valkey-go/discussions).
 Contributions mean a lot to us and help us improve this library and the community!
+
+Thanks to all the people who already contributed!
+
+<a href="https://github.com/valkey-io/valkey-go/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=valkey-io/valkey-go" />
+</a>
 
 ### Generate Command Builders
 

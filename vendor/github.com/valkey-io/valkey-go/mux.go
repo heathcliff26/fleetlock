@@ -32,6 +32,7 @@ type conn interface {
 	DoMultiStream(ctx context.Context, multi ...Completed) MultiValkeyResultStream
 	Info() map[string]ValkeyMessage
 	Version() int
+	AZ() string
 	Error() error
 	Close()
 	Dial() error
@@ -190,6 +191,10 @@ func (m *mux) Version() int {
 	return m.pipe(0).Version()
 }
 
+func (m *mux) AZ() string {
+	return m.pipe(0).AZ()
+}
+
 func (m *mux) Error() error {
 	return m.pipe(0).Error()
 }
@@ -205,7 +210,7 @@ func (m *mux) DoMultiStream(ctx context.Context, multi ...Completed) MultiValkey
 }
 
 func (m *mux) Do(ctx context.Context, cmd Completed) (resp ValkeyResult) {
-	if m.usePool && !cmd.NoReply() {
+	if m.usePool && !cmd.IsPipe() {
 		resp = m.blocking(m.spool, ctx, cmd)
 	} else if cmd.IsBlock() {
 		resp = m.blocking(m.dpool, ctx, cmd)
@@ -217,7 +222,7 @@ func (m *mux) Do(ctx context.Context, cmd Completed) (resp ValkeyResult) {
 
 func (m *mux) DoMulti(ctx context.Context, multi ...Completed) (resp *valkeyresults) {
 	for _, cmd := range multi {
-		if cmd.NoReply() {
+		if cmd.IsPipe() {
 			return m.pipelineMulti(ctx, multi)
 		}
 		if cmd.IsBlock() {
