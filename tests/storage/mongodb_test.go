@@ -12,6 +12,7 @@ func TestMongoDBBackend(t *testing.T) {
 	if !utils.HasContainerRuntimer() {
 		t.Skip("Missing Container Runtime")
 	}
+	t.Parallel()
 
 	// The latest tag on the etcd image is not being updated
 	err := utils.ExecCRI("run", "--replace", "--name", "fleetlock-mongodb", "-d", "-p", "27017:27017", "docker.io/library/mongo:latest")

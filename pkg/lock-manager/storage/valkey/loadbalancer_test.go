@@ -40,6 +40,7 @@ func TestLoadbalancer(t *testing.T) {
 		if !utils.HasContainerRuntimer() {
 			t.Skip("Missing Container Runtime")
 		}
+		t.Parallel()
 
 		err := utils.ExecCRI("run", "--name", "fleetlock-valkey-loadbalancer-failover-1", "-d", "--net", "host", "docker.io/eqalpha/keydb:latest", "--port", "6379", "--active-replica", "yes", "--replicaof", "localhost", "6380")
 		if err != nil {

@@ -45,6 +45,7 @@ func TestValkeySentinelBackend(t *testing.T) {
 	if !utils.HasContainerRuntimer() {
 		t.Skip("Missing Container Runtime")
 	}
+	t.Parallel()
 
 	err := utils.ExecCRI("run", "--name", "fleetlock-valkey-sentinel-db", "-d", "--net", "host",
 		"docker.io/valkey/valkey:latest",

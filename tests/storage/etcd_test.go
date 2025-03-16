@@ -12,6 +12,7 @@ func TestEtcdBackend(t *testing.T) {
 	if !utils.HasContainerRuntimer() {
 		t.Skip("Missing Container Runtime")
 	}
+	t.Parallel()
 
 	// The latest tag on the etcd image is not being updated
 	err := utils.ExecCRI("run", "--name", "fleetlock-etcd-db", "-d", "-p", "2379:2379", "-p", "2380:2380",
