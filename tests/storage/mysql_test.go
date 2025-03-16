@@ -13,6 +13,7 @@ func TestMySQLBackend(t *testing.T) {
 	if !utils.HasContainerRuntimer() {
 		t.Skip("Missing Container Runtime")
 	}
+	t.Parallel()
 
 	err := utils.ExecCRI("run", "--name", "fleetlock-mysql-db", "-d", "--rm", "-p", "3306:3306",
 		"--env", "MYSQL_ROOT_PASSWORD=password", "--env", "MYSQL_DATABASE=fleetlock",

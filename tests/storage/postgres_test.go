@@ -13,6 +13,7 @@ func TestPostgresBackend(t *testing.T) {
 	if !utils.HasContainerRuntimer() {
 		t.Skip("Missing Container Runtime")
 	}
+	t.Parallel()
 
 	err := utils.ExecCRI("run", "--name", "fleetlock-cockroach-db", "-d", "--rm", "-p", "26257:26257",
 		"--env", "COCKROACH_DATABASE=fleetlock", "--env", "COCKROACH_USER=postgres", "--env", "COCKROACH_PASSWORD=password",
