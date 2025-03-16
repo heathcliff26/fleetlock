@@ -97,7 +97,7 @@
 				
 				<option value="file20">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (71.4%)</option>
 				
-				<option value="file21">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (96.9%)</option>
+				<option value="file21">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (97.0%)</option>
 				
 				<option value="file22">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd/storage.go (79.1%)</option>
 				
@@ -105,31 +105,33 @@
 				
 				<option value="file24">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
-				<option value="file25">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (91.7%)</option>
+				<option value="file25">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb/storage.go (91.4%)</option>
 				
-				<option value="file26">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/postgres.go (83.3%)</option>
+				<option value="file26">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (91.7%)</option>
 				
-				<option value="file27">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/sqlite.go (83.3%)</option>
+				<option value="file27">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/postgres.go (83.3%)</option>
 				
-				<option value="file28">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/storage.go (72.9%)</option>
+				<option value="file28">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/sqlite.go (83.3%)</option>
 				
-				<option value="file29">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/util.go (90.0%)</option>
+				<option value="file29">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/storage.go (72.9%)</option>
 				
-				<option value="file30">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/loadbalancer.go (91.7%)</option>
+				<option value="file30">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/util.go (90.0%)</option>
 				
-				<option value="file31">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/storage.go (85.7%)</option>
+				<option value="file31">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/loadbalancer.go (91.7%)</option>
 				
-				<option value="file32">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
+				<option value="file32">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/storage.go (85.7%)</option>
 				
-				<option value="file33">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
+				<option value="file33">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
 				
-				<option value="file34">github.com/heathcliff26/fleetlock/pkg/server/server.go (78.3%)</option>
+				<option value="file34">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
 				
-				<option value="file35">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
+				<option value="file35">github.com/heathcliff26/fleetlock/pkg/server/server.go (78.3%)</option>
 				
-				<option value="file36">github.com/heathcliff26/fleetlock/pkg/systemd-utils/utils.go (100.0%)</option>
+				<option value="file36">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
 				
-				<option value="file37">github.com/heathcliff26/fleetlock/pkg/version/version.go (81.0%)</option>
+				<option value="file37">github.com/heathcliff26/fleetlock/pkg/systemd-utils/utils.go (100.0%)</option>
+				
+				<option value="file38">github.com/heathcliff26/fleetlock/pkg/version/version.go (81.0%)</option>
 				
 				</select>
 			</div>
@@ -1524,6 +1526,7 @@ import (
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 )
@@ -1536,6 +1539,7 @@ type StorageConfig struct {
         Valkey     valkey.ValkeyConfig         `json:"valkey,omitempty"`
         Etcd       etcd.EtcdConfig             `json:"etcd,omitempty"`
         Kubernetes kubernetes.KubernetesConfig `json:"kubernetes,omitempty"`
+        MongoDB    mongodb.MongoDBConfig       `json:"mongodb,omitempty"`
 }
 
 type Groups map[string]GroupConfig
@@ -1551,7 +1555,7 @@ func NewDefaultStorageConfig() StorageConfig <span class="cov8" title="18">{
         }
 }</span>
 
-func NewDefaultGroups() Groups <span class="cov10" title="33">{
+func NewDefaultGroups() Groups <span class="cov10" title="34">{
         groups := make(Groups, 1)
         groups["default"] = GroupConfig{
                 Slots: 1,
@@ -1626,6 +1630,7 @@ import (
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
@@ -1661,7 +1666,7 @@ type StorageBackend interface {
 }
 
 // Create a new LockManager from the given configuration
-func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) <span class="cov4" title="14">{
+func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) <span class="cov4" title="15">{
         var storage StorageBackend
         var err error
         switch storageCfg.Type </span>{
@@ -1685,10 +1690,12 @@ func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) <
                 storage, err = etcd.NewEtcdBackend(storageCfg.Etcd)</span>
         case "kubernetes":<span class="cov1" title="1">
                 storage, err = kubernetes.NewKubernetesBackend(storageCfg.Kubernetes)</span>
+        case "mongodb":<span class="cov1" title="1">
+                storage, err = mongodb.NewMongoDBBackend(storageCfg.MongoDB)</span>
         default:<span class="cov1" title="2">
                 err = errors.NewErrorUnkownStorageType(storageCfg.Type)</span>
         }
-        <span class="cov4" title="14">if err != nil </span><span class="cov3" title="8">{
+        <span class="cov4" title="15">if err != nil </span><span class="cov3" title="9">{
                 return nil, err
         }</span>
 
@@ -1699,98 +1706,98 @@ func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) <
 }
 
 // Create a new LockManager with custom StorageBackend
-func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov4" title="14">{
+func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov4" title="15">{
         return &amp;LockManager{
                 groups:  initGroups(groups),
                 storage: storage,
         }
 }</span>
 
-func initGroups(groups Groups) map[string]*lockGroup <span class="cov5" title="23">{
+func initGroups(groups Groups) map[string]*lockGroup <span class="cov5" title="24">{
         g := make(map[string]*lockGroup, len(groups))
-        for name, cfg := range groups </span><span class="cov6" title="77">{
+        for name, cfg := range groups </span><span class="cov6" title="84">{
                 g[name] = &amp;lockGroup{
                         Config: cfg,
                 }
         }</span>
-        <span class="cov5" title="23">return g</span>
+        <span class="cov5" title="24">return g</span>
 }
 
-func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9" title="495">{
+func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9" title="549">{
         lGroup := lm.groups[group]
         if lGroup == nil </span><span class="cov1" title="2">{
                 return false, errors.NewErrorUnknownGroup(group)
         }</span>
-        <span class="cov9" title="493">if id == "" </span><span class="cov1" title="1">{
+        <span class="cov9" title="547">if id == "" </span><span class="cov1" title="1">{
                 return false, errors.ErrorEmptyID{}
         }</span>
 
-        <span class="cov9" title="492">checkHasLock := func() (bool, error) </span><span class="cov9" title="492">{
+        <span class="cov9" title="546">checkHasLock := func() (bool, error) </span><span class="cov9" title="546">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.storage.HasLock(group, id)
         }</span>
-        <span class="cov9" title="492">ok, err := checkHasLock()
-        if ok &amp;&amp; err == nil </span><span class="cov7" title="91">{
+        <span class="cov9" title="546">ok, err := checkHasLock()
+        if ok &amp;&amp; err == nil </span><span class="cov7" title="101">{
                 return true, nil
-        }</span> else<span class="cov9" title="401"> if err != nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov9" title="445"> if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
         // Use own function to ensure lock is released
-        <span class="cov9" title="401">checkAvailableSlots := func() (bool, error) </span><span class="cov9" title="401">{
+        <span class="cov9" title="445">checkAvailableSlots := func() (bool, error) </span><span class="cov9" title="445">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
-        <span class="cov9" title="401">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov4" title="11">{
+        <span class="cov9" title="445">ok, err = checkAvailableSlots()
+        if err != nil || !ok </span><span class="cov4" title="16">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov9" title="390">lGroup.RWLock.Lock()
+        <span class="cov9" title="429">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov6" title="44">{
+        if err != nil || !ok </span><span class="cov6" title="45">{
                 return false, err
         }</span>
 
-        <span class="cov8" title="346">err = lm.storage.Reserve(group, id)
+        <span class="cov8" title="384">err = lm.storage.Reserve(group, id)
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="791">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="874">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov10" title="791">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov10" title="874">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
-func (lm *LockManager) Release(group, id string) error <span class="cov8" title="212">{
+func (lm *LockManager) Release(group, id string) error <span class="cov8" title="235">{
         lGroup := lm.groups[group]
         if lGroup == nil </span><span class="cov1" title="2">{
                 return errors.NewErrorUnknownGroup(group)
         }</span>
-        <span class="cov8" title="210">if id == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="233">if id == "" </span><span class="cov1" title="1">{
                 return errors.ErrorEmptyID{}
         }</span>
 
-        <span class="cov8" title="209">lGroup.RWLock.Lock()
+        <span class="cov8" title="232">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         return lm.storage.Release(group, id)</span>
 }
 
-func (lm *LockManager) Close() error <span class="cov3" title="9">{
+func (lm *LockManager) Close() error <span class="cov4" title="10">{
         return lm.storage.Close()
 }</span>
 </pre>
@@ -2042,7 +2049,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="40">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="45">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2091,8 +2098,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1961">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="758">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1963">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="760">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2163,13 +2170,13 @@ func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov6
 }
 
 // Returns the current number of locks for the given group
-func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="129">{
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="125">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 return 0, nil
         }</span>
 
-        <span class="cov8" title="129">return len(g.slots), nil</span>
+        <span class="cov8" title="125">return len(g.slots), nil</span>
 }
 
 // Release the lock currently held by the id.
@@ -2182,7 +2189,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="68">{
+        for i, l = range g.slots </span><span class="cov7" title="69">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2218,7 +2225,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="286">{
+        for _, lock := range g.slots </span><span class="cov10" title="305">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -2227,7 +2234,131 @@ func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
 }
 </pre>
 		
-		<pre class="file" id="file25" style="display: none">package sql
+		<pre class="file" id="file25" style="display: none">package mongodb
+
+import (
+        "context"
+        "fmt"
+        "log/slog"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        "go.mongodb.org/mongo-driver/v2/mongo"
+        "go.mongodb.org/mongo-driver/v2/mongo/options"
+)
+
+const DEFAULT_DATABASE = "fleetlock"
+
+type MongoDBBackend struct {
+        client   *mongo.Client
+        database string
+}
+
+type MongoDBConfig struct {
+        URL      string `json:"url,omitempty"`
+        Database string `json:"database,omitempty"`
+}
+
+type MongoLock struct {
+        ID      string    `bson:"_id,omitempty"`
+        Created time.Time `bson:"created,omitempty"`
+}
+
+func NewMongoDBBackend(cfg MongoDBConfig) (*MongoDBBackend, error) <span class="cov2" title="2">{
+        if cfg.Database == "" </span><span class="cov1" title="1">{
+                cfg.Database = DEFAULT_DATABASE
+        }</span>
+
+        <span class="cov2" title="2">timeout := time.Second * 5
+
+        opts := options.Client()
+        opts.ConnectTimeout = &amp;timeout
+        opts.Timeout = &amp;timeout
+        opts.ApplyURI(cfg.URL)
+
+        c, err := mongo.Connect(opts)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to create mongodb client: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">err = c.Ping(context.Background(), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to connect to mongodb: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">slog.Debug("Opened connection to mongodb", slog.String("database", cfg.Database))
+
+        return &amp;MongoDBBackend{
+                client:   c,
+                database: cfg.Database,
+        }, nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (m *MongoDBBackend) Reserve(group string, id string) error <span class="cov7" title="38">{
+        coll := m.client.Database(m.database).Collection(group)
+
+        newObj := MongoLock{
+                ID:      id,
+                Created: time.Now(),
+        }
+
+        _, err := coll.InsertOne(context.Background(), newObj)
+        return err
+}</span>
+
+// Returns the current number of locks for the given group
+func (m *MongoDBBackend) GetLocks(group string) (int, error) <span class="cov10" title="121">{
+        coll := m.client.Database(m.database).Collection(group)
+        count, err := coll.CountDocuments(context.Background(), MongoLock{})
+        return int(count), err
+}</span>
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (m *MongoDBBackend) Release(group string, id string) error <span class="cov6" title="23">{
+        coll := m.client.Database(m.database).Collection(group)
+
+        filter := MongoLock{
+                ID: id,
+        }
+        _, err := coll.DeleteOne(context.Background(), filter)
+
+        return err
+}</span>
+
+// Return all locks older than x
+func (m *MongoDBBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("not implemented")</span> // TODO: Implement
+}
+
+// Check if a given id already has a lock for this group
+func (m *MongoDBBackend) HasLock(group string, id string) (bool, error) <span class="cov8" title="54">{
+        coll := m.client.Database(m.database).Collection(group)
+
+        filter := MongoLock{
+                ID: id,
+        }
+        res := coll.FindOne(context.Background(), filter)
+
+        switch res.Err() </span>{
+        case mongo.ErrNoDocuments:<span class="cov8" title="44">
+                return false, nil</span>
+        case nil:<span class="cov5" title="10">
+                return true, nil</span>
+        default:<span class="cov0" title="0">
+                return false, res.Err()</span>
+        }
+}
+
+// Calls all necessary finalization if necessary
+func (m *MongoDBBackend) Close() error <span class="cov1" title="1">{
+        return m.client.Disconnect(context.Background())
+}</span>
+</pre>
+		
+		<pre class="file" id="file26" style="display: none">package sql
 
 import (
         "database/sql"
@@ -2270,7 +2401,7 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
 }
 </pre>
 		
-		<pre class="file" id="file26" style="display: none">package sql
+		<pre class="file" id="file27" style="display: none">package sql
 
 import (
         "database/sql"
@@ -2329,7 +2460,7 @@ func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="co
 }
 </pre>
 		
-		<pre class="file" id="file27" style="display: none">package sql
+		<pre class="file" id="file28" style="display: none">package sql
 
 import (
         "database/sql"
@@ -2368,7 +2499,7 @@ func NewSQLiteBackend(cfg SQLiteConfig) (*SQLBackend, error) <span class="cov10"
 }
 </pre>
 		
-		<pre class="file" id="file28" style="display: none">package sql
+		<pre class="file" id="file29" style="display: none">package sql
 
 import (
         "database/sql"
@@ -2529,7 +2660,7 @@ func (s *SQLBackend) Close() error <span class="cov2" title="3">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file29" style="display: none">package sql
+		<pre class="file" id="file30" style="display: none">package sql
 
 func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="13">{
         var connStr string
@@ -2549,7 +2680,7 @@ func createConnectionString(username, password, address, database, options strin
 }
 </pre>
 		
-		<pre class="file" id="file30" style="display: none">package valkey
+		<pre class="file" id="file31" style="display: none">package valkey
 
 import (
         "context"
@@ -2681,7 +2812,7 @@ func (lb *loadbalancer) Close() <span class="cov6" title="4">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file31" style="display: none">package valkey
+		<pre class="file" id="file32" style="display: none">package valkey
 
 import (
         "context"
@@ -2845,7 +2976,7 @@ func (r *ValkeyBackend) Close() error <span class="cov2" title="3">{
 }
 </pre>
 		
-		<pre class="file" id="file32" style="display: none">package server
+		<pre class="file" id="file33" style="display: none">package server
 
 import (
         "strconv"
@@ -2894,7 +3025,7 @@ func (cfg *ServerConfig) Validate() error <span class="cov8" title="11">{
 }
 </pre>
 		
-		<pre class="file" id="file33" style="display: none">package server
+		<pre class="file" id="file34" style="display: none">package server
 
 type ErrorIncompleteSSlConfig struct{}
 
@@ -2903,7 +3034,7 @@ func (e ErrorIncompleteSSlConfig) Error() string <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file34" style="display: none">package server
+		<pre class="file" id="file35" style="display: none">package server
 
 import (
         "errors"
@@ -3148,7 +3279,7 @@ func (s *Server) Run() error <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file35" style="display: none">package server
+		<pre class="file" id="file36" style="display: none">package server
 
 import (
         "encoding/json"
@@ -3182,7 +3313,7 @@ func sendResponse(rw http.ResponseWriter, res any) <span class="cov10" title="17
 }
 </pre>
 		
-		<pre class="file" id="file36" style="display: none">package systemdutils
+		<pre class="file" id="file37" style="display: none">package systemdutils
 
 import (
         "crypto/hmac"
@@ -3229,7 +3360,7 @@ func AppSpecificID(machineID, appID string) (string, error) <span class="cov10" 
 }
 </pre>
 		
-		<pre class="file" id="file37" style="display: none">package version
+		<pre class="file" id="file38" style="display: none">package version
 
 import (
         "runtime"
