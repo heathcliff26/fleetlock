@@ -4,6 +4,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 )
@@ -16,6 +17,7 @@ type StorageConfig struct {
 	Valkey     valkey.ValkeyConfig         `json:"valkey,omitempty"`
 	Etcd       etcd.EtcdConfig             `json:"etcd,omitempty"`
 	Kubernetes kubernetes.KubernetesConfig `json:"kubernetes,omitempty"`
+	MongoDB    mongodb.MongoDBConfig       `json:"mongodb,omitempty"`
 }
 
 type Groups map[string]GroupConfig

@@ -8,6 +8,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
@@ -67,6 +68,8 @@ func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) {
 		storage, err = etcd.NewEtcdBackend(storageCfg.Etcd)
 	case "kubernetes":
 		storage, err = kubernetes.NewKubernetesBackend(storageCfg.Kubernetes)
+	case "mongodb":
+		storage, err = mongodb.NewMongoDBBackend(storageCfg.MongoDB)
 	default:
 		err = errors.NewErrorUnkownStorageType(storageCfg.Type)
 	}

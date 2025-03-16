@@ -125,6 +125,13 @@ func TestNewManager(t *testing.T) {
 			Error: "unable to load in-cluster configuration",
 		},
 		{
+			Name: "ErrorNewMongoDBBackend",
+			Storage: StorageConfig{
+				Type: "mongodb",
+			},
+			Error: "failed to create mongodb client: error parsing uri:",
+		},
+		{
 			Name: "UnknownStorageType",
 			Storage: StorageConfig{
 				Type: "not-a-valid-type",
@@ -140,7 +147,7 @@ func TestNewManager(t *testing.T) {
 			lm, err := NewManager(NewDefaultGroups(), tCase.Storage)
 
 			if tCase.Error == "" {
-				assert.Nilf(err, "Should not return an error but returned: %v", err)
+				assert.NoError(err)
 				if !assert.NotNil(lm) {
 					t.FailNow()
 				}
