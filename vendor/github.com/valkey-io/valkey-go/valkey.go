@@ -35,6 +35,10 @@ const (
 	DefaultWriteBuffer = 1 << 19
 	// MaxPipelineMultiplex is the maximum meaningful value for ClientOption.PipelineMultiplex
 	MaxPipelineMultiplex = 8
+	// https://github.com/valkey-io/valkey/blob/1a34a4ff7f101bb6b17a0b5e9aa3bf7d6bd29f68/src/networking.c#L4118-L4124
+	ClientModeCluster    ClientMode = "cluster"
+	ClientModeSentinel   ClientMode = "sentinel"
+	ClientModeStandalone ClientMode = "standalone"
 )
 
 var (
@@ -66,7 +70,11 @@ type ClientOption struct {
 	TLSConfig *tls.Config
 
 	// DialFn allows for a custom function to be used to create net.Conn connections
+	// Deprecated: use DialCtxFn instead.
 	DialFn func(string, *net.Dialer, *tls.Config) (conn net.Conn, err error)
+
+	// DialCtxFn allows for a custom function to be used to create net.Conn connections
+	DialCtxFn func(context.Context, string, *net.Dialer, *tls.Config) (conn net.Conn, err error)
 
 	// NewCacheStoreFn allows a custom client side caching store for each connection
 	NewCacheStoreFn NewCacheStoreFn
@@ -258,6 +266,8 @@ type ReplicaInfo struct {
 	AZ   string
 }
 
+type ClientMode string
+
 // Client is the valkey client interface for both single valkey instance and valkey cluster. It should be created from the NewClient()
 type Client interface {
 	CoreClient
@@ -307,6 +317,11 @@ type Client interface {
 	// Nodes returns each valkey node this client known as valkey.Client. This is useful if you want to
 	// send commands to some specific valkey nodes in the cluster.
 	Nodes() map[string]Client
+	// Mode returns the current mode of the client, which indicates whether the client is operating
+	// in standalone, sentinel, or cluster mode.
+	// This can be useful for determining the type of Valkey deployment the client is connected to
+	// and for making decisions based on the deployment type.
+	Mode() ClientMode
 }
 
 // DedicatedClient is obtained from Client.Dedicated() and it will be bound to single valkey connection and
@@ -453,14 +468,18 @@ func makeConn(dst string, opt *ClientOption) conn {
 	return makeMux(dst, opt, dial)
 }
 
-func dial(dst string, opt *ClientOption) (conn net.Conn, err error) {
+func dial(ctx context.Context, dst string, opt *ClientOption) (conn net.Conn, err error) {
+	if opt.DialCtxFn != nil {
+		return opt.DialCtxFn(ctx, dst, &opt.Dialer, opt.TLSConfig)
+	}
 	if opt.DialFn != nil {
 		return opt.DialFn(dst, &opt.Dialer, opt.TLSConfig)
 	}
 	if opt.TLSConfig != nil {
-		conn, err = tls.DialWithDialer(&opt.Dialer, "tcp", dst, opt.TLSConfig)
+		dialer := tls.Dialer{NetDialer: &opt.Dialer, Config: opt.TLSConfig}
+		conn, err = dialer.DialContext(ctx, "tcp", dst)
 	} else {
-		conn, err = opt.Dialer.Dial("tcp", dst)
+		conn, err = opt.Dialer.DialContext(ctx, "tcp", dst)
 	}
 	return conn, err
 }

@@ -21,7 +21,7 @@ import (
 )
 
 const LibName = "valkey"
-const LibVer = "1.0.55"
+const LibVer = "1.0.56"
 
 var noHello = regexp.MustCompile("unknown command .?(HELLO|hello).?")
 
@@ -61,7 +61,7 @@ var _ wire = (*pipe)(nil)
 
 type pipe struct {
 	conn            net.Conn
-	error           atomic.Value
+	error           atomic.Pointer[errs]
 	clhks           atomic.Value // closed hook, invoked after the conn is closed
 	pshks           atomic.Value // pubsub hook, registered by the SetPubSubHooks
 	queue           queue
@@ -70,11 +70,11 @@ type pipe struct {
 	w               *bufio.Writer
 	close           chan struct{}
 	onInvalidations func([]ValkeyMessage)
-	r2psFn          func() (p *pipe, err error) // func to build pipe for resp2 pubsub
-	r2pipe          *pipe                       // internal pipe for resp2 pubsub only
-	ssubs           *subs                       // pubsub smessage subscriptions
-	nsubs           *subs                       // pubsub  message subscriptions
-	psubs           *subs                       // pubsub pmessage subscriptions
+	r2psFn          func(context.Context) (p *pipe, err error) // func to build pipe for resp2 pubsub
+	r2pipe          *pipe                                      // internal pipe for resp2 pubsub only
+	ssubs           *subs                                      // pubsub smessage subscriptions
+	nsubs           *subs                                      // pubsub  message subscriptions
+	psubs           *subs                                      // pubsub pmessage subscriptions
 	info            map[string]ValkeyMessage
 	timeout         time.Duration
 	pinggap         time.Duration
@@ -89,20 +89,21 @@ type pipe struct {
 	recvs           int32
 	r2ps            bool // identify this pipe is used for resp2 pubsub or not
 	noNoDelay       bool
+	optin           bool
 }
 
-type pipeFn func(connFn func() (net.Conn, error), option *ClientOption) (p *pipe, err error)
+type pipeFn func(ctx context.Context, connFn func(ctx context.Context) (net.Conn, error), option *ClientOption) (p *pipe, err error)
 
-func newPipe(connFn func() (net.Conn, error), option *ClientOption) (p *pipe, err error) {
-	return _newPipe(connFn, option, false, false)
+func newPipe(ctx context.Context, connFn func(ctx context.Context) (net.Conn, error), option *ClientOption) (p *pipe, err error) {
+	return _newPipe(ctx, connFn, option, false, false)
 }
 
-func newPipeNoBg(connFn func() (net.Conn, error), option *ClientOption) (p *pipe, err error) {
-	return _newPipe(connFn, option, false, true)
+func newPipeNoBg(ctx context.Context, connFn func(context.Context) (net.Conn, error), option *ClientOption) (p *pipe, err error) {
+	return _newPipe(ctx, connFn, option, false, true)
 }
 
-func _newPipe(connFn func() (net.Conn, error), option *ClientOption, r2ps, nobg bool) (p *pipe, err error) {
-	conn, err := connFn()
+func _newPipe(ctx context.Context, connFn func(context.Context) (net.Conn, error), option *ClientOption, r2ps, nobg bool) (p *pipe, err error) {
+	conn, err := connFn(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +117,8 @@ func _newPipe(connFn func() (net.Conn, error), option *ClientOption, r2ps, nobg 
 		maxFlushDelay: option.MaxFlushDelay,
 		noNoDelay:     option.DisableTCPNoDelay,
 
-		r2ps: r2ps,
+		r2ps:  r2ps,
+		optin: isOptIn(option.ClientTrackingOptions),
 	}
 	if !nobg {
 		p.queue = newRing(option.RingScaleEachConn)
@@ -126,8 +128,8 @@ func _newPipe(connFn func() (net.Conn, error), option *ClientOption, r2ps, nobg 
 		p.close = make(chan struct{})
 	}
 	if !r2ps {
-		p.r2psFn = func() (p *pipe, err error) {
-			return _newPipe(connFn, option, true, nobg)
+		p.r2psFn = func(ctx context.Context) (p *pipe, err error) {
+			return _newPipe(ctx, connFn, option, true, nobg)
 		}
 	}
 	if !nobg && !option.DisableCache {
@@ -201,7 +203,7 @@ func _newPipe(connFn func() (net.Conn, error), option *ClientOption, r2ps, nobg 
 		timeout = DefaultDialTimeout
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	r2 := option.AlwaysRESP2
@@ -258,12 +260,13 @@ func _newPipe(connFn func() (net.Conn, error), option *ClientOption, r2ps, nobg 
 			return nil, ErrNoCache
 		}
 		init = init[:0]
-		init = append(init, []string{"HELLO", "2"})
 		if password != "" && username == "" {
 			init = append(init, []string{"AUTH", password})
 		} else if username != "" {
 			init = append(init, []string{"AUTH", username, password})
 		}
+		helloIndex := len(init)
+		init = append(init, []string{"HELLO", "2"})
 		if option.ClientName != "" {
 			init = append(init, []string{"CLIENT", "SETNAME", option.ClientName})
 		}
@@ -312,7 +315,7 @@ func _newPipe(connFn func() (net.Conn, error), option *ClientOption, r2ps, nobg 
 					p.Close()
 					return nil, err
 				}
-				if i == 0 {
+				if i == helloIndex {
 					p.info, err = r.AsMap()
 				}
 			}
@@ -727,13 +730,13 @@ func (p *pipe) handlePush(values []ValkeyMessage) (reply bool, unsubscribe bool)
 	return false, false
 }
 
-func (p *pipe) _r2pipe() (r2p *pipe) {
+func (p *pipe) _r2pipe(ctx context.Context) (r2p *pipe) {
 	p.r2mu.Lock()
 	if p.r2pipe != nil {
 		r2p = p.r2pipe
 	} else {
 		var err error
-		if r2p, err = p.r2psFn(); err != nil {
+		if r2p, err = p.r2psFn(ctx); err != nil {
 			r2p = epipeFn(err)
 		} else {
 			p.r2pipe = r2p
@@ -749,7 +752,7 @@ func (p *pipe) Receive(ctx context.Context, subscribe Completed, fn func(message
 	}
 
 	if p.version < 6 && p.r2psFn != nil {
-		return p._r2pipe().Receive(ctx, subscribe, fn)
+		return p._r2pipe(ctx).Receive(ctx, subscribe, fn)
 	}
 
 	cmds.CompletedCS(subscribe).Verify()
@@ -807,7 +810,7 @@ func (p *pipe) CleanSubscriptions() {
 
 func (p *pipe) SetPubSubHooks(hooks PubSubHooks) <-chan error {
 	if p.version < 6 && p.r2psFn != nil {
-		return p._r2pipe().SetPubSubHooks(hooks)
+		return p._r2pipe(context.Background()).SetPubSubHooks(hooks)
 	}
 	if hooks.isZero() {
 		if old := p.pshks.Swap(emptypshks).(*pshks); old.close != nil {
@@ -872,7 +875,7 @@ func (p *pipe) Do(ctx context.Context, cmd Completed) (resp ValkeyResult) {
 
 	if cmd.NoReply() {
 		if p.version < 6 && p.r2psFn != nil {
-			return p._r2pipe().Do(ctx, cmd)
+			return p._r2pipe(ctx).Do(ctx, cmd)
 		}
 	}
 
@@ -957,7 +960,7 @@ func (p *pipe) DoMulti(ctx context.Context, multi ...Completed) *valkeyresults {
 			return resp
 		} else if p.r2psFn != nil {
 			resultsp.Put(resp)
-			return p._r2pipe().DoMulti(ctx, multi...)
+			return p._r2pipe(ctx).DoMulti(ctx, multi...)
 		}
 	}
 
@@ -1299,6 +1302,13 @@ next:
 	return m, nil
 }
 
+func (p *pipe) optInCmd() cmds.Completed {
+	if p.optin {
+		return cmds.OptInCmd
+	}
+	return cmds.OptInNopCmd
+}
+
 func (p *pipe) DoCache(ctx context.Context, cmd Cacheable, ttl time.Duration) ValkeyResult {
 	if p.cache == nil {
 		return p.Do(ctx, Completed(cmd))
@@ -1318,7 +1328,7 @@ func (p *pipe) DoCache(ctx context.Context, cmd Cacheable, ttl time.Duration) Va
 	}
 	resp := p.DoMulti(
 		ctx,
-		cmds.OptInCmd,
+		p.optInCmd(),
 		cmds.MultiCmd,
 		cmds.NewCompleted([]string{"PTTL", ck}),
 		Completed(cmd),
@@ -1386,7 +1396,7 @@ func (p *pipe) doCacheMGet(ctx context.Context, cmd Cacheable, ttl time.Duration
 		}
 
 		multi := make([]Completed, 0, keys+4)
-		multi = append(multi, cmds.OptInCmd, cmds.MultiCmd)
+		multi = append(multi, p.optInCmd(), cmds.MultiCmd)
 		for _, key := range rewritten.Commands()[1 : keys+1] {
 			multi = append(multi, builder.Pttl().Key(key).Build())
 		}
@@ -1472,7 +1482,7 @@ func (p *pipe) DoMultiCache(ctx context.Context, multi ...CacheableTTL) *valkeyr
 		for _, i := range missed {
 			ct := multi[i]
 			ck, _ := cmds.CacheKey(ct.Cmd)
-			missing = append(missing, cmds.OptInCmd, cmds.MultiCmd, cmds.NewCompleted([]string{"PTTL", ck}), Completed(ct.Cmd), cmds.ExecCmd)
+			missing = append(missing, p.optInCmd(), cmds.MultiCmd, cmds.NewCompleted([]string{"PTTL", ck}), Completed(ct.Cmd), cmds.ExecCmd)
 		}
 	} else {
 		for i, ct := range multi {
@@ -1486,7 +1496,7 @@ func (p *pipe) DoMultiCache(ctx context.Context, multi ...CacheableTTL) *valkeyr
 				entries.e[i] = entry // store entries for later entry.Wait() to avoid MGET deadlock each others.
 				continue
 			}
-			missing = append(missing, cmds.OptInCmd, cmds.MultiCmd, cmds.NewCompleted([]string{"PTTL", ck}), Completed(ct.Cmd), cmds.ExecCmd)
+			missing = append(missing, p.optInCmd(), cmds.MultiCmd, cmds.NewCompleted([]string{"PTTL", ck}), Completed(ct.Cmd), cmds.ExecCmd)
 		}
 	}
 
@@ -1544,7 +1554,7 @@ func (p *pipe) DoMultiCache(ctx context.Context, multi ...CacheableTTL) *valkeyr
 }
 
 func (p *pipe) Error() error {
-	if err, ok := p.error.Load().(*errs); ok {
+	if err := p.error.Load(); err != nil {
 		return err.error
 	}
 	return nil
