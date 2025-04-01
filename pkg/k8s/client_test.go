@@ -122,7 +122,7 @@ func TestDrainNode(t *testing.T) {
 		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(ctx, drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(utils.Pointer(leaseStateDone), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
 		assert.Equal(utils.Pointer(int32(300)), lease.Spec.LeaseDurationSeconds, "LeaseDurationSeconds should be set")
-		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
+		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("LeaseValid", func(t *testing.T) {
 		c, client := NewFakeClient()
@@ -194,7 +194,7 @@ func TestDrainNode(t *testing.T) {
 
 		lease, _ = client.CoordinationV1().Leases(testNamespace).Get(ctx, drainLeaseName(testNodeName), metav1.GetOptions{})
 		assert.Equal(utils.Pointer(leaseStateDone), lease.Spec.HolderIdentity, "Lease should indicate node is drained")
-		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Time.Round(time.Second), "AcquireTime should be now")
+		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("DrainTimeout", func(t *testing.T) {
 		c, client := NewFakeClient()

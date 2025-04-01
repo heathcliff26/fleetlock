@@ -134,7 +134,7 @@ func (l *lease) Lock(ctx context.Context, duration int32) error {
 		return NewErrorInvalidLease()
 	}
 
-	validUntil := l.lease.Spec.AcquireTime.Time.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
+	validUntil := l.lease.Spec.AcquireTime.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
 
 	if time.Now().After(validUntil) {
 		if *l.lease.Spec.HolderIdentity == leaseStateDraining {
