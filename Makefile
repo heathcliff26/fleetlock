@@ -43,7 +43,7 @@ clean:
 	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_fleetlock_image_fleetlock-e2e-*.tar
 
 golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
 .PHONY: \
 	default \

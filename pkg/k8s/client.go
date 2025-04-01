@@ -102,7 +102,7 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 	var returnError error
 	for _, pod := range pods.Items {
 		// Skip mirror pods
-		if _, ok := pod.ObjectMeta.Annotations[v1.MirrorPodAnnotationKey]; ok {
+		if _, ok := pod.Annotations[v1.MirrorPodAnnotationKey]; ok {
 			continue
 		}
 		// Skip daemonsets
