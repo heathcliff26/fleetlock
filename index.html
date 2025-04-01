@@ -2049,7 +2049,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="30">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="37">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2070,7 +2070,7 @@ func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) <span
                 return false, err
         }</span>
 
-        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="101">{
+        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="103">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov3" title="10">{
                         return true, nil
                 }</span>
@@ -2098,8 +2098,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1963">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="760">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1965">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="762">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2189,7 +2189,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="67">{
+        for i, l = range g.slots </span><span class="cov7" title="62">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2225,7 +2225,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="297">{
+        for _, lock := range g.slots </span><span class="cov10" title="287">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -2375,7 +2375,7 @@ type MySQLConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="9">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="8">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -2383,8 +2383,8 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
                 return nil, fmt.Errorf("failed to open mysql database: %w", err)
         }</span>
 
-        <span class="cov9" title="8">err = db.Ping()
-        if err != nil </span><span class="cov8" title="7">{
+        <span class="cov9" title="7">err = db.Ping()
+        if err != nil </span><span class="cov8" title="6">{
                 return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
@@ -2662,21 +2662,21 @@ func (s *SQLBackend) Close() error <span class="cov2" title="3">{
 		
 		<pre class="file" id="file30" style="display: none">package sql
 
-func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="12">{
+func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="11">{
         var connStr string
-        if username != "" </span><span class="cov9" title="10">{
+        if username != "" </span><span class="cov9" title="9">{
                 connStr += username
-                if password != "" </span><span class="cov9" title="10">{
+                if password != "" </span><span class="cov9" title="9">{
                         connStr += ":" + password
                 }</span>
-                <span class="cov9" title="10">connStr += "@"</span>
+                <span class="cov9" title="9">connStr += "@"</span>
         }
-        <span class="cov10" title="12">connStr += address + "/" + database
+        <span class="cov10" title="11">connStr += address + "/" + database
         if options != "" </span><span class="cov0" title="0">{
                 connStr += "?" + options
         }</span>
 
-        <span class="cov10" title="12">return connStr</span>
+        <span class="cov10" title="11">return connStr</span>
 }
 </pre>
 		
@@ -2745,11 +2745,11 @@ func (lb *loadbalancer) HealthCheck() <span class="cov7" title="6">{
                 opt.InitAddress = []string{addr}
 
                 client, err := valkey.NewClient(opt)
-                if err != nil </span><span class="cov7" title="5">{
+                if err != nil </span><span class="cov7" title="6">{
                         slog.Debug("Endpoint down", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
-                <span class="cov7" title="6">defer client.Close()
+                <span class="cov7" title="5">defer client.Close()
 
                 cmdInfo := client.B().Info().Build()
                 res, err := client.Do(context.Background(), cmdInfo).ToString()
@@ -2757,7 +2757,7 @@ func (lb *loadbalancer) HealthCheck() <span class="cov7" title="6">{
                         slog.Error("Failed to get endpoint info", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
-                <span class="cov7" title="6">s := strings.Split(res, "\r\n")
+                <span class="cov7" title="5">s := strings.Split(res, "\r\n")
                 if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") </span><span class="cov3" title="2">{
                         lb.rwlock.Lock()
                         defer lb.rwlock.Unlock()
