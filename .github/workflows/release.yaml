@@ -19,7 +19,7 @@ on:
       latest:
         description: "Tag container as latest"
         type: boolean
-        default: false
+        default: true
       prerelease:
         description: "Mark the release as a prerelease"
         type: boolean
