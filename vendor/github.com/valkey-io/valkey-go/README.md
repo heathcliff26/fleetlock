@@ -382,6 +382,19 @@ client, err := valkey.NewClient(valkey.ClientOption{
     InitAddress: []string{"127.0.0.1:6379"},
 })
 
+// Connect to a standalone valkey with replicas
+client, err := valkey.NewClient(valkey.ClientOption{
+    InitAddress: []string{"127.0.0.1:6379"},
+    Standalone: valkey.StandaloneOption{
+        // Note that these addresses must be online and can not be promoted.
+        // An example use case is the reader endpoint provided by cloud vendors.
+        ReplicaAddress: []string{"reader_endpoint:port"},
+    },
+    SendToReplicas: func(cmd valkey.Completed) bool {
+        return cmd.IsReadOnly()
+    },
+})
+
 // Connect to a valkey cluster
 client, err := valkey.NewClient(valkey.ClientOption{
     InitAddress: []string{"127.0.0.1:7001", "127.0.0.1:7002", "127.0.0.1:7003"},
@@ -432,6 +445,9 @@ set the `EnableReplicaAZInfo` option and your `ReplicaSelector` function. For ex
 client, err := valkey.NewClient(valkey.ClientOption{
 	InitAddress:         []string{"address.example.com:6379"},
 	EnableReplicaAZInfo: true,
+	SendToReplicas: func(cmd valkey.Completed) bool {
+		return cmd.IsReadOnly()
+	},
 	ReplicaSelector: func(slot uint16, replicas []valkey.ReplicaInfo) int {
 		for i, replica := range replicas {
 			if replica.AZ == "us-east-1a" {
