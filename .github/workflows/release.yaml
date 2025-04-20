@@ -7,7 +7,7 @@ on:
       draft:
         description: "Create draft release"
         type: boolean
-        default: true
+        default: false
       update:
         description: "Update existing release"
         type: boolean
