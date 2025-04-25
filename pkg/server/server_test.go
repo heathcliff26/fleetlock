@@ -38,7 +38,7 @@ func TestNewServer(t *testing.T) {
 
 	assert := assert.New(t)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(serverCfg, s.cfg)
 	assert.NotNil(s.lm)
 	assert.Equal(k8s, s.k8s)
@@ -54,17 +54,22 @@ func TestNewServer(t *testing.T) {
 func TestRequestHandler(t *testing.T) {
 	storage := memory.NewMemoryBackend([]string{"default"})
 	lm := lockmanager.NewManagerWithStorage(lockmanager.NewDefaultGroups(), storage)
-	s := &Server{lm: lm}
+	s := &Server{
+		cfg: &ServerConfig{},
+		lm:  lm,
+	}
+
+	s.createHTTPServer()
 
 	t.Run("Reserve", func(t *testing.T) {
 		req := createRequest("/v1/pre-reboot", "default", "testUser")
 		rr := httptest.NewRecorder()
-		s.requestHandler(rr, req)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 		res, response, err := parseResponse(rr)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
+		assert.NoError(err)
 		assert.Equal(http.StatusOK, res.StatusCode)
 		assert.Equal(msgSuccess, response)
 
@@ -74,12 +79,12 @@ func TestRequestHandler(t *testing.T) {
 	t.Run("Release", func(t *testing.T) {
 		req := createRequest("/v1/steady-state", "default", "testUser")
 		rr := httptest.NewRecorder()
-		s.requestHandler(rr, req)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 		res, response, err := parseResponse(rr)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
+		assert.NoError(err)
 		assert.Equal(http.StatusOK, res.StatusCode)
 		assert.Equal(msgSuccess, response)
 
@@ -89,26 +94,20 @@ func TestRequestHandler(t *testing.T) {
 	t.Run("NotFound", func(t *testing.T) {
 		req := createRequest("/foo/bar/nothing", "default", "testUser")
 		rr := httptest.NewRecorder()
-		s.requestHandler(rr, req)
-		res, response, err := parseResponse(rr)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
-		assert.Equal(http.StatusNotFound, res.StatusCode)
-		assert.Equal(msgNotFound, response)
+		assert.Equal(http.StatusNotFound, rr.Result().StatusCode)
 	})
 	t.Run("WrongMethod", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/v1/steady-state", createFleetLockRequest("default", "testUser"))
 		rr := httptest.NewRecorder()
-		s.requestHandler(rr, req)
-		res, response, err := parseResponse(rr)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
-		assert.Equal(http.StatusMethodNotAllowed, res.StatusCode)
-		assert.Equal(msgWrongMethod, response)
+		assert.Equal(http.StatusMethodNotAllowed, rr.Result().StatusCode)
 	})
 	t.Run("MissingHeader", func(t *testing.T) {
 		req := createRequest("/v1/steady-state", "default", "testUser")
@@ -116,12 +115,12 @@ func TestRequestHandler(t *testing.T) {
 
 		req.Header.Del("fleet-lock-protocol")
 
-		s.requestHandler(rr, req)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 		res, response, err := parseResponse(rr)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
+		assert.NoError(err)
 		assert.Equal(http.StatusBadRequest, res.StatusCode)
 		assert.Equal(msgMissingFleetLockHeader, response)
 	})
@@ -131,36 +130,36 @@ func TestRequestHandler(t *testing.T) {
 
 		req.Body = io.NopCloser(strings.NewReader("This is not json"))
 
-		s.requestHandler(rr, req)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 		res, response, err := parseResponse(rr)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
+		assert.NoError(err)
 		assert.Equal(http.StatusBadRequest, res.StatusCode)
 		assert.Equal(msgRequestParseFailed, response)
 	})
 	t.Run("MissingGroup", func(t *testing.T) {
 		req := createRequest("/v1/steady-state", "", "testUser")
 		rr := httptest.NewRecorder()
-		s.requestHandler(rr, req)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 		res, response, err := parseResponse(rr)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
+		assert.NoError(err)
 		assert.Equal(http.StatusBadRequest, res.StatusCode)
 		assert.Equal(msgInvalidGroupValue, response)
 	})
 	t.Run("MissingID", func(t *testing.T) {
 		req := createRequest("/v1/steady-state", "default", "")
 		rr := httptest.NewRecorder()
-		s.requestHandler(rr, req)
+		s.httpServer.Handler.ServeHTTP(rr, req)
 		res, response, err := parseResponse(rr)
 
 		assert := assert.New(t)
 
-		assert.Nil(err)
+		assert.NoError(err)
 		assert.Equal(http.StatusBadRequest, res.StatusCode)
 		assert.Equal(msgEmptyID, response)
 	})
@@ -177,7 +176,7 @@ func TestHandleReserve(t *testing.T) {
 
 	assert := assert.New(t)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusOK, res.StatusCode)
 	assert.Equal(msgSuccess, response)
 
@@ -186,7 +185,7 @@ func TestHandleReserve(t *testing.T) {
 	s.handleReserve(rr, params)
 	res, response, err = parseResponse(rr)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusLocked, res.StatusCode)
 	assert.Equal(msgSlotsFull, response)
 
@@ -195,7 +194,7 @@ func TestHandleReserve(t *testing.T) {
 	s.handleReserve(rr, params)
 	res, response, err = parseResponse(rr)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusInternalServerError, res.StatusCode)
 	assert.Equal(msgUnexpectedError, response)
 }
@@ -211,7 +210,7 @@ func TestHandleRelease(t *testing.T) {
 
 	assert := assert.New(t)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusInternalServerError, res.StatusCode)
 	assert.Equal(msgUnexpectedError, response)
 }
@@ -236,7 +235,7 @@ func TestDrainNode(t *testing.T) {
 	s.handleReserve(rr, params)
 	res, response, err := parseResponse(rr)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusOK, res.StatusCode)
 	assert.Equal(msgSuccess, response)
 
@@ -245,7 +244,7 @@ func TestDrainNode(t *testing.T) {
 	s.handleReserve(rr, params)
 	res, response, err = parseResponse(rr)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusAccepted, res.StatusCode)
 	assert.Equal(msgWaitingForNodeDrain, response)
 
@@ -255,7 +254,7 @@ func TestDrainNode(t *testing.T) {
 	s.handleReserve(rr, params)
 	res, response, err = parseResponse(rr)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusOK, res.StatusCode)
 	assert.Equal(msgSuccess, response)
 }
@@ -276,7 +275,7 @@ func TestUncordonNode(t *testing.T) {
 	s.handleRelease(rr, params)
 	res, response, err := parseResponse(rr)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(http.StatusOK, res.StatusCode)
 	assert.Equal(msgSuccess, response)
 
@@ -304,6 +303,20 @@ func TestHealthCheck(t *testing.T) {
 		Status: "ok",
 	}
 	assert.Equal(expectedRes, res, "Response should match")
+}
+
+func TestServerShutdown(t *testing.T) {
+	s := &Server{}
+
+	assert := assert.New(t)
+
+	assert.NotPanics(func() {
+		assert.NoError(s.Shutdown(), "Should shutdown just return nil when no server is running")
+	}, "Should not panic when no httpServer is nil")
+
+	s.httpServer = &http.Server{}
+
+	assert.NoError(s.Shutdown(), "Should succeed in shutting down the server")
 }
 
 func newFleetlockRequest(group, id string) api.FleetLockRequest {

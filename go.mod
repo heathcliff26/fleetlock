@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/go-sql-driver/mysql v1.9.2
+	github.com/heathcliff26/simple-fileserver v1.2.3
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0

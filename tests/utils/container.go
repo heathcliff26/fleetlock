@@ -17,6 +17,7 @@ func findContainerRuntime() string {
 		if err != nil {
 			continue
 		}
+		// #nosec G204 -- Ignore command injection warning
 		err = exec.Command(path, "ps").Run()
 		if err == nil {
 			fmt.Printf("Found container runtime %s, path=%s\n", cmd, path)
@@ -36,6 +37,7 @@ func HasContainerRuntimer() bool {
 }
 
 func GetCommand(args ...string) *exec.Cmd {
+	// #nosec G204 -- Ignore command injection warning
 	return exec.Command(containerRuntime, args...)
 }
 

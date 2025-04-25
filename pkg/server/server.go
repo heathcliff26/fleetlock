@@ -1,15 +1,19 @@
 package server
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/api"
 	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+	"github.com/heathcliff26/simple-fileserver/pkg/middleware"
 )
 
 const groupValidationPattern = "^[a-zA-Z0-9.-]+$"
@@ -20,6 +24,8 @@ type Server struct {
 	cfg *ServerConfig
 	lm  *lockmanager.LockManager
 	k8s *k8s.Client
+
+	httpServer *http.Server
 }
 
 // Create a new Server
@@ -42,27 +48,12 @@ func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmana
 
 // Main entrypoint for new requests
 func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) {
-	slog.Debug("Received request", slog.String("method", req.Method), slog.String("uri", req.RequestURI), slog.String("remote", ReadUserIP(req)))
-
 	var handleFunc func(http.ResponseWriter, api.FleetLockRequest)
 	switch req.URL.String() {
 	case "/v1/pre-reboot":
 		handleFunc = s.handleReserve
 	case "/v1/steady-state":
 		handleFunc = s.handleRelease
-	default:
-		slog.Debug("Unknown URL", slog.String("url", req.URL.String()), slog.String("remote", ReadUserIP(req)))
-		rw.WriteHeader(http.StatusNotFound)
-		sendResponse(rw, msgNotFound)
-		return
-	}
-
-	// Verify right method
-	if req.Method != http.MethodPost {
-		slog.Debug("Received request with wrong method", slog.String("method", req.Method), slog.String("remote", ReadUserIP(req)))
-		rw.WriteHeader(http.StatusMethodNotAllowed)
-		sendResponse(rw, msgWrongMethod)
-		return
 	}
 
 	// Verify FleetLock header is set
@@ -221,23 +212,59 @@ func (s *Server) handleHealthCheck(rw http.ResponseWriter, _ *http.Request) {
 	sendResponse(rw, status)
 }
 
+// Prepare the http server for usage.
+// This is in a separate function to allow testing the handler without running the server.
+func (s *Server) createHTTPServer() {
+	router := http.NewServeMux()
+	router.HandleFunc("POST /v1/pre-reboot", s.requestHandler)
+	router.HandleFunc("POST /v1/steady-state", s.requestHandler)
+	router.HandleFunc("GET /healthz", s.handleHealthCheck)
+
+	s.httpServer = &http.Server{
+		Addr:         s.cfg.Listen,
+		Handler:      middleware.Logging(router),
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+}
+
 // Starts the server and exits with error if that fails
 func (s *Server) Run() error {
-	http.HandleFunc("/", s.requestHandler)
-	http.HandleFunc("/healthz", s.handleHealthCheck)
+	if s.httpServer != nil {
+		return fmt.Errorf("server already started")
+	}
 
-	slog.Info("Starting server", slog.String("listen", s.cfg.Listen), slog.Bool("ssl", s.cfg.SSL.Enabled))
+	s.createHTTPServer()
+	defer func() {
+		s.httpServer = nil
+	}()
 
 	var err error
 	if s.cfg.SSL.Enabled {
-		err = http.ListenAndServeTLS(s.cfg.Listen, s.cfg.SSL.Cert, s.cfg.SSL.Key, nil)
+		slog.Info("Starting server with SSL", slog.String("address", s.cfg.Listen))
+		err = s.httpServer.ListenAndServeTLS(s.cfg.SSL.Cert, s.cfg.SSL.Key)
 	} else {
-		err = http.ListenAndServe(s.cfg.Listen, nil)
+		slog.Info("Starting server", slog.String("address", s.cfg.Listen))
+		err = s.httpServer.ListenAndServe()
 	}
 	// This just means the server was closed after running
 	if errors.Is(err, http.ErrServerClosed) {
 		slog.Info("Server closed, exiting")
 		return nil
 	}
-	return err
+	return fmt.Errorf("failed to start server: %w", err)
+}
+
+func (s *Server) Shutdown() error {
+	if s.httpServer == nil {
+		return nil
+	}
+
+	slog.Info("Shutting down server")
+	err := s.httpServer.Shutdown(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to shutdown server: %w", err)
+	}
+	slog.Info("Server shutdown complete")
+	return nil
 }
