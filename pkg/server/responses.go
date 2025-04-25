@@ -3,14 +3,6 @@ package server
 import "github.com/heathcliff26/fleetlock/pkg/api"
 
 var (
-	msgNotFound = api.FleetLockResponse{
-		Kind:  "not_found",
-		Value: "The requested url is not found on this server",
-	}
-	msgWrongMethod = api.FleetLockResponse{
-		Kind:  "bad_request",
-		Value: "Only accepts POST request",
-	}
 	msgMissingFleetLockHeader = api.FleetLockResponse{
 		Kind:  "missing_fleetlock_header",
 		Value: "The header fleet-lock-protocol must be set to true",

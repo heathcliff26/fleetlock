@@ -40,7 +40,9 @@ func NewValkeyBackend(cfg ValkeyConfig) (*ValkeyBackend, error) {
 	var tlsConfig *tls.Config
 
 	if cfg.TLS {
-		tlsConfig = &tls.Config{}
+		tlsConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
 	}
 
 	opt := valkey.ClientOption{
