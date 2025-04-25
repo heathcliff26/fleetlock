@@ -40,6 +40,9 @@ manifests: ## Generate manifests
 validate: ## Validate that all generated files are up to date
 	hack/validate.sh
 
+gosec: ## Scan code for vulnerabilities using gosec
+	gosec ./...
+
 clean: ## Clean up generated files
 	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_fleetlock_image_fleetlock-e2e-*.tar
 
@@ -64,6 +67,7 @@ help: ## Show this help message
 	fmt \
 	manifests \
 	validate \
+	gosec \
 	clean \
 	golangci-lint \
 	help \
