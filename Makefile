@@ -4,46 +4,53 @@ REPOSITORY ?= localhost
 CONTAINER_NAME ?= fleetlock
 TAG ?= latest
 
-build: build-fleetctl build-fleetlock
+build: ## Build all binaries
 
-build-fleetctl:
+build-fleetctl: ## Build fleetctl binary
 	hack/build.sh fleetctl
 
-build-fleetlock:
+build-fleetlock: ## Build fleetlock binary
 	hack/build.sh fleetlock
 
-image:
+image: ## Build the container image
 	podman build -t $(REPOSITORY)/$(CONTAINER_NAME):$(TAG) .
 
-test:
+test: ## Run unit-tests
 	go test -v -race -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./cmd/... ./pkg/... ./tests/storage/...
 
-test-e2e:
+test-e2e: ## Run end-to-end tests
 	go test -count=1 -v ./tests/e2e/...
 
-update-deps:
+update-deps: ## Update dependencies
 	hack/update-deps.sh
 
-coverprofile:
+coverprofile: ## Generate coverage profile
 	hack/coverprofile.sh
 
-lint: golangci-lint
+lint: ## Run linter
+	golangci-lint
 	golangci-lint run -v
 
-fmt:
+fmt: ## Format code
 	gofmt -s -w ./cmd ./pkg ./tests
 
-manifests:
+manifests: ## Generate manifests
 	hack/manifests.sh
 
-validate:
+validate: ## Validate that all generated files are up to date
 	hack/validate.sh
 
-clean:
+clean: ## Clean up generated files
 	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_fleetlock_image_fleetlock-e2e-*.tar
 
-golangci-lint:
+golangci-lint: ## Install golangci-lint
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+
+help: ## Show this help message
+	@echo "Available targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Run 'make <target>' to execute a specific target."
 
 .PHONY: \
 	default \
@@ -59,4 +66,5 @@ golangci-lint:
 	validate \
 	clean \
 	golangci-lint \
+	help \
 	$(NULL)
