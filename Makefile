@@ -4,54 +4,71 @@ REPOSITORY ?= localhost
 CONTAINER_NAME ?= fleetlock
 TAG ?= latest
 
-build: ## Build all binaries
+# Build all binaries
+build:
 
-build-fleetctl: ## Build fleetctl binary
+# Build fleetctl binary
+build-fleetctl:
 	hack/build.sh fleetctl
 
-build-fleetlock: ## Build fleetlock binary
+# Build fleetlock binary
+build-fleetlock:
 	hack/build.sh fleetlock
 
-image: ## Build the container image
+# Build the container image
+image:
 	podman build -t $(REPOSITORY)/$(CONTAINER_NAME):$(TAG) .
 
-test: ## Run unit-tests
+# Run unit-tests
+test:
 	go test -v -race -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./cmd/... ./pkg/... ./tests/storage/...
 
-test-e2e: ## Run end-to-end tests
+# Run end-to-end tests
+test-e2e:
 	go test -count=1 -v ./tests/e2e/...
 
-update-deps: ## Update dependencies
+# Update dependencies
+update-deps:
 	hack/update-deps.sh
 
-coverprofile: ## Generate coverage profile
+# Generate coverage profile
+coverprofile:
 	hack/coverprofile.sh
 
-lint: ## Run linter
+# Run linter
+lint:
 	golangci-lint
 	golangci-lint run -v
 
-fmt: ## Format code
+# Format code
+fmt:
 	gofmt -s -w ./cmd ./pkg ./tests
 
-manifests: ## Generate manifests
+# Generate manifests
+manifests:
 	hack/manifests.sh
 
-validate: ## Validate that all generated files are up to date
+# Validate that all generated files are up to date
+validate:
 	hack/validate.sh
 
-gosec: ## Scan code for vulnerabilities using gosec
+# Scan code for vulnerabilities using gosec
+gosec:
 	gosec ./...
 
-clean: ## Clean up generated files
+# Clean up generated files
+clean:
 	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_fleetlock_image_fleetlock-e2e-*.tar
 
-golangci-lint: ## Install golangci-lint
+# Install golangci-lint
+golangci-lint:
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
-help: ## Show this help message
+# Show this help message
+help:
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
+	@echo ""
+	@awk '/^#/{c=substr($$0,3);next}c&&/^[[:alpha:]][[:alnum:]_-]+:/{print substr($$1,1,index($$1,":")),c}1{c=0}' $(MAKEFILE_LIST) | column -s: -t
 	@echo ""
 	@echo "Run 'make <target>' to execute a specific target."
 
