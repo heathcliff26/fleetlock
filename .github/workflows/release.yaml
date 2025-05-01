@@ -35,7 +35,6 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       latest: ${{ inputs.latest }}
-      is-release: true
     secrets: inherit
 
   release:
