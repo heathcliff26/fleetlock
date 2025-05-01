@@ -36,6 +36,11 @@ on:
         type: boolean
         default: false
         required: false
+      is-release:
+        description: "Release build"
+        type: boolean
+        default: false
+        required: false
   push:
     branches: ["main"]
     paths:
@@ -103,6 +108,7 @@ jobs:
       artifact: "bin/fleetctl-${{ matrix.arch }}"
       artifact-name: "fleetctl-${{ matrix.arch }}"
       cmd: "hack/build.sh fleetctl fleetctl-${{ matrix.arch }}"
+      is-release: ${{ inputs.is-release == true }}
     secrets: inherit
 
   build-fleetlock:
@@ -121,6 +127,7 @@ jobs:
       tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
       tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
+      release-version: "${{ inputs.is-release == true && inputs.tag || '' }}"
     secrets: inherit
 
   build-manifests:
