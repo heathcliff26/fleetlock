@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddCommonFlagsToCMD(t *testing.T) {
@@ -74,15 +75,12 @@ func TestGetClientFromCMD(t *testing.T) {
 			addCommonFlagsToCMD(cmd)
 
 			assert := assert.New(t)
+			require := require.New(t)
 
-			if !assert.NoError(cmd.ParseFlags(tCase.Args), "Should parse the flags") {
-				t.FailNow()
-			}
+			require.NoError(cmd.ParseFlags(tCase.Args), "Should parse the flags")
 
 			c, err := getClientFromCMD(cmd, []string{tCase.URL})
-			if !assert.NoError(err, "Should parse args without error") {
-				t.FailNow()
-			}
+			require.NoError(err, "Should parse args without error")
 			assert.Equal(tCase.URL, c.GetURL(), "Should have expected url")
 			assert.Equal(tCase.Group, c.GetGroup(), "Should have expected group")
 			if tCase.ID != "" {

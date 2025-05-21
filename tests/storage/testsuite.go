@@ -7,6 +7,7 @@ import (
 
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func GetGroups() lockmanager.Groups {
@@ -127,11 +128,12 @@ func RunLockManagerTestsuiteWithStorage(t *testing.T, storage lockmanager.Storag
 	})
 	t.Run("ConcurrentRelease", func(t *testing.T) {
 		assert := assert.New(t)
+		require := require.New(t)
+
 		for i := range 10 {
 			ok, err := lm.Reserve("ConcurrentRelease", "User"+strconv.Itoa(i))
-			if !assert.True(ok) || !assert.Nil(err) {
-				t.FailNow()
-			}
+			require.True(ok)
+			require.NoError(err)
 		}
 
 		var wg sync.WaitGroup

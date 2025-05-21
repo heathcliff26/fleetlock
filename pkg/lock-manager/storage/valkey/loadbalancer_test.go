@@ -7,6 +7,7 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/heathcliff26/fleetlock/tests/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valkey-io/valkey-go"
 )
 
@@ -21,11 +22,12 @@ func TestLoadbalancer(t *testing.T) {
 		}
 
 		assert := assert.New(t)
+		require := require.New(t)
 
 		client, lb, err := NewValkeyLoadbalancer(opt)
-		if !assert.NoError(err, "Should not return an error") || !assert.NotNil(client, "Should return a client") || !assert.NotNil(lb, "Should return a loadbalancer") {
-			t.FailNow()
-		}
+		require.NoError(err, "Should not return an error")
+		require.NotNil(client, "Should return a client")
+		require.NotNil(lb, "Should return a loadbalancer")
 		t.Cleanup(func() {
 			lb.Close()
 			client.Close()
@@ -60,15 +62,16 @@ func TestLoadbalancer(t *testing.T) {
 		})
 
 		assert := assert.New(t)
+		require := require.New(t)
 
 		opt := valkey.ClientOption{
 			InitAddress:  []string{"localhost:6379", "localhost:6380"},
 			DisableCache: true,
 		}
 		client, lb, err := NewValkeyLoadbalancer(opt)
-		if !assert.NoError(err, "Should not return an error") || !assert.NotNil(client, "Should return a client") || !assert.NotNil(lb, "Should return a loadbalancer") {
-			t.FailNow()
-		}
+		require.NoError(err, "Should not return an error")
+		require.NotNil(client, "Should return a client")
+		require.NotNil(lb, "Should return a loadbalancer")
 		t.Cleanup(func() {
 			lb.Close()
 			client.Close()
@@ -95,9 +98,7 @@ func TestLoadbalancer(t *testing.T) {
 		}
 
 		lb.HealthCheck()
-		if !assert.Equal(1, lb.selected, "Should have failed over") {
-			t.FailNow()
-		}
+		require.Equal(1, lb.selected, "Should have failed over")
 
 		res, err := client.Do(t.Context(), client.B().Ping().Build()).ToString()
 
@@ -114,11 +115,12 @@ func TestLoadbalancer(t *testing.T) {
 		}
 
 		assert := assert.New(t)
+		require := require.New(t)
 
 		client, lb, err := NewValkeyLoadbalancer(opt)
-		if !assert.NoError(err, "Should not return an error") || !assert.NotNil(client, "Should return a client") || !assert.NotNil(lb, "Should return a loadbalancer") {
-			t.FailNow()
-		}
+		require.NoError(err, "Should not return an error")
+		require.NotNil(client, "Should return a client")
+		require.NotNil(lb, "Should return a loadbalancer")
 		t.Cleanup(func() {
 			lb.Close()
 			client.Close()

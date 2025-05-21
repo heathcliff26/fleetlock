@@ -6,6 +6,7 @@ import (
 
 	"github.com/heathcliff26/fleetlock/pkg/fake"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewClient(t *testing.T) {
@@ -32,13 +33,13 @@ func TestNewClient(t *testing.T) {
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
+			require := require.New(t)
 
 			res, err := NewClient(tCase.Url, tCase.Group)
 
 			if tCase.Success {
-				if !assert.NoError(err, "Should succeed") || !assert.NotNil(res, "Should return a client") {
-					t.FailNow()
-				}
+				require.NoError(err, "Should succeed")
+				require.NotNil(res, "Should return a client")
 				assert.Equal(tCase.Url, res.url, "Client should have the url set")
 				assert.Equal(tCase.Group, res.group, "Client should have the group set")
 				assert.NotEmpty(res.appID, "Client should have the appID set")
@@ -52,12 +53,12 @@ func TestNewClient(t *testing.T) {
 
 func TestNewEmptyClient(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 
 	res, err := NewEmptyClient()
 
-	if !assert.NoError(err, "Should succeed") || !assert.NotNil(res, "Should return a client") {
-		t.FailNow()
-	}
+	require.NoError(err, "Should succeed")
+	require.NotNil(res, "Should return a client")
 
 	assert.Empty(res.url, "Client should not have the url set")
 	assert.Empty(res.group, "Client should not have the group set")

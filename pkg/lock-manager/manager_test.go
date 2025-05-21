@@ -10,6 +10,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewManager(t *testing.T) {
@@ -143,14 +144,13 @@ func TestNewManager(t *testing.T) {
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
+			require := require.New(t)
 
 			lm, err := NewManager(NewDefaultGroups(), tCase.Storage)
 
 			if tCase.Error == "" {
-				assert.NoError(err)
-				if !assert.NotNil(lm) {
-					t.FailNow()
-				}
+				require.NoError(err, "Should create new lock manager without error")
+				require.NotNil(lm, "Should create new lock manager")
 				assert.Equal(tCase.Result.groups, lm.groups)
 				assert.Equal(tCase.Result.storage, reflect.TypeOf(lm.storage).String())
 			} else {
@@ -169,9 +169,7 @@ func TestReserve(t *testing.T) {
 
 	assert := assert.New(t)
 
-	if !assert.Nil(err) {
-		t.FailNow()
-	}
+	require.NoError(t, err, "Should create new lock manager without error")
 
 	ok, err := lm.Reserve("unknown", "somebody")
 	assert.False(ok)
@@ -190,9 +188,7 @@ func TestRelease(t *testing.T) {
 
 	assert := assert.New(t)
 
-	if !assert.Nil(err) {
-		t.FailNow()
-	}
+	require.NoError(t, err, "Should create new lock manager without error")
 
 	err = lm.Release("unknown", "somebody")
 	assert.Equal("*errors.ErrorUnknownGroup", reflect.TypeOf(err).String())
