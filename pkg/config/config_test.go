@@ -12,6 +12,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
 	"github.com/heathcliff26/fleetlock/pkg/server"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidConfigs(t *testing.T) {
@@ -101,12 +102,8 @@ func TestValidConfigs(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			c, err := LoadConfig(tCase.Path, false)
 
-			assert := assert.New(t)
-
-			if !assert.Nil(err) {
-				t.Fatalf("Failed to load config: %v", err)
-			}
-			assert.Equal(tCase.Result, c)
+			require.Nil(t, err, "Should load config")
+			assert.Equal(t, tCase.Result, c, "Config should match expected result")
 		})
 	}
 }
@@ -138,13 +135,9 @@ func TestSetLogLevel(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			err := setLogLevel(tCase.Name)
 
-			assert := assert.New(t)
-
-			if !assert.Equal(tCase.Error, err) {
-				t.Fatalf("Received invalid error: %v", err)
-			}
+			require.Equal(t, tCase.Error, err, "Error should match expected result")
 			if err == nil {
-				assert.Equal(tCase.Level, logLevel.Level())
+				assert.Equal(t, tCase.Level, logLevel.Level())
 			}
 		})
 	}

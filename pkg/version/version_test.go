@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewVersionCommand(t *testing.T) {
@@ -35,9 +36,7 @@ func TestVersionInfoString(t *testing.T) {
 
 	buildinfo, _ := debug.ReadBuildInfo()
 
-	if !assert.Equal(5, len(lines), "Should have enough lines") {
-		t.FailNow()
-	}
+	require.Equal(t, 5, len(lines), "Should have enough lines")
 	assert.Contains(lines[0], "test")
 	assert.Contains(lines[1], buildinfo.Main.Version)
 

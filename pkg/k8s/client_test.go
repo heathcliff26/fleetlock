@@ -7,6 +7,7 @@ import (
 
 	"github.com/heathcliff26/fleetlock/pkg/k8s/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	coordv1 "k8s.io/api/coordination/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -89,11 +90,10 @@ func TestNewClient(t *testing.T) {
 		c, err := NewClient(cfg)
 
 		assert := assert.New(t)
+		require := require.New(t)
 
-		assert.Nil(err, "Should not return an error")
-		if !assert.NotNil(c, "Should return a client") {
-			t.FailNow()
-		}
+		require.NoError(err, "Should not return an error")
+		require.NotNil(c, "Should return a client")
 		assert.Equal("fleetlock", c.namespace, "Namespace should be set")
 		assert.Equal(cfg.DrainTimeoutSeconds, c.drainTimeoutSeconds, "Drain timeout should be set")
 		assert.Equal(3, c.drainRetries, "Drain retries should be set")
@@ -112,9 +112,7 @@ func TestDrainNode(t *testing.T) {
 
 		assert := assert.New(t)
 
-		if !assert.Nilf(err, "Should not throw an error: %v", err) {
-			t.FailNow()
-		}
+		require.NoError(t, err, "Should not throw an error")
 
 		node, _ := client.CoreV1().Nodes().Get(ctx, testNodeName, metav1.GetOptions{})
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
@@ -185,9 +183,7 @@ func TestDrainNode(t *testing.T) {
 
 		assert := assert.New(t)
 
-		if !assert.Nilf(err, "Should not throw an error: %v", err) {
-			t.FailNow()
-		}
+		require.NoError(t, err, "Should not throw an error")
 
 		node, _ := client.CoreV1().Nodes().Get(ctx, testNodeName, metav1.GetOptions{})
 		assert.True(node.Spec.Unschedulable, "Node should be unscheduable")
