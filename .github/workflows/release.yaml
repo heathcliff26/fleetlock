@@ -26,8 +26,18 @@ on:
         default: false
 
 jobs:
+  tag:
+    uses: heathcliff26/ci/.github/workflows/tag.yaml@main
+    permissions:
+      contents: write
+    with:
+      tag: ${{ inputs.tag }}
+      overwrite: ${{ inputs.update }}
+    secrets: inherit
+
   build:
     uses: ./.github/workflows/ci.yaml
+    needs: tag
     permissions:
       contents: read
       packages: write
