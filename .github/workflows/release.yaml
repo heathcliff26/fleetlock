@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
 
   release:
-    uses: heathcliff26/ci/.github/workflows/golang-release.yaml@main
+    uses: heathcliff26/ci/.github/workflows/release.yaml@main
     needs: build
     permissions:
       contents: write
