@@ -21,7 +21,7 @@ import (
 )
 
 const LibName = "valkey"
-const LibVer = "1.0.59"
+const LibVer = "1.0.60"
 
 var noHello = regexp.MustCompile("unknown command .?(HELLO|hello).?")
 
@@ -55,6 +55,8 @@ type wire interface {
 	CleanSubscriptions()
 	SetPubSubHooks(hooks PubSubHooks) <-chan error
 	SetOnCloseHook(fn func(error))
+	StopTimer() bool
+	ResetTimer() bool
 }
 
 var _ wire = (*pipe)(nil)
@@ -77,11 +79,13 @@ type pipe struct {
 	psubs           *subs                                      // pubsub pmessage subscriptions
 	pingTimer       *time.Timer                                // timer for background ping
 	info            map[string]ValkeyMessage
+	lftmTimer       *time.Timer // lifetime timer
 	timeout         time.Duration
 	pinggap         time.Duration
 	maxFlushDelay   time.Duration
-	r2mu            sync.Mutex
 	wrCounter       atomic.Uint64
+	lftm            time.Duration // lifetime
+	r2mu            sync.Mutex
 	version         int32
 	blcksig         int32
 	state           int32
@@ -328,6 +332,10 @@ func _newPipe(ctx context.Context, connFn func(context.Context) (net.Conn, error
 			p.backgroundPing()
 		}
 	}
+	if option.ConnLifetime > 0 {
+		p.lftm = option.ConnLifetime
+		p.lftmTimer = time.AfterFunc(option.ConnLifetime, p.expired)
+	}
 	return p, nil
 }
 
@@ -344,6 +352,7 @@ func (p *pipe) _exit(err error) {
 	p.error.CompareAndSwap(nil, &errs{error: err})
 	atomic.CompareAndSwapInt32(&p.state, 1, 2) // stop accepting new requests
 	_ = p.conn.Close()                         // force both read & write goroutine to exit
+	p.StopTimer()
 	p.clhks.Load().(func(error))(err)
 }
 
@@ -449,8 +458,8 @@ func (p *pipe) _backgroundWrite() (err error) {
 			}
 			ones[0], multi, ch = p.queue.WaitForWrite()
 			if flushDelay != 0 && p.loadWaits() > 1 { // do not delay for sequential usage
-				// Blocking commands are executed in dedicated client which is acquired from pool.
-				// So, there is no sense to wait other commands to be written.
+				// Blocking commands are executed in a dedicated client which is acquired from the pool.
+				// So, there is no sense to wait for other commands to be written.
 				// https://github.com/redis/rueidis/issues/379
 				var blocked bool
 				for i := 0; i < len(multi) && !blocked; i++ {
@@ -483,7 +492,7 @@ func (p *pipe) _backgroundRead() (err error) {
 		resps []ValkeyResult
 		ch    chan ValkeyResult
 		ff    int // fulfilled count
-		skip  int // skip rest push messages
+		skip  int // skip the rest push messages
 		ver   = p.version
 		prply bool // push reply
 		unsub bool // unsubscribe notification
@@ -495,6 +504,9 @@ func (p *pipe) _backgroundRead() (err error) {
 
 	defer func() {
 		resp := newErrResult(err)
+		if e := p.Error(); e == errConnExpired {
+			resp = newErrResult(e)
+		}
 		if err != nil && ff < len(multi) {
 			for ; ff < len(resps); ff++ {
 				resps[ff] = resp
@@ -522,8 +534,8 @@ func (p *pipe) _backgroundRead() (err error) {
 		} else if ver == 6 && len(msg.values()) != 0 {
 			// This is a workaround for Redis 6's broken invalidation protocol: https://github.com/redis/redis/issues/8935
 			// When Redis 6 handles MULTI, MGET, or other multi-keys command,
-			// it will send invalidation message immediately if it finds the keys are expired, thus causing the multi-keys command response to be broken.
-			// We fix this by fetching the next message and patch it back to the response.
+			// it will send invalidation messages immediately if it finds the keys are expired, thus causing the multi-keys command response to be broken.
+			// We fix this by fetching the next message and patching it back to the response.
 			i := 0
 			for j, v := range msg.values() {
 				if v.typ == '>' {
@@ -547,7 +559,7 @@ func (p *pipe) _backgroundRead() (err error) {
 			if ch == nil {
 				cond.L.Unlock()
 				// Valkey will send sunsubscribe notification proactively in the event of slot migration.
-				// We should ignore them and go fetch next message.
+				// We should ignore them and go fetch the next message.
 				// We also treat all the other unsubscribe notifications just like sunsubscribe,
 				// so that we don't need to track how many channels we have subscribed to deal with wildcard unsubscribe command
 				// See https://github.com/redis/rueidis/pull/691
@@ -565,7 +577,7 @@ func (p *pipe) _backgroundRead() (err error) {
 			if multi == nil {
 				multi = ones
 			}
-		} else if ff >= 4 && len(msg.values()) >= 2 && multi[0].IsOptIn() { // if unfulfilled multi commands are lead by opt-in and get success response
+		} else if ff >= 4 && len(msg.values()) >= 2 && multi[0].IsOptIn() { // if unfulfilled multi commands are lead by opt-in and get a success response
 			now := time.Now()
 			if cacheable := Cacheable(multi[ff-1]); cacheable.IsMGet() {
 				cc := cmds.MGetCacheCmd(cacheable)
@@ -591,7 +603,7 @@ func (p *pipe) _backgroundRead() (err error) {
 		}
 		if prply {
 			// Valkey will send sunsubscribe notification proactively in the event of slot migration.
-			// We should ignore them and go fetch next message.
+			// We should ignore them and go fetch the next message.
 			// We also treat all the other unsubscribe notifications just like sunsubscribe,
 			// so that we don't need to track how many channels we have subscribed to deal with wildcard unsubscribe command
 			// See https://github.com/redis/rueidis/pull/691
@@ -882,7 +894,7 @@ func (p *pipe) Do(ctx context.Context, cmd Completed) (resp ValkeyResult) {
 			return p._r2pipe(ctx).Do(ctx, cmd)
 		}
 	}
-	waits := p.incrWaits() // if this is 1, and background worker is not started, no need to queue
+	waits := p.incrWaits() // if this is 1, and the background worker is not started, no need to queue
 	state := atomic.LoadInt32(&p.state)
 
 	if state == 1 {
@@ -944,7 +956,7 @@ func (p *pipe) DoMulti(ctx context.Context, multi ...Completed) *valkeyresults {
 
 	cmds.CompletedCS(multi[0]).Verify()
 
-	isOptIn := multi[0].IsOptIn() // len(multi) > 0 should have already been checked by upper layer
+	isOptIn := multi[0].IsOptIn() // len(multi) > 0 should have already been checked by the upper layer
 	noReply := 0
 
 	for _, cmd := range multi {
@@ -986,7 +998,7 @@ func (p *pipe) DoMulti(ctx context.Context, multi ...Completed) *valkeyresults {
 		}
 	}
 
-	waits := p.incrWaits() // if this is 1, and background worker is not started, no need to queue
+	waits := p.incrWaits() // if this is 1, and the background worker is not started, no need to queue
 	state := atomic.LoadInt32(&p.state)
 
 	if state == 1 {
@@ -1066,7 +1078,7 @@ func (s *ValkeyResultStream) Error() error {
 }
 
 // WriteTo reads a valkey response from valkey and then write it to the given writer.
-// This function is not thread safe and should be called sequentially to read multiple responses.
+// This function is not thread-safe and should be called sequentially to read multiple responses.
 // An io.EOF error will be reported if all responses are read.
 func (s *ValkeyResultStream) WriteTo(w io.Writer) (n int64, err error) {
 	if err = s.e; err == nil && s.n > 0 {
@@ -1424,7 +1436,7 @@ func (p *pipe) doCacheMGet(ctx context.Context, cmd Cacheable, ttl time.Duration
 			}
 		}()
 		last := len(exec) - 1
-		if len(rewritten.Commands()) == len(commands) { // all cache miss
+		if len(rewritten.Commands()) == len(commands) { // all cache misses
 			return newResult(exec[last], nil)
 		}
 		partial = exec[last].values()
@@ -1633,6 +1645,25 @@ func (p *pipe) Close() {
 	p.r2mu.Unlock()
 }
 
+func (p *pipe) StopTimer() bool {
+	if p.lftmTimer == nil {
+		return true
+	}
+	return p.lftmTimer.Stop()
+}
+
+func (p *pipe) ResetTimer() bool {
+	if p.lftmTimer == nil || p.Error() != nil {
+		return true
+	}
+	return p.lftmTimer.Reset(p.lftm)
+}
+
+func (p *pipe) expired() {
+	p.error.CompareAndSwap(nil, errExpired)
+	p.Close()
+}
+
 type pshks struct {
 	hooks PubSubHooks
 	close chan error
@@ -1672,6 +1703,9 @@ const (
 )
 
 var cacheMark = &(ValkeyMessage{})
-var errClosing = &errs{error: ErrClosing}
+var (
+	errClosing = &errs{error: ErrClosing}
+	errExpired = &errs{error: errConnExpired}
+)
 
 type errs struct{ error }
