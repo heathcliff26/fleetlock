@@ -3,27 +3,26 @@ module github.com/heathcliff26/fleetlock
 go 1.24.0
 
 require (
-	github.com/alicebob/miniredis/v2 v2.34.0
-	github.com/go-sql-driver/mysql v1.9.2
+	github.com/alicebob/miniredis/v2 v2.35.0
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/heathcliff26/simple-fileserver v1.2.5
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
-	github.com/valkey-io/valkey-go v1.0.60
-	go.etcd.io/etcd/client/pkg/v3 v3.6.0
-	go.etcd.io/etcd/client/v3 v3.6.0
-	go.mongodb.org/mongo-driver/v2 v2.2.1
-	k8s.io/api v0.33.1
-	k8s.io/apimachinery v0.33.1
-	k8s.io/client-go v0.33.1
-	modernc.org/sqlite v1.37.1
+	github.com/valkey-io/valkey-go v1.0.61
+	go.etcd.io/etcd/client/pkg/v3 v3.6.1
+	go.etcd.io/etcd/client/v3 v3.6.1
+	go.mongodb.org/mongo-driver/v2 v2.2.2
+	k8s.io/api v0.33.2
+	k8s.io/apimachinery v0.33.2
+	k8s.io/client-go v0.33.2
+	modernc.org/sqlite v1.38.0
 	sigs.k8s.io/e2e-framework v0.6.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -76,7 +75,7 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
-	go.etcd.io/etcd/api/v3 v3.6.0 // indirect
+	go.etcd.io/etcd/api/v3 v3.6.1 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -101,7 +100,7 @@ require (
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
-	modernc.org/libc v1.65.7 // indirect
+	modernc.org/libc v1.65.10 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	sigs.k8s.io/controller-runtime v0.20.0 // indirect

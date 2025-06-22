@@ -2,14 +2,12 @@
 ## explicit; go 1.20
 filippo.io/edwards25519
 filippo.io/edwards25519/field
-# github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302
-## explicit
-github.com/alicebob/gopher-json
-# github.com/alicebob/miniredis/v2 v2.34.0
+# github.com/alicebob/miniredis/v2 v2.35.0
 ## explicit; go 1.17
 github.com/alicebob/miniredis/v2
 github.com/alicebob/miniredis/v2/fpconv
 github.com/alicebob/miniredis/v2/geohash
+github.com/alicebob/miniredis/v2/gopher-json
 github.com/alicebob/miniredis/v2/hyperloglog
 github.com/alicebob/miniredis/v2/metro
 github.com/alicebob/miniredis/v2/proto
@@ -60,7 +58,7 @@ github.com/go-openapi/jsonreference/internal
 # github.com/go-openapi/swag v0.23.0
 ## explicit; go 1.20
 github.com/go-openapi/swag
-# github.com/go-sql-driver/mysql v1.9.2
+# github.com/go-sql-driver/mysql v1.9.3
 ## explicit; go 1.21.0
 github.com/go-sql-driver/mysql
 # github.com/gogo/protobuf v1.3.2
@@ -210,7 +208,7 @@ github.com/spf13/pflag
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/require
-# github.com/valkey-io/valkey-go v1.0.60
+# github.com/valkey-io/valkey-go v1.0.61
 ## explicit; go 1.23.0
 github.com/valkey-io/valkey-go
 github.com/valkey-io/valkey-go/internal/cmds
@@ -246,7 +244,7 @@ github.com/yuin/gopher-lua
 github.com/yuin/gopher-lua/ast
 github.com/yuin/gopher-lua/parse
 github.com/yuin/gopher-lua/pm
-# go.etcd.io/etcd/api/v3 v3.6.0
+# go.etcd.io/etcd/api/v3 v3.6.1
 ## explicit; go 1.23.0
 go.etcd.io/etcd/api/v3/authpb
 go.etcd.io/etcd/api/v3/etcdserverpb
@@ -255,7 +253,7 @@ go.etcd.io/etcd/api/v3/mvccpb
 go.etcd.io/etcd/api/v3/v3rpc/rpctypes
 go.etcd.io/etcd/api/v3/version
 go.etcd.io/etcd/api/v3/versionpb
-# go.etcd.io/etcd/client/pkg/v3 v3.6.0
+# go.etcd.io/etcd/client/pkg/v3 v3.6.1
 ## explicit; go 1.23.0
 go.etcd.io/etcd/client/pkg/v3/fileutil
 go.etcd.io/etcd/client/pkg/v3/logutil
@@ -264,13 +262,13 @@ go.etcd.io/etcd/client/pkg/v3/tlsutil
 go.etcd.io/etcd/client/pkg/v3/transport
 go.etcd.io/etcd/client/pkg/v3/types
 go.etcd.io/etcd/client/pkg/v3/verify
-# go.etcd.io/etcd/client/v3 v3.6.0
+# go.etcd.io/etcd/client/v3 v3.6.1
 ## explicit; go 1.23.0
 go.etcd.io/etcd/client/v3
 go.etcd.io/etcd/client/v3/credentials
 go.etcd.io/etcd/client/v3/internal/endpoint
 go.etcd.io/etcd/client/v3/internal/resolver
-# go.mongodb.org/mongo-driver/v2 v2.2.1
+# go.mongodb.org/mongo-driver/v2 v2.2.2
 ## explicit; go 1.18
 go.mongodb.org/mongo-driver/v2/bson
 go.mongodb.org/mongo-driver/v2/event
@@ -522,7 +520,7 @@ gopkg.in/inf.v0
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# k8s.io/api v0.33.1
+# k8s.io/api v0.33.2
 ## explicit; go 1.24.0
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1alpha1
@@ -582,7 +580,7 @@ k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
 k8s.io/api/storagemigration/v1alpha1
-# k8s.io/apimachinery v0.33.1
+# k8s.io/apimachinery v0.33.2
 ## explicit; go 1.24.0
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -644,7 +642,7 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/netutil
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/client-go v0.33.1
+# k8s.io/client-go v0.33.2
 ## explicit; go 1.24.0
 k8s.io/client-go/applyconfigurations
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
@@ -887,7 +885,7 @@ k8s.io/utils/clock
 k8s.io/utils/internal/third_party/forked/golang/net
 k8s.io/utils/net
 k8s.io/utils/ptr
-# modernc.org/libc v1.65.7
+# modernc.org/libc v1.65.10
 ## explicit; go 1.23.0
 modernc.org/libc
 modernc.org/libc/errno
@@ -921,7 +919,7 @@ modernc.org/mathutil
 # modernc.org/memory v1.11.0
 ## explicit; go 1.23.0
 modernc.org/memory
-# modernc.org/sqlite v1.37.1
+# modernc.org/sqlite v1.38.0
 ## explicit; go 1.23.0
 modernc.org/sqlite
 modernc.org/sqlite/lib
