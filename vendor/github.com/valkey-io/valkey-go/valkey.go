@@ -86,7 +86,6 @@ type ClientOption struct {
 	OnInvalidations func([]ValkeyMessage)
 
 	// SendToReplicas is a function that returns true if the command should be sent to replicas.
-	// currently only used for cluster client.
 	// NOTE: This function can't be used with the ReplicaOnly option.
 	SendToReplicas func(cmd Completed) bool
 
@@ -101,7 +100,7 @@ type ClientOption struct {
 
 	// ReplicaSelector selects a replica node when `SendToReplicas` returns true.
 	// If the function is set, the client will send the selected command to the replica node.
-	// Returned value is the index of the replica node in the replica slice.
+	// The Returned value is the index of the replica node in the replica slice.
 	// If the returned value is out of range, the primary node will be selected.
 	// If the primary node does not have any replica, the primary node will be selected
 	// and the function will not be called.
@@ -137,7 +136,7 @@ type ClientOption struct {
 	// Valkey will connect to them one by one and issue a CLUSTER SLOT command to initialize the cluster client until success.
 	// If len(InitAddress) == 1 and the address is not running in cluster mode, valkey will fall back to the single client mode.
 	// If ClientOption.Sentinel.MasterSet is set, then InitAddress will be used to connect sentinels
-	// You can bypass this behaviour by using ClientOption.ForceSingleClient.
+	// You can bypass this behavior by using ClientOption.ForceSingleClient.
 	InitAddress []string
 
 	// ClientTrackingOptions will be appended to the CLIENT TRACKING ON command when the connection is established.
@@ -155,7 +154,7 @@ type ClientOption struct {
 
 	// RingScaleEachConn sets the size of the ring buffer in each connection to (2 ^ RingScaleEachConn).
 	// The default is RingScaleEachConn, which results in having a ring of size 2^10 for each connection.
-	// Reduce this value can reduce the memory consumption of each connection at the cost of potential throughput degradation.
+	// Reducing this value can reduce the memory consumption of each connection at the cost of potential throughput degradation.
 	// Values smaller than 8 are typically not recommended.
 	RingScaleEachConn int
 
@@ -186,13 +185,13 @@ type ClientOption struct {
 
 	// ConnWriteTimeout is a read/write timeout for each connection. If specified,
 	// it is used to control the maximum duration waits for responses to pipeline commands.
-	// Also, ConnWriteTimeout is applied net.Conn.SetDeadline and periodic PING to valkey
-	// Since the Dialer.KeepAlive will not be triggered if there is data in the outgoing buffer,
-	// ConnWriteTimeout should be set in order to detect local congestion or unresponsive valkey server.
+	// Also, ConnWriteTimeout is applied net.Conn.SetDeadline and periodic PINGs,
+	// since the Dialer.KeepAlive will not be triggered if there is data in the outgoing buffer.
+	// ConnWriteTimeout should be set to detect local congestion or unresponsive valkey server.
 	// This default is ClientOption.Dialer.KeepAlive * (9+1), where 9 is the default of tcp_keepalive_probes on Linux.
 	ConnWriteTimeout time.Duration
 
-	// ConnLiftime is a lifetime for each connection. If specified,
+	// ConnLifetime is a lifetime for each connection. If specified,
 	// connections will close after passing lifetime. Note that the connection which a dedicated client and blocking use is not closed.
 	ConnLifetime time.Duration
 
@@ -201,7 +200,7 @@ type ClientOption struct {
 	// to Valkey. Adding this delay increases latency, reduces throughput – but in most cases may significantly reduce
 	// application and Valkey CPU utilization due to less executed system calls. By default, Valkey flushes data to the
 	// connection without extra delays. Depending on network latency and application-specific conditions, the value
-	// of MaxFlushDelay may vary, sth like 20 microseconds should not affect latency/throughput a lot but still
+	// of MaxFlushDelay may vary, something like 20 microseconds should not affect latency/throughput a lot but still
 	// produce notable CPU usage reduction under load. Ref: https://github.com/redis/rueidis/issues/156
 	MaxFlushDelay time.Duration
 
@@ -225,7 +224,7 @@ type ClientOption struct {
 	DisableAutoPipelining bool
 	// AlwaysPipelining makes valkey.Client always pipeline valkey commands even if they are not issued concurrently.
 	AlwaysPipelining bool
-	// AlwaysRESP2 makes valkey.Client always uses RESP2, otherwise it will try using RESP3 first.
+	// AlwaysRESP2 makes valkey.Client always uses RESP2; otherwise, it will try using RESP3 first.
 	AlwaysRESP2 bool
 	//  ForceSingleClient force the usage of a single client connection, without letting the lib guessing
 	//  if valkey instance is a cluster or a single valkey instance.
@@ -342,7 +341,7 @@ type Client interface {
 }
 
 // DedicatedClient is obtained from Client.Dedicated() and it will be bound to a single valkey connection, and
-// no other commands can be pipelined in to this connection during Client.Dedicated().
+// no other commands can be pipelined into this connection during Client.Dedicated().
 // If the DedicatedClient is obtained from a cluster client, the first command to it must have a Key() to identify the valkey node.
 type DedicatedClient interface {
 	CoreClient
