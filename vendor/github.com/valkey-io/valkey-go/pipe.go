@@ -21,13 +21,13 @@ import (
 )
 
 const LibName = "valkey"
-const LibVer = "1.0.61"
+const LibVer = "1.0.62"
 
 var noHello = regexp.MustCompile("unknown command .?(HELLO|hello).?")
 
 // See https://github.com/redis/rueidis/pull/691
 func isUnsubReply(msg *ValkeyMessage) bool {
-	// ex. NOPERM User limiteduser has no permissions to run the 'ping' command
+	// ex. NOPERM User limited-user has no permissions to run the 'ping' command
 	// ex. LOADING server is loading the dataset in memory
 	// ex. BUSY
 	if msg.typ == '-' && (strings.HasPrefix(msg.string(), "LOADING") || strings.HasPrefix(msg.string(), "BUSY") || strings.Contains(msg.string(), "'ping'")) {
@@ -63,8 +63,8 @@ var _ wire = (*pipe)(nil)
 
 type pipe struct {
 	conn            net.Conn
-	clhks           atomic.Value // closed hook, invoked after the conn is closed
-	pshks           atomic.Value // pubsub hook, registered by the SetPubSubHooks
+	clhks           atomic.Value          // closed hook, invoked after the conn is closed
+	pshks           atomic.Pointer[pshks] // pubsub hook, registered by the SetPubSubHooks
 	queue           queue
 	cache           CacheStore
 	error           atomic.Pointer[errs]
@@ -393,7 +393,7 @@ func (p *pipe) _background() {
 	p.nsubs.Close()
 	p.psubs.Close()
 	p.ssubs.Close()
-	if old := p.pshks.Swap(emptypshks).(*pshks); old.close != nil {
+	if old := p.pshks.Swap(emptypshks); old.close != nil {
 		old.close <- err
 		close(old.close)
 	}
@@ -555,7 +555,7 @@ func (p *pipe) _backgroundRead() (err error) {
 		}
 		if ff == len(multi) {
 			ff = 0
-			ones[0], multi, ch, resps, cond = p.queue.NextResultCh() // ch should not be nil, otherwise it must be a protocol bug
+			ones[0], multi, ch, resps, cond = p.queue.NextResultCh() // ch should not be nil; otherwise, it must be a protocol bug
 			if ch == nil {
 				cond.L.Unlock()
 				// Valkey will send sunsubscribe notification proactively in the event of slot migration.
@@ -705,60 +705,60 @@ func (p *pipe) handlePush(values []ValkeyMessage) (reply bool, unsubscribe bool)
 		if len(values) >= 3 {
 			m := PubSubMessage{Channel: values[1].string(), Message: values[2].string()}
 			p.nsubs.Publish(values[1].string(), m)
-			p.pshks.Load().(*pshks).hooks.OnMessage(m)
+			p.pshks.Load().hooks.OnMessage(m)
 		}
 	case "pmessage":
 		if len(values) >= 4 {
 			m := PubSubMessage{Pattern: values[1].string(), Channel: values[2].string(), Message: values[3].string()}
 			p.psubs.Publish(values[1].string(), m)
-			p.pshks.Load().(*pshks).hooks.OnMessage(m)
+			p.pshks.Load().hooks.OnMessage(m)
 		}
 	case "smessage":
 		if len(values) >= 3 {
 			m := PubSubMessage{Channel: values[1].string(), Message: values[2].string()}
 			p.ssubs.Publish(values[1].string(), m)
-			p.pshks.Load().(*pshks).hooks.OnMessage(m)
+			p.pshks.Load().hooks.OnMessage(m)
 		}
 	case "unsubscribe":
 		if len(values) >= 3 {
 			s := PubSubSubscription{Kind: values[0].string(), Channel: values[1].string(), Count: values[2].intlen}
 			p.nsubs.Unsubscribe(s)
-			p.pshks.Load().(*pshks).hooks.OnSubscription(s)
+			p.pshks.Load().hooks.OnSubscription(s)
 		}
 		return true, true
 	case "punsubscribe":
 		if len(values) >= 3 {
 			s := PubSubSubscription{Kind: values[0].string(), Channel: values[1].string(), Count: values[2].intlen}
 			p.psubs.Unsubscribe(s)
-			p.pshks.Load().(*pshks).hooks.OnSubscription(s)
+			p.pshks.Load().hooks.OnSubscription(s)
 		}
 		return true, true
 	case "sunsubscribe":
 		if len(values) >= 3 {
 			s := PubSubSubscription{Kind: values[0].string(), Channel: values[1].string(), Count: values[2].intlen}
 			p.ssubs.Unsubscribe(s)
-			p.pshks.Load().(*pshks).hooks.OnSubscription(s)
+			p.pshks.Load().hooks.OnSubscription(s)
 		}
 		return true, true
 	case "subscribe":
 		if len(values) >= 3 {
 			s := PubSubSubscription{Kind: values[0].string(), Channel: values[1].string(), Count: values[2].intlen}
 			p.nsubs.Confirm(s)
-			p.pshks.Load().(*pshks).hooks.OnSubscription(s)
+			p.pshks.Load().hooks.OnSubscription(s)
 		}
 		return true, false
 	case "psubscribe":
 		if len(values) >= 3 {
 			s := PubSubSubscription{Kind: values[0].string(), Channel: values[1].string(), Count: values[2].intlen}
 			p.psubs.Confirm(s)
-			p.pshks.Load().(*pshks).hooks.OnSubscription(s)
+			p.pshks.Load().hooks.OnSubscription(s)
 		}
 		return true, false
 	case "ssubscribe":
 		if len(values) >= 3 {
 			s := PubSubSubscription{Kind: values[0].string(), Channel: values[1].string(), Count: values[2].intlen}
 			p.ssubs.Confirm(s)
-			p.pshks.Load().(*pshks).hooks.OnSubscription(s)
+			p.pshks.Load().hooks.OnSubscription(s)
 		}
 		return true, false
 	}
@@ -871,7 +871,7 @@ func (p *pipe) SetPubSubHooks(hooks PubSubHooks) <-chan error {
 		return p._r2pipe(context.Background()).SetPubSubHooks(hooks)
 	}
 	if hooks.isZero() {
-		if old := p.pshks.Swap(emptypshks).(*pshks); old.close != nil {
+		if old := p.pshks.Swap(emptypshks); old.close != nil {
 			close(old.close)
 		}
 		return nil
@@ -883,11 +883,11 @@ func (p *pipe) SetPubSubHooks(hooks PubSubHooks) <-chan error {
 		hooks.OnSubscription = func(s PubSubSubscription) {}
 	}
 	ch := make(chan error, 1)
-	if old := p.pshks.Swap(&pshks{hooks: hooks, close: ch}).(*pshks); old.close != nil {
+	if old := p.pshks.Swap(&pshks{hooks: hooks, close: ch}); old.close != nil {
 		close(old.close)
 	}
 	if err := p.Error(); err != nil {
-		if old := p.pshks.Swap(emptypshks).(*pshks); old.close != nil {
+		if old := p.pshks.Swap(emptypshks); old.close != nil {
 			old.close <- err
 			close(old.close)
 		}
@@ -912,8 +912,8 @@ func (p *pipe) Version() int {
 }
 
 func (p *pipe) AZ() string {
-	infoAvaliabilityZone := p.info["availability_zone"]
-	return infoAvaliabilityZone.string()
+	infoAvailabilityZone := p.info["availability_zone"]
+	return infoAvailabilityZone.string()
 }
 
 func (p *pipe) Do(ctx context.Context, cmd Completed) (resp ValkeyResult) {

@@ -96,7 +96,7 @@ github.com/gorilla/websocket
 # github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
 ## explicit; go 1.23.0
 github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options
-# github.com/heathcliff26/simple-fileserver v1.2.5
+# github.com/heathcliff26/simple-fileserver v1.2.6
 ## explicit; go 1.24.0
 github.com/heathcliff26/simple-fileserver/pkg/middleware
 # github.com/inconshreveable/mousetrap v1.1.0
@@ -208,7 +208,7 @@ github.com/spf13/pflag
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/require
-# github.com/valkey-io/valkey-go v1.0.61
+# github.com/valkey-io/valkey-go v1.0.62
 ## explicit; go 1.23.0
 github.com/valkey-io/valkey-go
 github.com/valkey-io/valkey-go/internal/cmds
@@ -342,6 +342,9 @@ go.uber.org/zap/internal/pool
 go.uber.org/zap/internal/stacktrace
 go.uber.org/zap/zapcore
 go.uber.org/zap/zapgrpc
+# go.yaml.in/yaml/v2 v2.4.2
+## explicit; go 1.15
+go.yaml.in/yaml/v2
 # golang.org/x/crypto v0.37.0
 ## explicit; go 1.23.0
 golang.org/x/crypto/ocsp
@@ -965,7 +968,7 @@ sigs.k8s.io/structured-merge-diff/v4/merge
 sigs.k8s.io/structured-merge-diff/v4/schema
 sigs.k8s.io/structured-merge-diff/v4/typed
 sigs.k8s.io/structured-merge-diff/v4/value
-# sigs.k8s.io/yaml v1.4.0
-## explicit; go 1.12
+# sigs.k8s.io/yaml v1.5.0
+## explicit; go 1.22
 sigs.k8s.io/yaml
 sigs.k8s.io/yaml/goyaml.v2
