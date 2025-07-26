@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"log/slog"
 	"reflect"
 	"testing"
@@ -213,4 +214,40 @@ func TestEnvSubstitution(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(c, cfg)
+}
+
+func TestErrUnknownLogLevel(t *testing.T) {
+	tests := []struct {
+		name        string
+		level       string
+		expectedMsg string
+	}{
+		{
+			name:        "InvalidDebugLevel",
+			level:       "invalid",
+			expectedMsg: "Unknown log level invalid",
+		},
+		{
+			name:        "EmptyLevel",
+			level:       "",
+			expectedMsg: "Unknown log level ",
+		},
+		{
+			name:        "NumericLevel",
+			level:       "123",
+			expectedMsg: "Unknown log level 123",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := NewErrUnknownLogLevel(tt.level)
+			assert.Error(t, err)
+			assert.Equal(t, tt.expectedMsg, err.Error())
+			
+			// Test type assertion
+			var unknownLogLevelErr *ErrUnknownLogLevel
+			assert.True(t, errors.As(err, &unknownLogLevelErr))
+		})
+	}
 }

@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	coordv1 "k8s.io/api/coordination/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
@@ -259,7 +260,7 @@ func TestUncordonNode(t *testing.T) {
 	assert.Nil(err, "Should not return an error")
 
 	_, err = client.CoordinationV1().Leases(testNamespace).Get(ctx, drainLeaseName(testNodeName), metav1.GetOptions{})
-	assert.True(errors.IsNotFound(err), "Lease should be deleted")
+	assert.True(k8serrors.IsNotFound(err), "Lease should be deleted")
 
 	node, _ = client.CoreV1().Nodes().Get(ctx, testNodeName, metav1.GetOptions{})
 	assert.False(node.Spec.Unschedulable, "Node should be schedulable")
@@ -389,5 +390,51 @@ func TestIsDrained(t *testing.T) {
 
 		assert.Nil(err, "Should not return an error")
 		assert.True(res, "Should return true")
+	})
+}
+
+func TestErrorTypes(t *testing.T) {
+	t.Run("ErrorFailedToEvictAllPods", func(t *testing.T) {
+		err := NewErrorFailedToEvictAllPods()
+		expectedMsg := "Failed to evict all pods from node"
+		
+		assert.Equal(t, expectedMsg, err.Error())
+		
+		// Test type assertion
+		var failedEvictErr ErrorFailedToEvictAllPods
+		assert.True(t, errors.As(err, &failedEvictErr))
+	})
+	
+	t.Run("ErrorDrainIsLocked", func(t *testing.T) {
+		err := NewErrorDrainIsLocked()
+		expectedMsg := "Can't drain node, as another drain is already in progress"
+		
+		assert.Equal(t, expectedMsg, err.Error())
+		
+		// Test type assertion
+		var drainLockedErr ErrorDrainIsLocked
+		assert.True(t, errors.As(err, &drainLockedErr))
+	})
+	
+	t.Run("ErrorInvalidLease", func(t *testing.T) {
+		err := NewErrorInvalidLease()
+		expectedMsg := "Invalid lease, either AcquireTime, LeaseDurationSeconds or HolderIdentity are nil"
+		
+		assert.Equal(t, expectedMsg, err.Error())
+		
+		// Test type assertion
+		var invalidLeaseErr ErrorInvalidLease
+		assert.True(t, errors.As(err, &invalidLeaseErr))
+	})
+	
+	t.Run("ErrorDrainTimeoutSecondsInvalid", func(t *testing.T) {
+		err := NewErrorDrainTimeoutSecondsInvalid()
+		expectedMsg := "drainTimeoutSeconds value needs to be greater than 0"
+		
+		assert.Equal(t, expectedMsg, err.Error())
+		
+		// Test type assertion
+		var drainTimeoutErr ErrorDrainTimeoutSecondsInvalid
+		assert.True(t, errors.As(err, &drainTimeoutErr))
 	})
 }

@@ -367,3 +367,10 @@ func initTestCluster(t *testing.T, client *fake.Clientset) {
 	}
 	_, _ = client.CoreV1().Namespaces().Create(t.Context(), testNS, metav1.CreateOptions{})
 }
+
+func TestErrorIncompleteSSlConfig(t *testing.T) {
+	err := ErrorIncompleteSSlConfig{}
+	expectedMsg := "SSL is enabled but either key or certificate is missing"
+	
+	assert.Equal(t, expectedMsg, err.Error())
+}

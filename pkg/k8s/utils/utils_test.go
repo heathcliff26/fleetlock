@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -73,4 +74,46 @@ func TestPointer(t *testing.T) {
 	s := "test"
 	p := Pointer(s)
 	assert.Equal(t, &s, p, "Should return pointer to variable with the same value")
+}
+
+func TestErrorGetNamespace(t *testing.T) {
+	tests := []struct {
+		name        string
+		path        string
+		err         error
+		expectedMsg string
+	}{
+		{
+			name:        "ValidError",
+			path:        "/var/run/secrets/kubernetes.io/serviceaccount/namespace",
+			err:         assert.AnError,
+			expectedMsg: "Could not retrieve namespace from \"/var/run/secrets/kubernetes.io/serviceaccount/namespace\": assert.AnError general error for testing",
+		},
+		{
+			name:        "EmptyPath",
+			path:        "",
+			err:         assert.AnError,
+			expectedMsg: "Could not retrieve namespace from \"\": assert.AnError general error for testing",
+		},
+		{
+			name:        "NilError",
+			path:        "/some/path",
+			err:         nil,
+			expectedMsg: "Could not retrieve namespace from \"/some/path\": <nil>",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := NewErrorGetNamespace(tt.path, tt.err)
+			assert.Error(t, err)
+			assert.Equal(t, tt.expectedMsg, err.Error())
+			
+			// Test type assertion
+			var getNamespaceErr *ErrorGetNamespace
+			assert.True(t, errors.As(err, &getNamespaceErr))
+			assert.Equal(t, tt.path, getNamespaceErr.path)
+			assert.Equal(t, tt.err, getNamespaceErr.err)
+		})
+	}
 }
