@@ -1,0 +1,3477 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>api: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/heathcliff26/fleetlock/pkg/api/utils.go (86.7%)</option>
+				
+				<option value="file1">github.com/heathcliff26/fleetlock/pkg/client/client.go (89.5%)</option>
+				
+				<option value="file2">github.com/heathcliff26/fleetlock/pkg/client/utils.go (81.2%)</option>
+				
+				<option value="file3">github.com/heathcliff26/fleetlock/pkg/config/config.go (100.0%)</option>
+				
+				<option value="file4">github.com/heathcliff26/fleetlock/pkg/config/errors.go (50.0%)</option>
+				
+				<option value="file5">github.com/heathcliff26/fleetlock/pkg/fake/server.go (88.0%)</option>
+				
+				<option value="file6">github.com/heathcliff26/fleetlock/pkg/fleetctl/appid.go (85.7%)</option>
+				
+				<option value="file7">github.com/heathcliff26/fleetlock/pkg/fleetctl/lock.go (27.3%)</option>
+				
+				<option value="file8">github.com/heathcliff26/fleetlock/pkg/fleetctl/release.go (27.3%)</option>
+				
+				<option value="file9">github.com/heathcliff26/fleetlock/pkg/fleetctl/root.go (40.0%)</option>
+				
+				<option value="file10">github.com/heathcliff26/fleetlock/pkg/fleetctl/utils.go (65.0%)</option>
+				
+				<option value="file11">github.com/heathcliff26/fleetlock/pkg/fleetlock/root.go (18.2%)</option>
+				
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/k8s/client.go (85.4%)</option>
+				
+				<option value="file13">github.com/heathcliff26/fleetlock/pkg/k8s/config.go (100.0%)</option>
+				
+				<option value="file14">github.com/heathcliff26/fleetlock/pkg/k8s/errors.go (37.5%)</option>
+				
+				<option value="file15">github.com/heathcliff26/fleetlock/pkg/k8s/lease.go (84.7%)</option>
+				
+				<option value="file16">github.com/heathcliff26/fleetlock/pkg/k8s/utils.go (100.0%)</option>
+				
+				<option value="file17">github.com/heathcliff26/fleetlock/pkg/k8s/utils/errors.go (50.0%)</option>
+				
+				<option value="file18">github.com/heathcliff26/fleetlock/pkg/k8s/utils/utils.go (94.4%)</option>
+				
+				<option value="file19">github.com/heathcliff26/fleetlock/pkg/lock-manager/config.go (100.0%)</option>
+				
+				<option value="file20">github.com/heathcliff26/fleetlock/pkg/lock-manager/errors/errors.go (71.4%)</option>
+				
+				<option value="file21">github.com/heathcliff26/fleetlock/pkg/lock-manager/manager.go (93.9%)</option>
+				
+				<option value="file22">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd/storage.go (11.6%)</option>
+				
+				<option value="file23">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes/storage.go (49.2%)</option>
+				
+				<option value="file24">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (76.9%)</option>
+				
+				<option value="file25">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb/storage.go (28.6%)</option>
+				
+				<option value="file26">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/mysql.go (33.3%)</option>
+				
+				<option value="file27">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/postgres.go (50.0%)</option>
+				
+				<option value="file28">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/sqlite.go (83.3%)</option>
+				
+				<option value="file29">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/storage.go (28.8%)</option>
+				
+				<option value="file30">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/util.go (50.0%)</option>
+				
+				<option value="file31">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/loadbalancer.go (91.7%)</option>
+				
+				<option value="file32">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/storage.go (19.6%)</option>
+				
+				<option value="file33">github.com/heathcliff26/fleetlock/pkg/server/config.go (100.0%)</option>
+				
+				<option value="file34">github.com/heathcliff26/fleetlock/pkg/server/errors.go (0.0%)</option>
+				
+				<option value="file35">github.com/heathcliff26/fleetlock/pkg/server/server.go (75.6%)</option>
+				
+				<option value="file36">github.com/heathcliff26/fleetlock/pkg/server/utils.go (76.9%)</option>
+				
+				<option value="file37">github.com/heathcliff26/fleetlock/pkg/systemd-utils/utils.go (100.0%)</option>
+				
+				<option value="file38">github.com/heathcliff26/fleetlock/pkg/version/version.go (81.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package api
+
+import (
+        "bytes"
+        "encoding/json"
+        "io"
+)
+
+// Parse an http request body and extract the parameters
+func ParseRequest(body io.ReadCloser) (FleetLockRequest, error) <span class="cov7" title="9">{
+        var res FleetLockRequest
+        err := json.NewDecoder(body).Decode(&amp;res)
+        if err != nil </span><span class="cov1" title="1">{
+                return FleetLockRequest{}, err
+        }</span>
+        <span class="cov7" title="8">return res, nil</span>
+}
+
+// Parse an http response body and extract the parameters
+func ParseResponse(body io.ReadCloser) (FleetLockResponse, error) <span class="cov10" title="18">{
+        var res FleetLockResponse
+        err := json.NewDecoder(body).Decode(&amp;res)
+        if err != nil </span><span class="cov0" title="0">{
+                return FleetLockResponse{}, err
+        }</span>
+        <span class="cov10" title="18">return res, nil</span>
+}
+
+// Create a new http request pody based on the provided parameters
+func PrepareRequest(group, id string) (io.Reader, error) <span class="cov8" title="12">{
+        req := FleetLockRequest{
+                Client: FleetLockRequestClient{
+                        ID:    id,
+                        Group: group,
+                },
+        }
+        body, err := json.Marshal(req)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="12">return bytes.NewReader(body), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package client
+
+import (
+        "fmt"
+        "net/http"
+        "sync"
+
+        "github.com/heathcliff26/fleetlock/pkg/api"
+)
+
+type FleetlockClient struct {
+        url   string
+        group string
+        appID string
+
+        mutex sync.RWMutex
+}
+
+// Create a new client for fleetlock
+func NewClient(url, group string) (*FleetlockClient, error) <span class="cov8" title="7">{
+        c, err := NewEmptyClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="7">err = c.SetURL(url)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="6">err = c.SetGroup(group)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov7" title="5">return c, nil</span>
+}
+
+// Create a new fleetlock client without url or group set
+func NewEmptyClient() (*FleetlockClient, error) <span class="cov9" title="8">{
+        appID, err := GetZincateAppID()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create zincati app id: %v", err)
+        }</span>
+
+        <span class="cov9" title="8">return &amp;FleetlockClient{
+                appID: appID,
+        }, nil</span>
+}
+
+// Aquire a lock for this machine
+func (c *FleetlockClient) Lock() error <span class="cov3" title="2">{
+        ok, res, err := c.doRequest("/v1/pre-reboot")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span> else<span class="cov3" title="2"> if ok </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+        <span class="cov1" title="1">return fmt.Errorf("failed to aquire lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
+}
+
+// Release the hold lock
+func (c *FleetlockClient) Release() error <span class="cov3" title="2">{
+        ok, res, err := c.doRequest("/v1/steady-state")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span> else<span class="cov3" title="2"> if ok </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+        <span class="cov1" title="1">return fmt.Errorf("failed to release lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
+}
+
+func (c *FleetlockClient) doRequest(path string) (bool, api.FleetLockResponse, error) <span class="cov6" title="4">{
+        c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
+        body, err := api.PrepareRequest(c.group, c.appID)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, api.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
+        }</span>
+        <span class="cov6" title="4">req, err := http.NewRequest(http.MethodPost, c.url+path, body)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, api.FleetLockResponse{}, fmt.Errorf("failed to create http post request: %v", err)
+        }</span>
+        <span class="cov6" title="4">req.Header.Set("fleet-lock-protocol", "true")
+        req.Header.Set("Content-Type", "application/json")
+
+        res, err := http.DefaultClient.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, api.FleetLockResponse{}, fmt.Errorf("failed to send request to server: %v", err)
+        }</span>
+
+        <span class="cov6" title="4">resBody, err := api.ParseResponse(res.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, api.FleetLockResponse{}, fmt.Errorf("failed to prepare response body: %v", err)
+        }</span>
+
+        <span class="cov6" title="4">return res.StatusCode == http.StatusOK, resBody, nil</span>
+}
+
+// Get the fleetlock server url
+func (c *FleetlockClient) GetURL() string <span class="cov8" title="7">{
+        if c == nil </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="6">c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
+        return c.url</span>
+}
+
+// Change the fleetlock server url
+func (c *FleetlockClient) SetURL(url string) error <span class="cov10" title="10">{
+        c.mutex.Lock()
+        defer c.mutex.Unlock()
+
+        if url == "" </span><span class="cov3" title="2">{
+                return fmt.Errorf("the fleetlock server url can't be empty")
+        }</span>
+        <span class="cov9" title="8">c.url = TrimTrailingSlash(url)
+        return nil</span>
+}
+
+// Get the fleetlock group
+func (c *FleetlockClient) GetGroup() string <span class="cov8" title="6">{
+        if c == nil </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov7" title="5">c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
+        return c.group</span>
+}
+
+// Change the fleetlock group
+func (c *FleetlockClient) SetGroup(group string) error <span class="cov9" title="8">{
+        c.mutex.Lock()
+        defer c.mutex.Unlock()
+
+        if group == "" </span><span class="cov3" title="2">{
+                return fmt.Errorf("the fleetlock group can't be empty")
+        }</span>
+        <span class="cov8" title="6">c.group = group
+        return nil</span>
+}
+
+// Get the fleetlock id
+func (c *FleetlockClient) GetID() string <span class="cov8" title="6">{
+        if c == nil </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov7" title="5">c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
+        return c.appID</span>
+}
+
+// Change the fleetlock id
+func (c *FleetlockClient) SetID(id string) error <span class="cov6" title="4">{
+        c.mutex.Lock()
+        defer c.mutex.Unlock()
+
+        if id == "" </span><span class="cov1" title="1">{
+                return fmt.Errorf("the fleetlock id can't be empty")
+        }</span>
+        <span class="cov5" title="3">c.appID = id
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package client
+
+import (
+        "log/slog"
+        "os"
+        "strings"
+
+        systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
+)
+
+// Read the machine-id from /etc/machine-id
+func GetMachineID() (string, error) <span class="cov10" title="10">{
+        b, err := os.ReadFile("/etc/machine-id")
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov10" title="10">machineID := strings.TrimRight(string(b), "\r\n")
+        return machineID, nil</span>
+}
+
+// Find the machine-id of the current node and generate a zincati appID from it.
+func GetZincateAppID() (string, error) <span class="cov10" title="10">{
+        machineID, err := GetMachineID()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov10" title="10">appID, err := systemdutils.ZincatiMachineID(machineID)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov10" title="10">return appID, nil</span>
+}
+
+// When having // in a URL, it somehow converts the request from POST to GET.
+// See: https://github.com/golang/go/issues/69063
+// In general it could lead to unintended behaviour.
+func TrimTrailingSlash(url string) string <span class="cov10" title="10">{
+        res, found := strings.CutSuffix(url, "/")
+        if found </span><span class="cov3" title="2">{
+                slog.Info("Removed trailing slash in URL, as this could lead to undefined behaviour")
+        }</span>
+        <span class="cov10" title="10">return res</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package config
+
+import (
+        "log/slog"
+        "os"
+        "strings"
+
+        "github.com/heathcliff26/fleetlock/pkg/k8s"
+        lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+        "github.com/heathcliff26/fleetlock/pkg/server"
+        "sigs.k8s.io/yaml"
+)
+
+const (
+        DEFAULT_LOG_LEVEL = "info"
+)
+
+var logLevel = &amp;slog.LevelVar{}
+
+// Initialize the logger
+func init() <span class="cov3" title="2">{
+        logLevel = &amp;slog.LevelVar{}
+        opts := slog.HandlerOptions{
+                Level: logLevel,
+        }
+        logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;opts))
+        slog.SetDefault(logger)
+}</span>
+
+type Config struct {
+        LogLevel         string                    `json:"logLevel,omitempty"`
+        KubernetesConfig k8s.Config                `json:"kubernetes,omitempty"`
+        Server           *server.ServerConfig      `json:"server,omitempty"`
+        Storage          lockmanager.StorageConfig `json:"storage,omitempty"`
+        Groups           lockmanager.Groups        `json:"groups,omitempty"`
+}
+
+// Parse a given string and set the resulting log level
+func setLogLevel(level string) error <span class="cov10" title="18">{
+        switch strings.ToLower(level) </span>{
+        case "debug":<span class="cov4" title="3">
+                logLevel.Set(slog.LevelDebug)</span>
+        case "info":<span class="cov7" title="8">
+                logLevel.Set(slog.LevelInfo)</span>
+        case "warn":<span class="cov3" title="2">
+                logLevel.Set(slog.LevelWarn)</span>
+        case "error":<span class="cov4" title="3">
+                logLevel.Set(slog.LevelError)</span>
+        default:<span class="cov3" title="2">
+                return NewErrUnknownLogLevel(level)</span>
+        }
+        <span class="cov9" title="16">return nil</span>
+}
+
+func DefaultConfig() *Config <span class="cov9" title="16">{
+        return &amp;Config{
+                LogLevel:         DEFAULT_LOG_LEVEL,
+                KubernetesConfig: k8s.NewDefaultConfig(),
+                Server:           server.NewDefaultServerConfig(),
+                Storage:          lockmanager.NewDefaultStorageConfig(),
+        }
+}</span>
+
+// Loads the config from the given path.
+// When path is empty, returns default config.
+// Returns error when the given config is invalid.
+func LoadConfig(path string, env bool) (*Config, error) <span class="cov8" title="11">{
+        c := DefaultConfig()
+
+        if path == "" </span><span class="cov1" title="1">{
+                c.Defaults()
+                return c, nil
+        }</span>
+
+        // #nosec G304 -- Local users can decide on their file path themselves.
+        <span class="cov8" title="10">f, err := os.ReadFile(path)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov7" title="9">if env </span><span class="cov1" title="1">{
+                f = []byte(os.ExpandEnv(string(f)))
+        }</span>
+
+        <span class="cov7" title="9">err = yaml.Unmarshal(f, &amp;c)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov7" title="8">c.Defaults()
+
+        err = c.Validate()
+        if err != nil </span><span class="cov4" title="3">{
+                return nil, err
+        }</span>
+
+        <span class="cov6" title="5">return c, nil</span>
+}
+
+func (c *Config) Defaults() <span class="cov8" title="13">{
+        c.Server.Defaults()
+        if c.Groups == nil </span><span class="cov8" title="11">{
+                c.Groups = lockmanager.NewDefaultGroups()
+        }</span>
+
+        <span class="cov8" title="13">c.Storage.Kubernetes.Kubeconfig = c.KubernetesConfig.Kubeconfig</span>
+}
+
+func (c *Config) Validate() error <span class="cov7" title="8">{
+        err := setLogLevel(c.LogLevel)
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        <span class="cov7" title="7">err = c.Server.Validate()
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        <span class="cov6" title="6">err = c.Groups.Validate()
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        <span class="cov6" title="5">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package config
+
+type ErrUnknownLogLevel struct {
+        level string
+}
+
+func NewErrUnknownLogLevel(level string) error <span class="cov10" title="2">{
+        return &amp;ErrUnknownLogLevel{
+                level: level,
+        }
+}</span>
+
+func (e *ErrUnknownLogLevel) Error() string <span class="cov0" title="0">{
+        return "Unknown log level " + e.level
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package fake
+
+import (
+        "encoding/json"
+        "net/http"
+        "net/http/httptest"
+        "strings"
+        "testing"
+
+        "github.com/heathcliff26/fleetlock/pkg/api"
+        "github.com/stretchr/testify/assert"
+)
+
+// Fake server is a fake fleetlock server.
+// It will always return the choosen http code and validate the request.
+type FakeServer struct {
+        server *httptest.Server
+        assert *assert.Assertions
+
+        // Expected path to call, ignored when empty
+        Path string
+        // The http status code that will be returned
+        StatusCode int
+        // The expected group, ignored when empty
+        Group string
+        // The expected id, ignored when empty
+        ID string
+}
+
+// Create a new fake server.
+// Takes the testing variable, the http return code it should give and optional an expected path to call.
+func NewFakeServer(t *testing.T, statusCode int, path string) *FakeServer <span class="cov10" title="4">{
+        s := &amp;FakeServer{
+                assert:     assert.New(t),
+                Path:       path,
+                StatusCode: statusCode,
+        }
+
+        s.server = httptest.NewServer(http.HandlerFunc(s.handleRequest))
+
+        return s
+}</span>
+
+func (s *FakeServer) handleRequest(rw http.ResponseWriter, req *http.Request) <span class="cov10" title="4">{
+        s.assert.Contains([]string{"/v1/pre-reboot", "/v1/steady-state"}, req.URL.String(), "Should request a valid url")
+        if s.Path != "" </span><span class="cov10" title="4">{
+                s.assert.Equal(s.Path, req.URL.String(), "Should use the specified URL")
+        }</span>
+
+        <span class="cov10" title="4">s.assert.Equal(http.MethodPost, req.Method, "Should be POST request")
+        s.assert.Equal("true", strings.ToLower(req.Header.Get("fleet-lock-protocol")), "fleet-lock-protocol header should be set")
+
+        params, err := api.ParseRequest(req.Body)
+        s.assert.NoError(err, "Request should have the correct format")
+
+        if s.Group != "" </span><span class="cov10" title="4">{
+                s.assert.Equal(s.Group, params.Client.Group, "Should have expected group")
+        }</span> else<span class="cov0" title="0"> {
+                s.assert.NotEmpty(params.Client.Group, "Should have group set")
+        }</span>
+        <span class="cov10" title="4">if s.ID != "" </span><span class="cov10" title="4">{
+                s.assert.Equal(s.ID, params.Client.ID, "Should have expected id")
+        }</span> else<span class="cov0" title="0"> {
+                s.assert.NotEmpty(params.Client.ID, "Should have id set")
+        }</span>
+
+        <span class="cov10" title="4">rw.WriteHeader(s.StatusCode)
+        b, err := json.MarshalIndent(api.FleetLockResponse{
+                Kind:  "ok",
+                Value: "Success",
+        }, "", "  ")
+        if !s.assert.NoError(err, "Error in fake server: failed to prepare response") </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov10" title="4">_, err = rw.Write(b)
+        s.assert.NoError(err, "Error in fake server: failed to send response")</span>
+}
+
+// Return the url the server is listening on
+func (s *FakeServer) URL() string <span class="cov10" title="4">{
+        return s.server.URL
+}</span>
+
+// Close the server.
+func (s *FakeServer) Close() <span class="cov10" title="4">{
+        if s != nil &amp;&amp; s.server != nil </span><span class="cov10" title="4">{
+                s.server.Close()
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package fleetctl
+
+import (
+        "github.com/heathcliff26/fleetlock/pkg/client"
+        systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
+        "github.com/spf13/cobra"
+)
+
+const flagNameMachineID = "machine-id"
+
+// Create a new id command
+func NewIDCommand() *cobra.Command <span class="cov10" title="3">{
+        cmd := &amp;cobra.Command{
+                Use:   "id",
+                Short: "display this node zincati app id",
+                RunE: func(cmd *cobra.Command, _ []string) error </span><span class="cov6" title="2">{
+                        input, err := cmd.Flags().GetString(flagNameMachineID)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+
+                        <span class="cov6" title="2">var id string
+                        if input == "" </span><span class="cov1" title="1">{
+                                id, err = client.GetZincateAppID()
+                        }</span> else<span class="cov1" title="1"> {
+                                id, err = systemdutils.ZincatiMachineID(input)
+                        }</span>
+                        <span class="cov6" title="2">if err != nil </span><span class="cov0" title="0">{
+                                exitError(cmd, err)
+                        }</span>
+                        <span class="cov6" title="2">cmd.Println(id)
+
+                        return nil</span>
+                },
+        }
+        <span class="cov10" title="3">cmd.Flags().StringP(flagNameMachineID, "i", "", "Specify the id to transform")
+
+        return cmd</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package fleetctl
+
+import (
+        "github.com/spf13/cobra"
+)
+
+// Create a new lock command
+func NewLockCommand() *cobra.Command <span class="cov8" title="1">{
+        cmd := &amp;cobra.Command{
+                Use:   "lock",
+                Short: "lock the slot in the server",
+                Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        client, err := getClientFromCMD(cmd, args)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+
+                        <span class="cov0" title="0">err = client.Lock()
+                        if err != nil </span><span class="cov0" title="0">{
+                                exitError(cmd, err)
+                        }</span>
+
+                        <span class="cov0" title="0">cmd.Println("Success")
+                        return nil</span>
+                },
+        }
+        <span class="cov8" title="1">addCommonFlagsToCMD(cmd)
+
+        return cmd</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package fleetctl
+
+import (
+        "github.com/spf13/cobra"
+)
+
+// Create a new release command
+func NewReleaseCommand() *cobra.Command <span class="cov8" title="1">{
+        cmd := &amp;cobra.Command{
+                Use:   "release",
+                Short: "release the slot in the server",
+                Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        client, err := getClientFromCMD(cmd, args)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+
+                        <span class="cov0" title="0">err = client.Release()
+                        if err != nil </span><span class="cov0" title="0">{
+                                exitError(cmd, err)
+                        }</span>
+
+                        <span class="cov0" title="0">cmd.Println("Success")
+                        return nil</span>
+                },
+        }
+        <span class="cov8" title="1">addCommonFlagsToCMD(cmd)
+
+        return cmd</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package fleetctl
+
+import (
+        "github.com/heathcliff26/fleetlock/pkg/version"
+        "github.com/spf13/cobra"
+)
+
+const Name = "fleetctl"
+
+func NewRootCommand() *cobra.Command <span class="cov8" title="1">{
+        cobra.AddTemplateFunc(
+                "ProgramName", func() string </span><span class="cov0" title="0">{
+                        return Name
+                }</span>,
+        )
+
+        <span class="cov8" title="1">rootCmd := &amp;cobra.Command{
+                Use:   Name,
+                Short: Name + " assists with debugging or manually controlling a fleetlock server",
+                RunE: func(cmd *cobra.Command, _ []string) error </span><span class="cov0" title="0">{
+                        return cmd.Help()
+                }</span>,
+        }
+
+        <span class="cov8" title="1">rootCmd.AddCommand(
+                NewLockCommand(),
+                NewReleaseCommand(),
+                NewIDCommand(),
+                version.NewCommand(Name),
+        )
+
+        return rootCmd</span>
+}
+
+func Execute() <span class="cov0" title="0">{
+        cmd := NewRootCommand()
+        err := cmd.Execute()
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package fleetctl
+
+import (
+        "fmt"
+        "os"
+
+        "github.com/heathcliff26/fleetlock/pkg/client"
+        "github.com/spf13/cobra"
+)
+
+const (
+        flagNameGroup = "group"
+        flagNameID    = "id"
+)
+
+func addCommonFlagsToCMD(cmd *cobra.Command) <span class="cov10" title="7">{
+        cmd.Flags().StringP(flagNameGroup, "g", "default", "Name of the lock group")
+        cmd.Flags().StringP(flagNameID, "i", "", "Specify the id to use, defaults to zincati appID")
+}</span>
+
+// Takes care if parsing the arguments and creating a client from them
+func getClientFromCMD(cmd *cobra.Command, args []string) (*client.FleetlockClient, error) <span class="cov7" title="4">{
+        group, err := cmd.Flags().GetString(flagNameGroup)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov7" title="4">id, err := cmd.Flags().GetString(flagNameID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov7" title="4">if len(args) &lt; 1 </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("missing url")
+        }</span>
+        <span class="cov7" title="4">c, err := client.NewClient(args[0], group)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov7" title="4">if id != "" </span><span class="cov4" title="2">{
+                err = c.SetID(id)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+
+        <span class="cov7" title="4">return c, nil</span>
+}
+
+// Print the error information on stderr and exit with code 1
+func exitError(cmd *cobra.Command, err error) <span class="cov0" title="0">{
+        cmd.PrintErrln("Fatal: " + err.Error())
+        os.Exit(1)
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package fleetlock
+
+import (
+        "fmt"
+        "os"
+
+        "github.com/heathcliff26/fleetlock/pkg/config"
+        "github.com/heathcliff26/fleetlock/pkg/k8s"
+        "github.com/heathcliff26/fleetlock/pkg/server"
+        "github.com/heathcliff26/fleetlock/pkg/version"
+        "github.com/spf13/cobra"
+)
+
+const Name = "fleetlock"
+
+func NewRootCommand() *cobra.Command <span class="cov8" title="1">{
+        cobra.AddTemplateFunc(
+                "ProgramName", func() string </span><span class="cov0" title="0">{
+                        return Name
+                }</span>,
+        )
+
+        <span class="cov8" title="1">rootCmd := &amp;cobra.Command{
+                Use:   Name,
+                Short: Name + " runs a fleetlock server for use in coordinating Fedora CoreOS node updates.",
+                RunE: func(cmd *cobra.Command, _ []string) error </span><span class="cov0" title="0">{
+                        cfg, err := cmd.Flags().GetString("config")
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+
+                        <span class="cov0" title="0">env, err := cmd.Flags().GetBool("env")
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+
+                        <span class="cov0" title="0">run(cmd, cfg, env)
+                        return nil</span>
+                },
+        }
+
+        <span class="cov8" title="1">rootCmd.Flags().StringP("config", "c", "", "Path to config file")
+        rootCmd.Flags().Bool("env", false, "Expand enviroment variables in config file")
+        rootCmd.AddCommand(
+                version.NewCommand(Name),
+        )
+
+        return rootCmd</span>
+}
+
+func Execute() <span class="cov0" title="0">{
+        cmd := NewRootCommand()
+        err := cmd.Execute()
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, err)
+        }</span>
+}
+
+func run(cmd *cobra.Command, configPath string, env bool) <span class="cov0" title="0">{
+        cfg, err := config.LoadConfig(configPath, env)
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, fmt.Errorf("failed to load configuration: %w", err))
+        }</span>
+
+        <span class="cov0" title="0">k8s, err := k8s.NewClient(cfg.KubernetesConfig)
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, fmt.Errorf("failed to create kubernetes client: %w", err))
+        }</span>
+
+        <span class="cov0" title="0">s, err := server.NewServer(cfg.Server, cfg.Groups, cfg.Storage, k8s)
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, fmt.Errorf("failed to create server: %w", err))
+        }</span>
+        <span class="cov0" title="0">err = s.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                exitError(cmd, fmt.Errorf("failed to run server: %w", err))
+        }</span>
+}
+
+// Print the error information on stderr and exit with code 1
+func exitError(cmd *cobra.Command, err error) <span class="cov0" title="0">{
+        fmt.Fprintln(cmd.Root().ErrOrStderr(), "Fatal: "+err.Error())
+        os.Exit(1)
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package k8s
+
+import (
+        "context"
+        "log/slog"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/k8s/utils"
+        systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
+
+        v1 "k8s.io/api/core/v1"
+        policyv1 "k8s.io/api/policy/v1"
+        metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+        "k8s.io/apimachinery/pkg/fields"
+        "k8s.io/apimachinery/pkg/types"
+        "k8s.io/client-go/kubernetes"
+        "k8s.io/client-go/kubernetes/fake"
+        "k8s.io/client-go/rest"
+)
+
+type Client struct {
+        client              kubernetes.Interface
+        namespace           string
+        drainTimeoutSeconds int32
+        drainRetries        int
+}
+
+// Create a new kubernetes client, defaults to in-cluster if no kubeconfig is provided
+func NewClient(config Config) (*Client, error) <span class="cov5" title="4">{
+        client, err := utils.CreateNewClientset(config.Kubeconfig)
+        if err == rest.ErrNotInCluster </span><span class="cov1" title="1">{
+                return nil, nil
+        }</span> else<span class="cov4" title="3"> if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov3" title="2">ns, err := utils.GetNamespace()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov3" title="2">if config.DrainTimeoutSeconds &lt; 1 </span><span class="cov1" title="1">{
+                return nil, NewErrorDrainTimeoutSecondsInvalid()
+        }</span>
+
+        <span class="cov1" title="1">return &amp;Client{
+                client:              client,
+                namespace:           ns,
+                drainTimeoutSeconds: config.DrainTimeoutSeconds,
+                drainRetries:        config.DrainRetries,
+        }, nil</span>
+}
+
+// Create a test client with a fake kubernetes clientset
+func NewFakeClient() (*Client, *fake.Clientset) <span class="cov10" title="15">{
+        fakeclient := fake.NewSimpleClientset()
+        return &amp;Client{
+                client:              fakeclient,
+                namespace:           "fleetlock",
+                drainTimeoutSeconds: 300,
+        }, fakeclient
+}</span>
+
+// Drain a node from all pods and set it to unschedulable.
+// Status will be tracked in lease, only one drain will be run at a time.
+func (c *Client) DrainNode(node string) error <span class="cov6" title="6">{
+        ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.drainTimeoutSeconds)*time.Second)
+        defer cancel()
+
+        lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
+        err := lease.Lock(ctx, c.drainTimeoutSeconds)
+        if err != nil </span><span class="cov3" title="2">{
+                return err
+        }</span>
+
+        <span class="cov5" title="4">err = c.drainNode(ctx, node)
+        if err != nil </span><span class="cov1" title="1">{
+                err2 := lease.Error(ctx)
+                if err2 != nil </span><span class="cov0" title="0">{
+                        slog.Error("Failed to set drain lease to error state", slog.String("node", node), "err", err)
+                }</span>
+                <span class="cov1" title="1">return err</span>
+        }
+
+        <span class="cov4" title="3">return lease.Done(ctx)</span>
+}
+
+// Drain a node of all pods, skipping daemonsets
+func (c *Client) drainNode(ctx context.Context, node string) error <span class="cov5" title="4">{
+        _, err := c.client.CoreV1().Nodes().Patch(ctx, node, types.MergePatchType, nodeUnschedulablePatch(true), metav1.PatchOptions{})
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov5" title="4">pods, err := c.client.CoreV1().Pods(v1.NamespaceAll).List(ctx, metav1.ListOptions{
+                FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node}).String(),
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov5" title="4">var returnError error
+        for _, pod := range pods.Items </span><span class="cov4" title="3">{
+                // Skip mirror pods
+                if _, ok := pod.Annotations[v1.MirrorPodAnnotationKey]; ok </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                // Skip daemonsets
+                <span class="cov4" title="3">controller := metav1.GetControllerOf(&amp;pod)
+                if controller != nil &amp;&amp; controller.Kind == "DaemonSet" </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                <span class="cov4" title="3">err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(ctx, &amp;policyv1.Eviction{
+                        TypeMeta: metav1.TypeMeta{
+                                APIVersion: "policy/v1",
+                                Kind:       "Eviction",
+                        },
+                        ObjectMeta: metav1.ObjectMeta{
+                                Name:      pod.GetName(),
+                                Namespace: pod.GetNamespace(),
+                        },
+                        DeleteOptions: metav1.NewDeleteOptions(*pod.Spec.TerminationGracePeriodSeconds),
+                })
+                if err != nil </span><span class="cov0" title="0">{
+                        slog.Info("Failed to evict pod", "err", err, slog.String("node", node), slog.String("pod", pod.GetName()), slog.String("namespace", pod.GetNamespace()))
+                        returnError = NewErrorFailedToEvictAllPods()
+                        continue</span>
+                }
+                <span class="cov4" title="3">slog.Info("Evicted pod", slog.String("node", node), slog.String("pod", pod.GetName()), slog.String("namespace", pod.GetNamespace()))
+
+                done := false
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov1" title="1">
+                        slog.Error("Aborting node drain", slog.String("node", node), "err", ctx.Err())
+                        if returnError == nil </span><span class="cov1" title="1">{
+                                returnError = ctx.Err()
+                        }</span>
+                        <span class="cov1" title="1">done = true</span>
+                default:<span class="cov3" title="2"></span>
+                }
+
+                <span class="cov4" title="3">if done </span><span class="cov1" title="1">{
+                        break</span>
+                }
+        }
+
+        <span class="cov5" title="4">return returnError</span>
+}
+
+// Find the node in the cluster with the matching machine id
+func (c *Client) FindNodeByZincatiID(zincatiID string) (string, error) <span class="cov7" title="7">{
+        nodes, err := c.client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov7" title="7">for _, node := range nodes.Items </span><span class="cov7" title="7">{
+                machineID := node.Status.NodeInfo.MachineID
+                appID, err := systemdutils.ZincatiMachineID(machineID)
+                if err != nil </span><span class="cov0" title="0">{
+                        return "", err
+                }</span>
+
+                <span class="cov7" title="7">if appID == zincatiID </span><span class="cov5" title="4">{
+                        slog.Info("Matched node with zincati app id", slog.String("node", node.GetName()), slog.String("appid", zincatiID))
+                        return node.Name, nil
+                }</span>
+        }
+
+        <span class="cov4" title="3">return "", nil</span>
+}
+
+// Uncordon a node
+func (c *Client) UncordonNode(node string) error <span class="cov4" title="3">{
+        _, err := c.client.CoreV1().Nodes().Patch(context.Background(), node, types.MergePatchType, nodeUnschedulablePatch(false), metav1.PatchOptions{})
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov4" title="3">return NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace)).Delete(context.Background())</span>
+}
+
+// Check if a node has been drained
+func (c *Client) IsDrained(node string) (bool, error) <span class="cov7" title="8">{
+        ctx := context.Background()
+        lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
+        done, err := lease.IsDone(ctx)
+        if err != nil || done </span><span class="cov3" title="2">{
+                return done, err
+        }</span>
+        <span class="cov6" title="6">fails, err := lease.GetFailCounter(ctx)
+        if err != nil || fails == 0 </span><span class="cov5" title="4">{
+                return false, err
+        }</span>
+
+        <span class="cov3" title="2">if c.drainRetries &gt; 0 &amp;&amp; fails &gt;= c.drainRetries </span><span class="cov1" title="1">{
+                slog.Info("Exhausted retries for draining node, marking as drained", slog.String("node", node), slog.Int("fails", fails), slog.Int("maxRetries", c.drainRetries))
+                return true, nil
+        }</span>
+        <span class="cov1" title="1">return false, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package k8s
+
+type Config struct {
+        Kubeconfig          string `json:"kubeconfig,omitempty"`
+        DrainTimeoutSeconds int32  `json:"drainTimeoutSeconds,omitempty"`
+        DrainRetries        int    `json:"drainRetries,omitempty"`
+}
+
+func NewDefaultConfig() Config <span class="cov10" title="21">{
+        return Config{
+                DrainTimeoutSeconds: 300,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package k8s
+
+type ErrorFailedToEvictAllPods struct{}
+
+func NewErrorFailedToEvictAllPods() error <span class="cov0" title="0">{
+        return ErrorFailedToEvictAllPods{}
+}</span>
+
+func (e ErrorFailedToEvictAllPods) Error() string <span class="cov0" title="0">{
+        return "Failed to evict all pods from node"
+}</span>
+
+type ErrorDrainIsLocked struct{}
+
+func NewErrorDrainIsLocked() error <span class="cov10" title="2">{
+        return ErrorDrainIsLocked{}
+}</span>
+
+func (e ErrorDrainIsLocked) Error() string <span class="cov0" title="0">{
+        return "Can't drain node, as another drain is already in progress"
+}</span>
+
+type ErrorInvalidLease struct{}
+
+func NewErrorInvalidLease() error <span class="cov10" title="2">{
+        return ErrorInvalidLease{}
+}</span>
+
+func (e ErrorInvalidLease) Error() string <span class="cov0" title="0">{
+        return "Invalid lease, either AcquireTime, LeaseDurationSeconds or HolderIdentity are nil"
+}</span>
+
+type ErrorDrainTimeoutSecondsInvalid struct{}
+
+func NewErrorDrainTimeoutSecondsInvalid() error <span class="cov1" title="1">{
+        return ErrorDrainTimeoutSecondsInvalid{}
+}</span>
+
+func (e ErrorDrainTimeoutSecondsInvalid) Error() string <span class="cov0" title="0">{
+        return "drainTimeoutSeconds value needs to be greater than 0"
+}</span>
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package k8s
+
+import (
+        "context"
+        "strconv"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/k8s/utils"
+        coordv1 "k8s.io/api/coordination/v1"
+        "k8s.io/apimachinery/pkg/api/errors"
+        metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+        client "k8s.io/client-go/kubernetes/typed/coordination/v1"
+)
+
+const (
+        leaseStateDone     = "done"
+        leaseStateDraining = "draining"
+        leaseStateError    = "error"
+)
+
+const leaseFailCounterName = "fleetlock.heathcliff.eu/DrainFailCount"
+
+type lease struct {
+        name   string
+        lease  *coordv1.Lease
+        client client.LeaseInterface
+}
+
+// Create a new lease instance. Does not create a lease on the kubernetes side.
+func NewLease(name string, client client.LeaseInterface) *lease <span class="cov10" title="17">{
+        return &amp;lease{
+                name:   name,
+                client: client,
+        }
+}</span>
+
+// Fetch the lease from the kubernetes server and store it in the local object.
+// Does not need to be called manually.
+func (l *lease) get(ctx context.Context) error <span class="cov9" title="16">{
+        lease, err := l.client.Get(ctx, l.name, metav1.GetOptions{})
+        if err != nil </span><span class="cov7" title="7">{
+                return err
+        }</span>
+
+        <span class="cov7" title="9">l.lease = lease
+        return nil</span>
+}
+
+// Create the lease in the kubernetes server.
+func (l *lease) create(ctx context.Context, duration int32) error <span class="cov4" title="3">{
+        lease := &amp;coordv1.Lease{
+                ObjectMeta: metav1.ObjectMeta{
+                        Name: l.name,
+                },
+                Spec: coordv1.LeaseSpec{
+                        HolderIdentity:       utils.Pointer(leaseStateDraining),
+                        LeaseDurationSeconds: utils.Pointer(duration),
+                        AcquireTime:          &amp;metav1.MicroTime{Time: time.Now()},
+                },
+        }
+
+        lease, err := l.client.Create(ctx, lease, metav1.CreateOptions{})
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov4" title="3">l.lease = lease
+        return nil</span>
+}
+
+// Update the lease on the kubernetes server
+func (l *lease) update(ctx context.Context) error <span class="cov6" title="5">{
+        lease, err := l.client.Update(ctx, l.lease, metav1.UpdateOptions{})
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov6" title="5">l.lease = lease
+        return nil</span>
+}
+
+func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="cov7" title="8">{
+        if l.lease == nil </span><span class="cov3" title="2">{
+                err := l.get(ctx)
+                if err != nil </span><span class="cov3" title="2">{
+                        return 0, err
+                }</span>
+        }
+
+        <span class="cov6" title="6">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
+        if !ok </span><span class="cov5" title="4">{
+                return 0, nil
+        }</span>
+        <span class="cov3" title="2">return strconv.Atoi(failCounterStr)</span>
+}
+
+// Return the count of failed attempts, defaults to 0 if no lease is found
+func (l *lease) GetFailCounter(ctx context.Context) (int, error) <span class="cov6" title="6">{
+        count, err := l.getFailCounter(ctx)
+        if errors.IsNotFound(err) </span><span class="cov3" title="2">{
+                return 0, nil
+        }</span>
+        <span class="cov5" title="4">return count, err</span>
+}
+
+// Increase the fail counter by 1.
+// Does not call update!!!
+func (l *lease) increaseFailCounter(ctx context.Context) error <span class="cov3" title="2">{
+        failCount, err := l.getFailCounter(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov3" title="2">if l.lease.Annotations == nil </span><span class="cov3" title="2">{
+                l.lease.Annotations = make(map[string]string)
+        }</span>
+
+        <span class="cov3" title="2">failCount++
+        l.lease.Annotations[leaseFailCounterName] = strconv.Itoa(failCount)
+
+        return nil</span>
+}
+
+// Aquire the lease for draining
+func (l *lease) Lock(ctx context.Context, duration int32) error <span class="cov6" title="6">{
+        err := l.get(ctx)
+        if errors.IsNotFound(err) </span><span class="cov4" title="3">{
+                return l.create(ctx, duration)
+        }</span> else<span class="cov4" title="3"> if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov4" title="3">if l.lease.Spec.AcquireTime == nil || l.lease.Spec.LeaseDurationSeconds == nil || l.lease.Spec.HolderIdentity == nil </span><span class="cov1" title="1">{
+                return NewErrorInvalidLease()
+        }</span>
+
+        <span class="cov3" title="2">validUntil := l.lease.Spec.AcquireTime.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
+
+        if time.Now().After(validUntil) </span><span class="cov1" title="1">{
+                if *l.lease.Spec.HolderIdentity == leaseStateDraining </span><span class="cov1" title="1">{
+                        err = l.increaseFailCounter(ctx)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                }
+
+                <span class="cov1" title="1">*l.lease.Spec.HolderIdentity = leaseStateDraining
+                l.lease.Spec.AcquireTime = &amp;metav1.MicroTime{Time: time.Now()}
+
+                err = l.update(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        } else<span class="cov1" title="1"> {
+                return NewErrorDrainIsLocked()
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+// Set the lease to done
+func (l *lease) Done(ctx context.Context) error <span class="cov4" title="3">{
+        if l.lease == nil </span><span class="cov0" title="0">{
+                err := l.get(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov4" title="3">*l.lease.Spec.HolderIdentity = leaseStateDone
+        err := l.update(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov4" title="3">return nil</span>
+}
+
+// Delete the lease
+func (l *lease) Delete(ctx context.Context) error <span class="cov4" title="3">{
+        err := l.client.Delete(ctx, l.name, metav1.DeleteOptions{})
+        if errors.IsNotFound(err) </span><span class="cov3" title="2">{
+                return nil
+        }</span> else<span class="cov1" title="1"> {
+                return err
+        }</span>
+}
+
+// Return true if the lease is done.
+// Does not return an error if the lease does not exist.
+func (l *lease) IsDone(ctx context.Context) (bool, error) <span class="cov7" title="8">{
+        if l.lease == nil </span><span class="cov7" title="8">{
+                err := l.get(ctx)
+                if errors.IsNotFound(err) </span><span class="cov3" title="2">{
+                        return false, nil
+                }</span> else<span class="cov6" title="6"> if err != nil </span><span class="cov0" title="0">{
+                        return false, err
+                }</span>
+        }
+
+        <span class="cov6" title="6">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
+}
+
+// Set the lease to an error state and increase the fail counter by one
+func (l *lease) Error(ctx context.Context) error <span class="cov1" title="1">{
+        err := l.increaseFailCounter(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov1" title="1">*l.lease.Spec.HolderIdentity = leaseStateError
+
+        err = l.update(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov1" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package k8s
+
+import (
+        "fmt"
+)
+
+func drainLeaseName(id string) string <span class="cov10" title="29">{
+        return fmt.Sprintf("fleetlock-drain-%s", id)
+}</span>
+
+func nodeUnschedulablePatch(desired bool) []byte <span class="cov6" title="7">{
+        return []byte(fmt.Sprintf("{\"spec\":{\"unschedulable\":%t}}", desired))
+}</span>
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package utils
+
+import "fmt"
+
+type ErrorGetNamespace struct {
+        path string
+        err  error
+}
+
+func NewErrorGetNamespace(path string, err error) error <span class="cov8" title="1">{
+        return &amp;ErrorGetNamespace{
+                path: path,
+                err:  err,
+        }
+}</span>
+
+func (e *ErrorGetNamespace) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Could not retrieve namespace from \"%s\": %v", e.path, e.err)
+}</span>
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">package utils
+
+import (
+        "errors"
+        "fmt"
+        "os"
+        "strings"
+
+        "k8s.io/client-go/kubernetes"
+        "k8s.io/client-go/rest"
+        "k8s.io/client-go/tools/clientcmd"
+)
+
+var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+
+const namespaceFleetlock = "fleetlock"
+
+// Read the namespace from the inserted serviceaccount file. Fallback to default if the file does not exist.
+func GetNamespace() (string, error) <span class="cov5" title="5">{
+        data, err := os.ReadFile(serviceAccountNamespaceFile)
+        if err != nil </span><span class="cov3" title="3">{
+                if !errors.Is(err, os.ErrNotExist) </span><span class="cov0" title="0">{
+                        return "", NewErrorGetNamespace(serviceAccountNamespaceFile, err)
+                }</span> else<span class="cov3" title="3"> {
+                        return namespaceFleetlock, nil
+                }</span>
+        }
+
+        <span class="cov2" title="2">ns := strings.TrimSpace(string(data))
+        if len(ns) == 0 </span><span class="cov1" title="1">{
+                return "", NewErrorGetNamespace(serviceAccountNamespaceFile, fmt.Errorf("file was empty"))
+        }</span>
+        <span class="cov1" title="1">return ns, nil</span>
+}
+
+// Create a new kubernetes clientset from the provided kubeconfig. Default to in-cluster if none is provided.
+func CreateNewClientset(kubeconfig string) (kubernetes.Interface, error) <span class="cov5" title="5">{
+        var config *rest.Config
+        var err error
+        if kubeconfig == "" </span><span class="cov2" title="2">{
+                config, err = rest.InClusterConfig()
+        }</span> else<span class="cov3" title="3"> {
+                config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+        }</span>
+        <span class="cov5" title="5">if err != nil </span><span class="cov3" title="3">{
+                return nil, err
+        }</span>
+
+        <span class="cov2" title="2">return kubernetes.NewForConfig(config)</span>
+}
+
+// Return a pointer to the variable value
+func Pointer[T any](v T) *T <span class="cov10" title="37">{
+        return &amp;v
+}</span>
+</pre>
+		
+		<pre class="file" id="file19" style="display: none">package lockmanager
+
+import (
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
+)
+
+type StorageConfig struct {
+        Type       string                      `json:"type"`
+        SQLite     sql.SQLiteConfig            `json:"sqlite,omitempty"`
+        Postgres   sql.PostgresConfig          `json:"postgres,omitempty"`
+        MySQL      sql.MySQLConfig             `json:"mysql,omitempty"`
+        Valkey     valkey.ValkeyConfig         `json:"valkey,omitempty"`
+        Etcd       etcd.EtcdConfig             `json:"etcd,omitempty"`
+        Kubernetes kubernetes.KubernetesConfig `json:"kubernetes,omitempty"`
+        MongoDB    mongodb.MongoDBConfig       `json:"mongodb,omitempty"`
+}
+
+type Groups map[string]GroupConfig
+
+type GroupConfig struct {
+        Slots int `json:"slots"`
+}
+
+// Create a new storage config with default values
+func NewDefaultStorageConfig() StorageConfig <span class="cov8" title="18">{
+        return StorageConfig{
+                Type: "memory",
+        }
+}</span>
+
+func NewDefaultGroups() Groups <span class="cov10" title="34">{
+        groups := make(Groups, 1)
+        groups["default"] = GroupConfig{
+                Slots: 1,
+        }
+        return groups
+}</span>
+
+func (g Groups) Validate() error <span class="cov6" title="8">{
+        for _, v := range g </span><span class="cov7" title="12">{
+                if v.Slots &lt; 1 </span><span class="cov2" title="2">{
+                        return errors.NewErrorGroupSlotsOutOfRange()
+                }</span>
+        }
+        <span class="cov5" title="6">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file20" style="display: none">package errors
+
+import "fmt"
+
+type ErrorUnknownGroup struct {
+        group string
+}
+
+func NewErrorUnknownGroup(group string) error <span class="cov10" title="4">{
+        return &amp;ErrorUnknownGroup{group: group}
+}</span>
+
+func (e *ErrorUnknownGroup) Error() string <span class="cov5" title="2">{
+        return fmt.Sprintf("Unknown group: %s", e.group)
+}</span>
+
+type ErrorEmptyID struct{}
+
+func (e ErrorEmptyID) Error() string <span class="cov0" title="0">{
+        return "Received empty id, can't reserve a slot without an id"
+}</span>
+
+type ErrorUnkownStorageType struct {
+        Type string
+}
+
+func NewErrorUnkownStorageType(t string) error <span class="cov5" title="2">{
+        return &amp;ErrorUnkownStorageType{
+                Type: t,
+        }
+}</span>
+
+func (e *ErrorUnkownStorageType) Error() string <span class="cov1" title="1">{
+        return fmt.Sprintf("Unsupported storage type \"%s\" selected", e.Type)
+}</span>
+
+type ErrorGroupSlotsOutOfRange struct{}
+
+func NewErrorGroupSlotsOutOfRange() error <span class="cov8" title="3">{
+        return ErrorGroupSlotsOutOfRange{}
+}</span>
+
+func (e ErrorGroupSlotsOutOfRange) Error() string <span class="cov0" title="0">{
+        return "At least one group has not enough slots, need at least 1"
+}</span>
+</pre>
+		
+		<pre class="file" id="file21" style="display: none">package lockmanager
+
+import (
+        "sync"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+)
+
+type LockManager struct {
+        groups  map[string]*lockGroup
+        storage StorageBackend
+}
+
+type lockGroup struct {
+        Config GroupConfig
+        RWLock sync.RWMutex
+}
+
+// It is assumed that each group itself is multi-read, single-write.
+// There can be multiple writes to different groups happening in parallel though.
+type StorageBackend interface {
+        // Reserve a lock for the given group.
+        // Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+        Reserve(group, id string) error
+        // Returns the current number of locks for the given group
+        GetLocks(group string) (int, error)
+        // Release the lock currently held by the id.
+        // Does not fail when no lock is held.
+        Release(group, id string) error
+        // Return all locks older than x
+        GetStaleLocks(ts time.Duration) ([]types.Lock, error)
+        // Check if a given id already has a lock for this group
+        HasLock(group, id string) (bool, error)
+        // Calls all necessary finalization if necessary
+        Close() error
+}
+
+// Create a new LockManager from the given configuration
+func NewManager(groups Groups, storageCfg StorageConfig) (*LockManager, error) <span class="cov10" title="15">{
+        var storage StorageBackend
+        var err error
+        switch storageCfg.Type </span>{
+        case "memory":<span class="cov5" title="4">
+                i := 0
+                groupNames := make([]string, len(groups))
+                for k := range groups </span><span class="cov5" title="4">{
+                        groupNames[i] = k
+                        i++
+                }</span>
+                <span class="cov5" title="4">storage = memory.NewMemoryBackend(groupNames)</span>
+        case "sqlite":<span class="cov3" title="2">
+                storage, err = sql.NewSQLiteBackend(storageCfg.SQLite)</span>
+        case "postgres":<span class="cov1" title="1">
+                storage, err = sql.NewPostgresBackend(storageCfg.Postgres)</span>
+        case "mysql":<span class="cov1" title="1">
+                storage, err = sql.NewMySQLBackend(storageCfg.MySQL)</span>
+        case "valkey":<span class="cov3" title="2">
+                storage, err = valkey.NewValkeyBackend(storageCfg.Valkey)</span>
+        case "etcd":<span class="cov1" title="1">
+                storage, err = etcd.NewEtcdBackend(storageCfg.Etcd)</span>
+        case "kubernetes":<span class="cov1" title="1">
+                storage, err = kubernetes.NewKubernetesBackend(storageCfg.Kubernetes)</span>
+        case "mongodb":<span class="cov1" title="1">
+                storage, err = mongodb.NewMongoDBBackend(storageCfg.MongoDB)</span>
+        default:<span class="cov3" title="2">
+                err = errors.NewErrorUnkownStorageType(storageCfg.Type)</span>
+        }
+        <span class="cov10" title="15">if err != nil </span><span class="cov8" title="9">{
+                return nil, err
+        }</span>
+
+        <span class="cov6" title="6">return &amp;LockManager{
+                groups:  initGroups(groups),
+                storage: storage,
+        }, nil</span>
+}
+
+// Create a new LockManager with custom StorageBackend
+func NewManagerWithStorage(groups Groups, storage StorageBackend) *LockManager <span class="cov6" title="5">{
+        return &amp;LockManager{
+                groups:  initGroups(groups),
+                storage: storage,
+        }
+}</span>
+
+func initGroups(groups Groups) map[string]*lockGroup <span class="cov9" title="14">{
+        g := make(map[string]*lockGroup, len(groups))
+        for name, cfg := range groups </span><span class="cov9" title="14">{
+                g[name] = &amp;lockGroup{
+                        Config: cfg,
+                }
+        }</span>
+        <span class="cov9" title="14">return g</span>
+}
+
+func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov8" title="9">{
+        lGroup := lm.groups[group]
+        if lGroup == nil </span><span class="cov3" title="2">{
+                return false, errors.NewErrorUnknownGroup(group)
+        }</span>
+        <span class="cov7" title="7">if id == "" </span><span class="cov1" title="1">{
+                return false, errors.ErrorEmptyID{}
+        }</span>
+
+        <span class="cov6" title="6">checkHasLock := func() (bool, error) </span><span class="cov6" title="6">{
+                // Lock group for reading to ensure that no writing is happening during it and result is accurate
+                lGroup.RWLock.RLock()
+                defer lGroup.RWLock.RUnlock()
+
+                return lm.storage.HasLock(group, id)
+        }</span>
+        <span class="cov6" title="6">ok, err := checkHasLock()
+        if ok &amp;&amp; err == nil </span><span class="cov1" title="1">{
+                return true, nil
+        }</span> else<span class="cov6" title="5"> if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        // Use own function to ensure lock is released
+        <span class="cov6" title="5">checkAvailableSlots := func() (bool, error) </span><span class="cov6" title="5">{
+                // Lock group for reading to ensure that no writing is happening during it and result is accurate
+                lGroup.RWLock.RLock()
+                defer lGroup.RWLock.RUnlock()
+
+                return lm.checkSlots(group, lGroup.Config)
+        }</span>
+        <span class="cov6" title="5">ok, err = checkAvailableSlots()
+        if err != nil || !ok </span><span class="cov1" title="1">{
+                return false, err
+        }</span>
+
+        // Get Write Lock
+        <span class="cov5" title="4">lGroup.RWLock.Lock()
+        defer lGroup.RWLock.Unlock()
+
+        // Re-check, since another write could have happened between checking the first time and now
+        ok, err = lm.checkSlots(group, lGroup.Config)
+        if err != nil || !ok </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov5" title="4">err = lm.storage.Reserve(group, id)
+        return err == nil, err</span>
+}
+
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov8" title="9">{
+        usedSlots, err := lm.storage.GetLocks(group)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="9">return usedSlots &lt; cfg.Slots, nil</span>
+}
+
+func (lm *LockManager) Release(group, id string) error <span class="cov6" title="5">{
+        lGroup := lm.groups[group]
+        if lGroup == nil </span><span class="cov3" title="2">{
+                return errors.NewErrorUnknownGroup(group)
+        }</span>
+        <span class="cov4" title="3">if id == "" </span><span class="cov1" title="1">{
+                return errors.ErrorEmptyID{}
+        }</span>
+
+        <span class="cov3" title="2">lGroup.RWLock.Lock()
+        defer lGroup.RWLock.Unlock()
+
+        return lm.storage.Release(group, id)</span>
+}
+
+func (lm *LockManager) Close() error <span class="cov0" title="0">{
+        return lm.storage.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file22" style="display: none">package etcd
+
+import (
+        "context"
+        "crypto/tls"
+        "fmt"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        "go.etcd.io/etcd/client/pkg/v3/transport"
+        clientv3 "go.etcd.io/etcd/client/v3"
+)
+
+const keyformat = "com.github.heathcliff26.fleetlock/group/%s/id/%s"
+
+const timeout = 200 * time.Millisecond
+
+type EtcdBackend struct {
+        client *clientv3.Client
+}
+
+type EtcdConfig struct {
+        Endpoints []string `json:"endpoints,omitempty"`
+        Username  string   `json:"username,omitempty"`
+        Password  string   `json:"password,omitempty"`
+        CertFile  string   `json:"cert,omitempty"`
+        KeyFile   string   `json:"key,omitempty"`
+}
+
+func NewEtcdBackend(cfg EtcdConfig) (*EtcdBackend, error) <span class="cov8" title="1">{
+        var tls *tls.Config
+        if cfg.CertFile != "" &amp;&amp; cfg.KeyFile != "" </span><span class="cov0" title="0">{
+                var err error
+                tls, err = transport.TLSInfo{
+                        CertFile: cfg.CertFile,
+                        KeyFile:  cfg.KeyFile,
+                }.ClientConfig()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to load client certificate: %w", err)
+                }</span>
+        }
+        <span class="cov8" title="1">c, err := clientv3.New(clientv3.Config{
+                Endpoints:   cfg.Endpoints,
+                Username:    cfg.Username,
+                Password:    cfg.Password,
+                DialTimeout: time.Second,
+                TLS:         tls,
+        })
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to create etcd client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+        _, err = c.MemberList(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("ETCD client failed connection check: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;EtcdBackend{
+                client: c,
+        }, nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (e *EtcdBackend) Reserve(group string, id string) error <span class="cov0" title="0">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        _, err := e.client.Txn(ctx).If(
+                clientv3.Compare(clientv3.Version(key), "=", 0),
+        ).Then(
+                clientv3.OpPut(key, time.Now().String()),
+        ).Commit()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (e *EtcdBackend) GetLocks(group string) (int, error) <span class="cov0" title="0">{
+        key := fmt.Sprintf(keyformat, group, "")
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        res, err := e.client.Get(ctx, key, clientv3.WithPrefix(), clientv3.WithCountOnly())
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov0" title="0">return int(res.Count), nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (e *EtcdBackend) Release(group string, id string) error <span class="cov0" title="0">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        _, err := e.client.Delete(ctx, key)
+        return err
+}</span>
+
+// Return all locks older than x
+func (e *EtcdBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("not implemented")</span> // TODO: Implement
+}
+
+// Check if a given id already has a lock for this group
+func (e *EtcdBackend) HasLock(group string, id string) (bool, error) <span class="cov0" title="0">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        res, err := e.client.Get(ctx, key, clientv3.WithCountOnly())
+        if err != nil || res == nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov0" title="0">return res.Count == 1, nil</span>
+}
+
+// Calls all necessary finalization if necessary
+func (e *EtcdBackend) Close() error <span class="cov0" title="0">{
+        return e.client.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file23" style="display: none">package kubernetes
+
+import (
+        "context"
+        "fmt"
+        "regexp"
+        "slices"
+        "strconv"
+        "strings"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/k8s/utils"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+
+        coordv1 "k8s.io/api/coordination/v1"
+        metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+        "k8s.io/client-go/kubernetes/fake"
+        v1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
+)
+
+const keyformat = "fleetlock-reservation-%s-"
+
+type KubernetesBackend struct {
+        client    v1.CoordinationV1Interface
+        namespace string
+}
+
+type KubernetesConfig struct {
+        Kubeconfig string `json:"-"`
+        Namespace  string `json:"namespace,omitempty"`
+}
+
+func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) <span class="cov1" title="1">{
+        client, err := utils.CreateNewClientset(cfg.Kubeconfig)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">ns := cfg.Namespace
+        if ns == "" </span><span class="cov0" title="0">{
+                ns, err = utils.GetNamespace()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return &amp;KubernetesBackend{
+                client:    client.CoordinationV1(),
+                namespace: ns,
+        }, nil</span>
+}
+
+// Create a test client with a fake kubernetes clientset
+func NewKubernetesBackendWithFakeClient(namespace string) (*KubernetesBackend, *fake.Clientset) <span class="cov2" title="2">{
+        fakeclient := fake.NewSimpleClientset()
+        return &amp;KubernetesBackend{
+                client: fakeclient.CoordinationV1(),
+        }, fakeclient
+}</span>
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (k *KubernetesBackend) Reserve(group string, id string) error <span class="cov6" title="11">{
+        // Kubernetes names do not allow uppercase
+        group = strings.ToLower(group)
+        leases, err := k.getLeasesForGroup(group)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov6" title="11">names := make([]string, 0)
+        for _, lease := range leases </span><span class="cov0" title="0">{
+                if *lease.Spec.HolderIdentity == id </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+                <span class="cov0" title="0">names = append(names, lease.GetName())</span>
+        }
+
+        <span class="cov6" title="11">i := 0
+        key := fmt.Sprintf(keyformat, group)
+
+        name := key + strconv.Itoa(i)
+        for slices.Contains(names, name) </span><span class="cov0" title="0">{
+                i++
+                name = key + strconv.Itoa(i)
+        }</span>
+
+        <span class="cov6" title="11">lease := &amp;coordv1.Lease{
+                ObjectMeta: metav1.ObjectMeta{
+                        Namespace: k.namespace,
+                        Name:      name,
+                },
+                Spec: coordv1.LeaseSpec{
+                        HolderIdentity: &amp;id,
+                },
+        }
+        _, err = k.client.Leases(k.namespace).Create(context.Background(), lease, metav1.CreateOptions{})
+
+        return err</span>
+}
+
+// Returns the current number of locks for the given group
+func (k *KubernetesBackend) GetLocks(group string) (int, error) <span class="cov1" title="1">{
+        leases, err := k.getLeasesForGroup(group)
+        return len(leases), err
+}</span>
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (k *KubernetesBackend) Release(group string, id string) error <span class="cov0" title="0">{
+        leases, err := k.getLeasesForGroup(group)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">for _, lease := range leases </span><span class="cov0" title="0">{
+                if *lease.Spec.HolderIdentity == id </span><span class="cov0" title="0">{
+                        return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Return all locks older than x
+func (k *KubernetesBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("not implemented")</span> // TODO: Implement
+}
+
+// Check if a given id already has a lock for this group
+func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) <span class="cov0" title="0">{
+        leases, err := k.getLeasesForGroup(group)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov0" title="0">for _, lease := range leases </span><span class="cov0" title="0">{
+                if *lease.Spec.HolderIdentity == id </span><span class="cov0" title="0">{
+                        return true, nil
+                }</span>
+        }
+        <span class="cov0" title="0">return false, nil</span>
+}
+
+// Calls all necessary finalization if necessary
+func (k *KubernetesBackend) Close() error <span class="cov0" title="0">{
+        return nil
+}</span>
+
+func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, error) <span class="cov6" title="12">{
+        // Kubernetes names do not allow uppercase
+        group = strings.ToLower(group)
+        leases, err := k.client.Leases(k.namespace).List(context.Background(), metav1.ListOptions{})
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov6" title="12">matcher, err := regexp.Compile(fmt.Sprintf(keyformat, group) + "\\d+$")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov6" title="12">result := make([]coordv1.Lease, 0)
+
+        for _, lease := range leases.Items </span><span class="cov10" title="55">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov1" title="1">{
+                        result = append(result, lease)
+                }</span>
+        }
+        <span class="cov6" title="12">return result, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file24" style="display: none">package memory
+
+import (
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/errors"
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+)
+
+type MemoryBackend struct {
+        // This map will be assumed to be read-only after creation
+        groups map[string]*group
+}
+
+type group struct {
+        slots []lock
+}
+
+type lock struct {
+        id      string
+        created time.Time
+}
+
+const initialArraySize = 10
+
+func NewMemoryBackend(groups []string) *MemoryBackend <span class="cov8" title="9">{
+        g := make(map[string]*group)
+
+        for _, groupName := range groups </span><span class="cov8" title="9">{
+                // Pre-reserve some slots
+                g[groupName] = &amp;group{
+                        slots: make([]lock, 0, initialArraySize),
+                }
+        }</span>
+
+        <span class="cov8" title="9">return &amp;MemoryBackend{
+                groups: g,
+        }</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov6" title="4">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                // All groups should be initialized at the beginning
+                return errors.NewErrorUnknownGroup(group)
+        }</span>
+
+        <span class="cov6" title="4">if g.hasLock(id) </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov6" title="4">lock := lock{
+                id:      id,
+                created: time.Now(),
+        }
+        g.slots = append(g.slots, lock)
+
+        return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="9">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                return 0, nil
+        }</span>
+
+        <span class="cov8" title="9">return len(g.slots), nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (m *MemoryBackend) Release(group string, id string) error <span class="cov3" title="2">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov3" title="2">var i int
+        var l lock
+        for i, l = range g.slots </span><span class="cov1" title="1">{
+                if l.id == id </span><span class="cov1" title="1">{
+                        break</span>
+                }
+        }
+        <span class="cov3" title="2">if len(g.slots) &gt; 1 </span><span class="cov0" title="0">{
+                g.slots[i] = g.slots[len(g.slots)-1]
+                g.slots = g.slots[:len(g.slots)-1]
+        }</span> else<span class="cov3" title="2"> {
+                g.slots = g.slots[:0]
+        }</span>
+
+        <span class="cov3" title="2">return nil</span>
+}
+
+// Return all locks older than x
+func (m *MemoryBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("TODO")</span>
+}
+
+// Check if a given id already has a lock for this group
+func (m *MemoryBackend) HasLock(group, id string) (bool, error) <span class="cov8" title="8">{
+        g := m.groups[group]
+        if g == nil </span><span class="cov0" title="0">{
+                // All groups should be initialized at the beginning
+                return false, errors.NewErrorUnknownGroup(group)
+        }</span>
+        <span class="cov8" title="8">return g.hasLock(id), nil</span>
+}
+
+// Calls all necessary finalization if necessary
+func (m *MemoryBackend) Close() error <span class="cov0" title="0">{
+        return nil
+}</span>
+
+func (g *group) hasLock(id string) bool <span class="cov10" title="12">{
+        for _, lock := range g.slots </span><span class="cov7" title="6">{
+                if id == lock.id </span><span class="cov3" title="2">{
+                        return true
+                }</span>
+        }
+        <span class="cov9" title="10">return false</span>
+}
+</pre>
+		
+		<pre class="file" id="file25" style="display: none">package mongodb
+
+import (
+        "context"
+        "fmt"
+        "log/slog"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        "go.mongodb.org/mongo-driver/v2/mongo"
+        "go.mongodb.org/mongo-driver/v2/mongo/options"
+)
+
+const DEFAULT_DATABASE = "fleetlock"
+
+type MongoDBBackend struct {
+        client   *mongo.Client
+        database string
+}
+
+type MongoDBConfig struct {
+        URL      string `json:"url,omitempty"`
+        Database string `json:"database,omitempty"`
+}
+
+type MongoLock struct {
+        ID      string    `bson:"_id,omitempty"`
+        Created time.Time `bson:"created,omitempty"`
+}
+
+func NewMongoDBBackend(cfg MongoDBConfig) (*MongoDBBackend, error) <span class="cov8" title="1">{
+        if cfg.Database == "" </span><span class="cov8" title="1">{
+                cfg.Database = DEFAULT_DATABASE
+        }</span>
+
+        <span class="cov8" title="1">timeout := time.Second * 5
+
+        opts := options.Client()
+        opts.ConnectTimeout = &amp;timeout
+        opts.Timeout = &amp;timeout
+        opts.ApplyURI(cfg.URL)
+
+        c, err := mongo.Connect(opts)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to create mongodb client: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">err = c.Ping(context.Background(), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to connect to mongodb: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">slog.Debug("Opened connection to mongodb", slog.String("database", cfg.Database))
+
+        return &amp;MongoDBBackend{
+                client:   c,
+                database: cfg.Database,
+        }, nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (m *MongoDBBackend) Reserve(group string, id string) error <span class="cov0" title="0">{
+        coll := m.client.Database(m.database).Collection(group)
+
+        newObj := MongoLock{
+                ID:      id,
+                Created: time.Now(),
+        }
+
+        _, err := coll.InsertOne(context.Background(), newObj)
+        return err
+}</span>
+
+// Returns the current number of locks for the given group
+func (m *MongoDBBackend) GetLocks(group string) (int, error) <span class="cov0" title="0">{
+        coll := m.client.Database(m.database).Collection(group)
+        count, err := coll.CountDocuments(context.Background(), MongoLock{})
+        return int(count), err
+}</span>
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (m *MongoDBBackend) Release(group string, id string) error <span class="cov0" title="0">{
+        coll := m.client.Database(m.database).Collection(group)
+
+        filter := MongoLock{
+                ID: id,
+        }
+        _, err := coll.DeleteOne(context.Background(), filter)
+
+        return err
+}</span>
+
+// Return all locks older than x
+func (m *MongoDBBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("not implemented")</span> // TODO: Implement
+}
+
+// Check if a given id already has a lock for this group
+func (m *MongoDBBackend) HasLock(group string, id string) (bool, error) <span class="cov0" title="0">{
+        coll := m.client.Database(m.database).Collection(group)
+
+        filter := MongoLock{
+                ID: id,
+        }
+        res := coll.FindOne(context.Background(), filter)
+
+        switch res.Err() </span>{
+        case mongo.ErrNoDocuments:<span class="cov0" title="0">
+                return false, nil</span>
+        case nil:<span class="cov0" title="0">
+                return true, nil</span>
+        default:<span class="cov0" title="0">
+                return false, res.Err()</span>
+        }
+}
+
+// Calls all necessary finalization if necessary
+func (m *MongoDBBackend) Close() error <span class="cov0" title="0">{
+        return m.client.Disconnect(context.Background())
+}</span>
+</pre>
+		
+		<pre class="file" id="file26" style="display: none">package sql
+
+import (
+        "database/sql"
+        "fmt"
+
+        _ "github.com/go-sql-driver/mysql"
+)
+
+type MySQLConfig struct {
+        Address  string `json:"address"`
+        Username string `json:"username"`
+        Password string `json:"password"`
+        Database string `json:"database"`
+        Options  string `json:"options,omitempty"`
+}
+
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov8" title="1">{
+        connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+
+        db, err := sql.Open("mysql", connStr)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to open mysql database: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = db.Ping()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to ping mysql database: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">s := &amp;SQLBackend{
+                databaseType: "mysql",
+                db:           db,
+        }
+
+        err = s.init()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize database: %w", err)
+        }</span>
+        <span class="cov0" title="0">return s, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file27" style="display: none">package sql
+
+import (
+        "database/sql"
+        "fmt"
+
+        _ "github.com/jackc/pgx/v5/stdlib"
+)
+
+const (
+        postgresReserve = `INSERT INTO locks (group_name, id, created)
+                SELECT $1,$2,$3
+                WHERE NOT EXISTS (
+                        SELECT 1 FROM locks WHERE group_name=$4 AND id=$5
+                );`
+
+        postgresGetLocks = `SELECT COUNT(*) FROM (
+                        SELECT id FROM locks WHERE group_name=$1
+                ) AS TMP;`
+
+        postgresRelease = "DELETE FROM locks WHERE group_name=$1 AND id=$2;"
+
+        postgresHasLock = "SELECT 1 FROM locks WHERE group_name=$1 AND id=$2;"
+)
+
+type PostgresConfig struct {
+        Address  string `json:"address"`
+        Username string `json:"username"`
+        Password string `json:"password"`
+        Database string `json:"database"`
+        Options  string `json:"options,omitempty"`
+}
+
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov8" title="1">{
+        connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+
+        db, err := sql.Open("pgx", "postgres://"+connStr)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to open postgres database: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">err = db.Ping()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to ping postgres database: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">s := &amp;SQLBackend{
+                databaseType: "postgres",
+                db:           db,
+        }
+
+        err = s.init()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize database: %w", err)
+        }</span>
+        <span class="cov0" title="0">return s, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file28" style="display: none">package sql
+
+import (
+        "database/sql"
+        "fmt"
+
+        _ "modernc.org/sqlite"
+)
+
+type SQLiteConfig struct {
+        File string `json:"file"`
+}
+
+func NewSQLiteBackend(cfg SQLiteConfig) (*SQLBackend, error) <span class="cov10" title="2">{
+        db, err := sql.Open("sqlite", cfg.File)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to open sqlite database: %w", err)
+        }</span>
+
+        <span class="cov10" title="2">db.SetMaxOpenConns(1)
+
+        err = db.Ping()
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to \"ping\" sqlite database: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">s := &amp;SQLBackend{
+                databaseType: "sqlite",
+                db:           db,
+        }
+
+        err = s.init()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize database: %w", err)
+        }</span>
+        <span class="cov1" title="1">return s, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file29" style="display: none">package sql
+
+import (
+        "database/sql"
+        "fmt"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        _ "modernc.org/sqlite"
+)
+
+const (
+        stmtCreateTable = `CREATE TABLE IF NOT EXISTS locks (
+        group_name VARCHAR(100) NOT NULL,
+        id VARCHAR(100) NOT NULL,
+        created TIMESTAMP NOT NULL,
+        PRIMARY KEY (group_name,id)
+        );`
+
+        stmtReserve = `INSERT INTO locks (group_name, id, created)
+                SELECT ?,?,?
+                WHERE NOT EXISTS (
+                        SELECT 1 FROM locks WHERE group_name=? AND id=?
+                );`
+
+        stmtGetLocks = `SELECT COUNT(*) FROM (
+                        SELECT id FROM locks WHERE group_name=?
+                ) AS TMP;`
+
+        stmtRelease = "DELETE FROM locks WHERE group_name=? AND id=?;"
+
+        stmtHasLock = "SELECT 1 FROM locks WHERE group_name=? AND id=?;"
+)
+
+type SQLBackend struct {
+        databaseType string
+
+        db *sql.DB
+
+        reserve  *sql.Stmt
+        getLocks *sql.Stmt
+        release  *sql.Stmt
+        hasLock  *sql.Stmt
+}
+
+func (s *SQLBackend) init() error <span class="cov8" title="1">{
+        var reserve, get, release, has string
+        switch s.databaseType </span>{
+        case "postgres":<span class="cov0" title="0">
+                reserve = postgresReserve
+                get = postgresGetLocks
+                release = postgresRelease
+                has = postgresHasLock</span>
+        default:<span class="cov8" title="1">
+                reserve = stmtReserve
+                get = stmtGetLocks
+                release = stmtRelease
+                has = stmtHasLock</span>
+        }
+
+        <span class="cov8" title="1">_, err := s.db.Exec(stmtCreateTable)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create lock table: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">s.reserve, err = s.db.Prepare(reserve)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to prepare reserve statement: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">s.getLocks, err = s.db.Prepare(get)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to prepare getLocks statement: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">s.release, err = s.db.Prepare(release)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to prepare release statement: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">s.hasLock, err = s.db.Prepare(has)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to prepare hasLock statement: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (s *SQLBackend) Reserve(group string, id string) error <span class="cov0" title="0">{
+        _, err := s.reserve.Exec(group, id, time.Now(), group, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to reserve lock: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (s *SQLBackend) GetLocks(group string) (int, error) <span class="cov0" title="0">{
+        rows, err := s.getLocks.Query(group)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("failed to run getLocks query: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+
+        if !rows.Next() </span><span class="cov0" title="0">{
+                err = rows.Err()
+                if err != nil </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("failed to read rows from getLocks result: %w", err)
+                }</span>
+                <span class="cov0" title="0">return 0, err</span>
+        }
+
+        <span class="cov0" title="0">var count int
+        err = rows.Scan(&amp;count)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("failed to read next row from getLocks result: %w", err)
+        }</span>
+        <span class="cov0" title="0">return count, nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (s *SQLBackend) Release(group string, id string) error <span class="cov0" title="0">{
+        _, err := s.release.Exec(group, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to release lock: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Return all locks older than x
+func (s *SQLBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("TODO")</span>
+}
+
+// Check if a given id already has a lock for this group
+func (s *SQLBackend) HasLock(group, id string) (bool, error) <span class="cov0" title="0">{
+        rows, err := s.hasLock.Query(group, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, fmt.Errorf("failed to run hasLocks query: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+
+        res := rows.Next()
+        err = rows.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                err = fmt.Errorf("failed to read rows from hasLocks result: %w", err)
+        }</span>
+        <span class="cov0" title="0">return res, err</span>
+}
+
+// Calls all necessary finalization if necessary
+func (s *SQLBackend) Close() error <span class="cov0" title="0">{
+        return s.db.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file30" style="display: none">package sql
+
+func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="2">{
+        var connStr string
+        if username != "" </span><span class="cov0" title="0">{
+                connStr += username
+                if password != "" </span><span class="cov0" title="0">{
+                        connStr += ":" + password
+                }</span>
+                <span class="cov0" title="0">connStr += "@"</span>
+        }
+        <span class="cov10" title="2">connStr += address + "/" + database
+        if options != "" </span><span class="cov0" title="0">{
+                connStr += "?" + options
+        }</span>
+
+        <span class="cov10" title="2">return connStr</span>
+}
+</pre>
+		
+		<pre class="file" id="file31" style="display: none">package valkey
+
+import (
+        "context"
+        "crypto/tls"
+        "log/slog"
+        "net"
+        "slices"
+        "strings"
+        "sync"
+        "time"
+
+        "github.com/valkey-io/valkey-go"
+)
+
+const loadbalancerHealtchCheckPeriod = time.Second * 10
+
+type loadbalancer struct {
+        // List of addresses for valkey endpoints
+        addrs []string
+        // Options for connecting to valkey
+        options valkey.ClientOption
+        // Context to cancle health check
+        ctx    context.Context
+        cancel context.CancelFunc
+
+        client   valkey.Client
+        selected int
+        rwlock   sync.RWMutex
+}
+
+// Create a new valkey client with loadbalanced connections
+func NewValkeyLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalancer, error) <span class="cov5" title="3">{
+        opt.ForceSingleClient = true
+
+        ctx, cancel := context.WithCancel(context.Background())
+        lb := &amp;loadbalancer{
+                addrs:   opt.InitAddress,
+                options: opt,
+                ctx:     ctx,
+                cancel:  cancel,
+        }
+
+        opt.DialFn = lb.DialFn
+
+        client, err := valkey.NewClient(opt)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, err
+        }</span>
+
+        <span class="cov5" title="3">lb.client = client
+        lb.PeriodicHealthCheck()
+
+        return client, lb, nil</span>
+}
+
+// Determine the first healthy master node
+func (lb *loadbalancer) HealthCheck() <span class="cov7" title="5">{
+        found := false
+
+        for i, addr := range lb.addrs </span><span class="cov10" title="9">{
+                opt := lb.options
+                opt.InitAddress = []string{addr}
+
+                client, err := valkey.NewClient(opt)
+                if err != nil </span><span class="cov8" title="6">{
+                        slog.Debug("Endpoint down", slog.String("addr", addr), "err", err)
+                        continue</span>
+                }
+                <span class="cov5" title="3">defer client.Close()
+
+                cmdInfo := client.B().Info().Build()
+                res, err := client.Do(context.Background(), cmdInfo).ToString()
+                if err != nil </span><span class="cov0" title="0">{
+                        slog.Error("Failed to get endpoint info", slog.String("addr", addr), "err", err)
+                        continue</span>
+                }
+                <span class="cov5" title="3">s := strings.Split(res, "\r\n")
+                if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") </span><span class="cov3" title="2">{
+                        lb.rwlock.Lock()
+                        defer lb.rwlock.Unlock()
+
+                        if lb.selected != i </span><span class="cov1" title="1">{
+                                lb.selected = i
+                                slog.Info("Failed over to new database", slog.String("addr", addr))
+                                // valkey keeps a connection. Try to ping it to ensure it gets terminated and the next try will be a new connection
+                                _ = lb.client.Do(context.Background(), client.B().Ping().Build())
+                        }</span>
+
+                        <span class="cov3" title="2">found = true
+                        break</span>
+                }
+        }
+
+        <span class="cov7" title="5">if found </span><span class="cov3" title="2">{
+                slog.Info("Could not connect to any valkey database, all connections are down")
+        }</span>
+}
+
+// Starts go-routine that periodically runs a healthcheck in the background
+func (lb *loadbalancer) PeriodicHealthCheck() <span class="cov5" title="3">{
+        go lb.periodicHealthCheck()
+}</span>
+
+func (lb *loadbalancer) periodicHealthCheck() <span class="cov5" title="3">{
+        for </span><span class="cov5" title="3">{
+                lb.HealthCheck()
+
+                select </span>{
+                case &lt;-lb.ctx.Done():<span class="cov5" title="3">
+                        return</span>
+                case &lt;-time.After(loadbalancerHealtchCheckPeriod):<span class="cov0" title="0"></span>
+                }
+        }
+}
+
+func (lb *loadbalancer) DialFn(_ string, dialer *net.Dialer, cfg *tls.Config) (conn net.Conn, err error) <span class="cov6" title="4">{
+        lb.rwlock.RLock()
+        defer lb.rwlock.RUnlock()
+        dst := lb.addrs[lb.selected]
+
+        if cfg != nil </span><span class="cov0" title="0">{
+                return tls.DialWithDialer(dialer, "tcp", dst, cfg)
+        }</span>
+        <span class="cov6" title="4">return dialer.Dial("tcp", dst)</span>
+}
+
+func (lb *loadbalancer) Close() <span class="cov5" title="3">{
+        lb.cancel()
+}</span>
+</pre>
+		
+		<pre class="file" id="file32" style="display: none">package valkey
+
+import (
+        "context"
+        "crypto/tls"
+        "fmt"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
+        "github.com/valkey-io/valkey-go"
+)
+
+const keyformat = "group:%s,id:%s"
+
+type ValkeyBackend struct {
+        client valkey.Client
+        lb     *loadbalancer
+}
+
+type ValkeyConfig struct {
+        Addrs    []string             `json:"addresses,omitempty"`
+        Username string               `json:"username,omitempty"`
+        Password string               `json:"password,omitempty"`
+        DB       int                  `json:"db,omitempty"`
+        TLS      bool                 `json:"tls,omitempty"`
+        Sentinel ValkeySentinelConfig `json:"sentinel,omitempty"`
+}
+
+type ValkeySentinelConfig struct {
+        Enabled    bool     `json:"enabled,omitempty"`
+        MasterName string   `json:"master,omitempty"`
+        Addresses  []string `json:"addresses,omitempty"`
+        Username   string   `json:"username,omitempty"`
+        Password   string   `json:"password,omitempty"`
+}
+
+func NewValkeyBackend(cfg ValkeyConfig) (*ValkeyBackend, error) <span class="cov10" title="2">{
+        var client valkey.Client
+        var lb *loadbalancer
+        var tlsConfig *tls.Config
+
+        if cfg.TLS </span><span class="cov0" title="0">{
+                tlsConfig = &amp;tls.Config{
+                        MinVersion: tls.VersionTLS12,
+                }
+        }</span>
+
+        <span class="cov10" title="2">opt := valkey.ClientOption{
+                InitAddress: cfg.Addrs,
+                Username:    cfg.Username,
+                Password:    cfg.Password,
+                SelectDB:    cfg.DB,
+                TLSConfig:   tlsConfig,
+
+                DisableCache: true,
+        }
+
+        var err error
+        switch </span>{
+        case cfg.Sentinel.Enabled:<span class="cov0" title="0">
+                opt.Sentinel = valkey.SentinelOption{
+                        MasterSet: cfg.Sentinel.MasterName,
+                        Username:  cfg.Sentinel.Username,
+                        Password:  cfg.Sentinel.Password,
+                }
+                opt.InitAddress = cfg.Sentinel.Addresses
+
+                client, err = valkey.NewClient(opt)</span>
+        case len(cfg.Addrs) &gt; 1:<span class="cov0" title="0">
+                client, lb, err = NewValkeyLoadbalancer(opt)</span>
+        default:<span class="cov10" title="2">
+                client, err = valkey.NewClient(opt)</span>
+        }
+        <span class="cov10" title="2">if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to connect to valkey server: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">return &amp;ValkeyBackend{
+                client: client,
+                lb:     lb,
+        }, nil</span>
+}
+
+// Reserve a lock for the given group.
+// Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
+func (r *ValkeyBackend) Reserve(group string, id string) error <span class="cov0" title="0">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx := context.Background()
+
+        cmdSetNX := r.client.B().Setnx().Key(key).Value(time.Now().String()).Build()
+        cmdSAdd := r.client.B().Sadd().Key(group).Member(key).Build()
+
+        ok, err := r.client.Do(ctx, cmdSetNX).AsBool()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create key: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if ok </span><span class="cov0" title="0">{
+                err := r.client.Do(ctx, cmdSAdd).Error()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to add key to group list: %w", err)
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Returns the current number of locks for the given group
+func (r *ValkeyBackend) GetLocks(group string) (int, error) <span class="cov0" title="0">{
+        cmdSCard := r.client.B().Scard().Key(group).Build()
+        result, err := r.client.Do(context.Background(), cmdSCard).AsInt64()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("failed to get locks from database: %w", err)
+        }</span>
+        <span class="cov0" title="0">return int(result), nil</span>
+}
+
+// Release the lock currently held by the id.
+// Does not fail when no lock is held.
+func (r *ValkeyBackend) Release(group string, id string) error <span class="cov0" title="0">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx := context.Background()
+
+        cmdDel := r.client.B().Del().Key(key).Build()
+        cmdSRem := r.client.B().Srem().Key(group).Member(key).Build()
+
+        err := r.client.Do(ctx, cmdDel).Error()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to delete key in database: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = r.client.Do(ctx, cmdSRem).Error()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to remove key from group: %w", err)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Return all locks older than x
+func (r *ValkeyBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <span class="cov0" title="0">{
+        panic("not implemented")</span> // TODO: Implement
+}
+
+// Check if a given id already has a lock for this group
+func (r *ValkeyBackend) HasLock(group string, id string) (bool, error) <span class="cov0" title="0">{
+        key := fmt.Sprintf(keyformat, group, id)
+        ctx := context.Background()
+
+        cmdExists := r.client.B().Exists().Key(key).Build()
+        count, err := r.client.Do(ctx, cmdExists).AsInt64()
+        if err != nil </span><span class="cov0" title="0">{
+                return false, fmt.Errorf("failed to count keys in group: %w", err)
+        }</span>
+        <span class="cov0" title="0">return count == 1, nil</span>
+}
+
+// Calls all necessary finalization if necessary
+func (r *ValkeyBackend) Close() error <span class="cov0" title="0">{
+        if r.lb != nil </span><span class="cov0" title="0">{
+                r.lb.Close()
+        }</span>
+        <span class="cov0" title="0">r.client.Close()
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file33" style="display: none">package server
+
+import (
+        "strconv"
+)
+
+const (
+        DEFAULT_SERVER_PORT     = 8080
+        DEFAULT_SERVER_PORT_SSL = 8443
+)
+
+type ServerConfig struct {
+        Listen string    `json:"listen"`
+        SSL    SSLConfig `json:"ssl,omitempty"`
+}
+
+type SSLConfig struct {
+        Enabled bool   `json:"enabled,omitempty"`
+        Cert    string `json:"cert,omitempty"`
+        Key     string `json:"key,omitempty"`
+}
+
+// Create a default server config with
+func NewDefaultServerConfig() *ServerConfig <span class="cov10" title="18">{
+        return &amp;ServerConfig{}
+}</span>
+
+// Check if there are empty values that need to be replaced by default values
+func (cfg *ServerConfig) Defaults() <span class="cov9" title="17">{
+        if cfg.Listen == "" </span><span class="cov9" title="14">{
+                if cfg.SSL.Enabled </span><span class="cov3" title="2">{
+                        cfg.Listen = ":" + strconv.Itoa(DEFAULT_SERVER_PORT_SSL)
+                }</span> else<span class="cov8" title="12"> {
+                        cfg.Listen = ":" + strconv.Itoa(DEFAULT_SERVER_PORT)
+                }</span>
+        }
+}
+
+// Validate Server config and set default listen addr if needed
+func (cfg *ServerConfig) Validate() error <span class="cov8" title="11">{
+        if cfg.SSL.Enabled </span><span class="cov6" title="5">{
+                if cfg.SSL.Cert == "" || cfg.SSL.Key == "" </span><span class="cov4" title="3">{
+                        return ErrorIncompleteSSlConfig{}
+                }</span>
+        }
+        <span class="cov7" title="8">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file34" style="display: none">package server
+
+type ErrorIncompleteSSlConfig struct{}
+
+func (e ErrorIncompleteSSlConfig) Error() string <span class="cov0" title="0">{
+        return "SSL is enabled but either key or certificate is missing"
+}</span>
+</pre>
+		
+		<pre class="file" id="file35" style="display: none">package server
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "log/slog"
+        "net/http"
+        "regexp"
+        "strings"
+        "time"
+
+        "github.com/heathcliff26/fleetlock/pkg/api"
+        "github.com/heathcliff26/fleetlock/pkg/k8s"
+        lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
+        "github.com/heathcliff26/simple-fileserver/pkg/middleware"
+)
+
+const groupValidationPattern = "^[a-zA-Z0-9.-]+$"
+
+var groupValidationRegex = regexp.MustCompile(groupValidationPattern)
+
+type Server struct {
+        cfg *ServerConfig
+        lm  *lockmanager.LockManager
+        k8s *k8s.Client
+
+        httpServer *http.Server
+}
+
+// Create a new Server
+func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmanager.StorageConfig, k8s *k8s.Client) (*Server, error) <span class="cov4" title="2">{
+        lm, err := lockmanager.NewManager(groups, storageCfg)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">if k8s == nil </span><span class="cov0" title="0">{
+                slog.Info("No kubernetes client available, will not drain nodes")
+        }</span>
+
+        <span class="cov1" title="1">return &amp;Server{
+                cfg: cfg,
+                lm:  lm,
+                k8s: k8s,
+        }, nil</span>
+}
+
+// Main entrypoint for new requests
+func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span class="cov9" title="6">{
+        var handleFunc func(http.ResponseWriter, api.FleetLockRequest)
+        switch req.URL.String() </span>{
+        case "/v1/pre-reboot":<span class="cov1" title="1">
+                handleFunc = s.handleReserve</span>
+        case "/v1/steady-state":<span class="cov8" title="5">
+                handleFunc = s.handleRelease</span>
+        }
+
+        // Verify FleetLock header is set
+        <span class="cov9" title="6">if strings.ToLower(req.Header.Get("fleet-lock-protocol")) != "true" </span><span class="cov1" title="1">{
+                slog.Debug("Received request with missing or wrong fleet-lock-protocol header", slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgMissingFleetLockHeader)
+                return
+        }</span>
+
+        <span class="cov8" title="5">params, err := api.ParseRequest(req.Body)
+        if err != nil </span><span class="cov1" title="1">{
+                slog.Debug("Failed to parse request", "error", err, slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgRequestParseFailed)
+                return
+        }</span>
+
+        <span class="cov7" title="4">if strings.Contains(params.Client.Group, "\n") || !groupValidationRegex.MatchString(params.Client.Group) </span><span class="cov1" title="1">{
+                slog.Debug("Request contained invalid characters for group", slog.String("group", params.Client.Group), slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgInvalidGroupValue)
+                return
+        }</span>
+
+        <span class="cov6" title="3">if params.Client.ID == "" </span><span class="cov1" title="1">{
+                slog.Debug("Request did not contain an id", slog.String("remote", ReadUserIP(req)))
+                rw.WriteHeader(http.StatusBadRequest)
+                sendResponse(rw, msgEmptyID)
+                return
+        }</span>
+
+        <span class="cov4" title="2">handleFunc(rw, params)</span>
+}
+
+// Handle requests to reserve a slot
+//
+//        URL: /v1/pre-reboot
+func (s *Server) handleReserve(rw http.ResponseWriter, params api.FleetLockRequest) <span class="cov10" title="7">{
+        ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
+        if err != nil </span><span class="cov1" title="1">{
+                slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+                rw.WriteHeader(http.StatusInternalServerError)
+                sendResponse(rw, msgUnexpectedError)
+                return
+        }</span>
+
+        <span class="cov9" title="6">if ok </span><span class="cov8" title="5">{
+                slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+                if s.k8s != nil &amp;&amp; !s.drainNode(rw, params) </span><span class="cov1" title="1">{
+                        return
+                }</span>
+                <span class="cov7" title="4">sendResponse(rw, msgSuccess)</span>
+        } else<span class="cov1" title="1"> {
+                slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+                rw.WriteHeader(http.StatusLocked)
+                sendResponse(rw, msgSlotsFull)
+        }</span>
+}
+
+// Handle requests to release a slot
+//
+//        URL: /v1/steady-state
+func (s *Server) handleRelease(rw http.ResponseWriter, params api.FleetLockRequest) <span class="cov6" title="3">{
+        if s.k8s != nil &amp;&amp; !s.uncordonNode(rw, params) </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov6" title="3">err := s.lm.Release(params.Client.Group, params.Client.ID)
+        if err != nil </span><span class="cov1" title="1">{
+                slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+                rw.WriteHeader(http.StatusInternalServerError)
+                sendResponse(rw, msgUnexpectedError)
+                return
+        }</span>
+        <span class="cov4" title="2">slog.Info("Released slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+        sendResponse(rw, msgSuccess)</span>
+}
+
+// Drain the node after reservation and before sending success to api.
+// Requires k8s client to be non-nil.
+func (s *Server) drainNode(rw http.ResponseWriter, params api.FleetLockRequest) bool <span class="cov6" title="3">{
+        node, ok := s.matchNodeToId(rw, params)
+        if node == "" </span><span class="cov1" title="1">{
+                return ok
+        }</span>
+
+        <span class="cov4" title="2">drained, err := s.k8s.IsDrained(node)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Could not check if node has been drained", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+                rw.WriteHeader(http.StatusInternalServerError)
+                sendResponse(rw, msgUnexpectedError)
+                return false
+        }</span>
+        <span class="cov4" title="2">if drained </span><span class="cov1" title="1">{
+                slog.Info("Node is drained, client can continue", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+                return true
+        }</span>
+
+        <span class="cov1" title="1">go func() </span><span class="cov1" title="1">{
+                err := s.k8s.DrainNode(node)
+                if err != nil </span><span class="cov0" title="0">{
+                        slog.Error("Failed to drain node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+                }</span> else<span class="cov1" title="1"> {
+                        slog.Info("Node finished draining, waiting for client to call again", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+                }</span>
+        }()
+
+        <span class="cov1" title="1">rw.WriteHeader(http.StatusAccepted)
+        sendResponse(rw, msgWaitingForNodeDrain)
+        return false</span>
+}
+
+// Uncordon the node before release.
+// Requires k8s client to be non-nil.
+func (s *Server) uncordonNode(rw http.ResponseWriter, params api.FleetLockRequest) bool <span class="cov4" title="2">{
+        node, ok := s.matchNodeToId(rw, params)
+        if node == "" </span><span class="cov1" title="1">{
+                return ok
+        }</span>
+
+        <span class="cov1" title="1">err := s.k8s.UncordonNode(node)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to uncordon node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+                rw.WriteHeader(http.StatusInternalServerError)
+                sendResponse(rw, msgUnexpectedError)
+                return false
+        }</span>
+        <span class="cov1" title="1">slog.Info("Uncordoned node", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
+        return true</span>
+}
+
+func (s *Server) matchNodeToId(rw http.ResponseWriter, params api.FleetLockRequest) (string, bool) <span class="cov8" title="5">{
+        node, err := s.k8s.FindNodeByZincatiID(params.Client.ID)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("An error occured when matching client id to node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+                rw.WriteHeader(http.StatusInternalServerError)
+                sendResponse(rw, msgUnexpectedError)
+                return "", false
+        }</span>
+
+        <span class="cov8" title="5">if node == "" </span><span class="cov4" title="2">{
+                slog.Info("Did not find a matching node for id", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+        }</span>
+
+        <span class="cov8" title="5">return node, true</span>
+}
+
+// Return a health status of the server
+// URL: /healthz
+func (s *Server) handleHealthCheck(rw http.ResponseWriter, _ *http.Request) <span class="cov1" title="1">{
+        rw.Header().Set("Content-Type", "application/json")
+        status := api.FleetlockHealthResponse{
+                Status: "ok",
+        }
+        sendResponse(rw, status)
+}</span>
+
+// Prepare the http server for usage.
+// This is in a separate function to allow testing the handler without running the server.
+func (s *Server) createHTTPServer() <span class="cov1" title="1">{
+        router := http.NewServeMux()
+        router.HandleFunc("POST /v1/pre-reboot", s.requestHandler)
+        router.HandleFunc("POST /v1/steady-state", s.requestHandler)
+        router.HandleFunc("GET /healthz", s.handleHealthCheck)
+
+        s.httpServer = &amp;http.Server{
+                Addr:         s.cfg.Listen,
+                Handler:      middleware.Logging(router),
+                ReadTimeout:  10 * time.Second,
+                WriteTimeout: 10 * time.Second,
+        }
+}</span>
+
+// Starts the server and exits with error if that fails
+func (s *Server) Run() error <span class="cov0" title="0">{
+        if s.httpServer != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("server already started")
+        }</span>
+
+        <span class="cov0" title="0">s.createHTTPServer()
+        defer func() </span><span class="cov0" title="0">{
+                s.httpServer = nil
+        }</span>()
+
+        <span class="cov0" title="0">var err error
+        if s.cfg.SSL.Enabled </span><span class="cov0" title="0">{
+                slog.Info("Starting server with SSL", slog.String("address", s.cfg.Listen))
+                err = s.httpServer.ListenAndServeTLS(s.cfg.SSL.Cert, s.cfg.SSL.Key)
+        }</span> else<span class="cov0" title="0"> {
+                slog.Info("Starting server", slog.String("address", s.cfg.Listen))
+                err = s.httpServer.ListenAndServe()
+        }</span>
+        // This just means the server was closed after running
+        <span class="cov0" title="0">if errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+                slog.Info("Server closed, exiting")
+                return nil
+        }</span>
+        <span class="cov0" title="0">return fmt.Errorf("failed to start server: %w", err)</span>
+}
+
+func (s *Server) Shutdown() error <span class="cov4" title="2">{
+        if s.httpServer == nil </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov1" title="1">slog.Info("Shutting down server")
+        err := s.httpServer.Shutdown(context.Background())
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to shutdown server: %w", err)
+        }</span>
+        <span class="cov1" title="1">slog.Info("Server shutdown complete")
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file36" style="display: none">package server
+
+import (
+        "encoding/json"
+        "log/slog"
+        "net/http"
+)
+
+func ReadUserIP(req *http.Request) string <span class="cov5" title="4">{
+        IPAddress := req.Header.Get("x-real-ip")
+        if IPAddress == "" </span><span class="cov5" title="4">{
+                IPAddress = req.Header.Get("x-forwarded-for")
+        }</span>
+        <span class="cov5" title="4">if IPAddress == "" </span><span class="cov5" title="4">{
+                IPAddress = req.RemoteAddr
+        }</span>
+        <span class="cov5" title="4">return IPAddress</span>
+}
+
+// Send a response to the writer and handle impossible parse errors
+func sendResponse(rw http.ResponseWriter, res any) <span class="cov10" title="15">{
+        b, err := json.MarshalIndent(res, "", "  ")
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to create Response", "err", err)
+                return
+        }</span>
+
+        <span class="cov10" title="15">_, err = rw.Write(b)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to send response to client", "err", err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file37" style="display: none">package systemdutils
+
+import (
+        "crypto/hmac"
+        "crypto/sha256"
+        "encoding/hex"
+        "fmt"
+        "strings"
+)
+
+// https://github.com/coreos/zincati/blob/main/src/identity/mod.rs
+const ZincatiAppID = "de35106b6ec24688b63afddaa156679b"
+
+// Derive the local app id for zincati from the machine id
+func ZincatiMachineID(machineID string) (string, error) <span class="cov9" title="25">{
+        return AppSpecificID(machineID, ZincatiAppID)
+}</span>
+
+// Derive the machine specific app id from a given apps id and the local machine id
+func AppSpecificID(machineID, appID string) (string, error) <span class="cov10" title="27">{
+        // Remove any UUID dash formatting
+        machineID = strings.ReplaceAll(machineID, "-", "")
+
+        machineBytes, err := hex.DecodeString(machineID)
+        if err != nil </span><span class="cov1" title="1">{
+                return "", err
+        }</span>
+        <span class="cov9" title="26">appBytes, err := hex.DecodeString(appID)
+        if err != nil </span><span class="cov1" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov9" title="25">mac := hmac.New(sha256.New, machineBytes)
+        mac.Write(appBytes)
+        sum := mac.Sum(nil)
+
+        // UUID v4 settings
+        // https://docs.rs/libsystemd/0.3.1/src/libsystemd/id128.rs.html#52-54
+        // https://github.com/systemd/systemd/blob/5a7eb46c0206411d380543021291b4bca0b6f59f/src/libsystemd/sd-id128/id128-util.c#L199
+        sum[6] = (sum[6] &amp; 0x0F) | 0x40
+        sum[8] = (sum[8] &amp; 0x3F) | 0x80
+
+        id := string(sum)[:16]
+        return fmt.Sprintf("%x", id), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file38" style="display: none">package version
+
+import (
+        "runtime"
+        "runtime/debug"
+
+        "github.com/spf13/cobra"
+)
+
+// Create a new version command with the given app name
+func NewCommand(name string) *cobra.Command <span class="cov4" title="3">{
+        cmd := &amp;cobra.Command{
+                Use:   "version",
+                Short: "Print version information and exit",
+                Run: func(cmd *cobra.Command, args []string) </span><span class="cov0" title="0">{
+                        cmd.Print(VersionInfoString(name))
+                }</span>,
+        }
+        // Override to prevent parent function from running
+        <span class="cov4" title="3">cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) </span>{<span class="cov0" title="0">}</span>
+
+        <span class="cov4" title="3">return cmd</span>
+}
+
+// Return the version string
+func Version() string <span class="cov1" title="1">{
+        buildinfo, _ := debug.ReadBuildInfo()
+        return buildinfo.Main.Version
+}</span>
+
+// Return a formated string containing the version, git commit and go version the app was compiled with.
+func VersionInfoString(name string) string <span class="cov1" title="1">{
+        var commit string
+        buildinfo, _ := debug.ReadBuildInfo()
+        for _, item := range buildinfo.Settings </span><span class="cov10" title="12">{
+                if item.Key == "vcs.revision" </span><span class="cov0" title="0">{
+                        commit = item.Value
+                        break</span>
+                }
+        }
+        <span class="cov1" title="1">if len(commit) &gt; 7 </span><span class="cov0" title="0">{
+                commit = commit[:7]
+        }</span> else<span class="cov1" title="1"> if commit == "" </span><span class="cov1" title="1">{
+                commit = "Unknown"
+        }</span>
+
+        <span class="cov1" title="1">result := name + ":\n"
+        result += "    Version: " + buildinfo.Main.Version + "\n"
+        result += "    Commit:  " + commit + "\n"
+        result += "    Go:      " + runtime.Version() + "\n"
+
+        return result</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
