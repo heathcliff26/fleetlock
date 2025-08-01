@@ -1,7 +1,7 @@
 ###############################################################################
 # BEGIN build-stage
 # Compile the binary
-FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.24.5@sha256:ef5b4be1f94b36c90385abd9b6b4f201723ae28e71acacb76d00687333c17282 AS build-stage
+FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.24.5 AS build-stage
 
 ARG BUILDPLATFORM
 ARG TARGETARCH
@@ -17,26 +17,13 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh fleetlock
 ###############################################################################
 
 ###############################################################################
-# BEGIN combine-stage
-# Combine all outputs, to enable single layer copy for the final image
-FROM scratch AS combine-stage
-
-COPY --from=build-stage /app/bin/fleetlock /
-
-COPY --from=build-stage /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-#
-# END combine-stage
-###############################################################################
-
-###############################################################################
 # BEGIN final-stage
 # Create final docker image
-FROM scratch AS final-stage
+FROM docker.io/library/alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 AS final-stage
 
 WORKDIR /
 
-COPY --from=combine-stage / /
+COPY --from=build-stage /app/bin/fleetlock /
 
 USER 1001
 
