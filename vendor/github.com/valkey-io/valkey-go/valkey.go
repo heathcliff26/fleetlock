@@ -9,12 +9,38 @@ import (
 	"errors"
 	"math"
 	"net"
+	"os"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/valkey-io/valkey-go/internal/util"
 )
+
+const (
+	queueTypeEnvVar = "RUEIDIS_QUEUE_TYPE"
+)
+
+// queue types.
+// queue type defines the type of queue implementation to use for command pipelining
+// If you want to use the ring buffer, you can set the "RUEIDIS_QUEUE_TYPE" environment variable to "ring" or empty string.
+// If you want to use the flow buffer, you can set the "RUEIDIS_QUEUE_TYPE" environment variable to "flowbuffer".
+const (
+	// QueueTypeRing uses the default ring buffer with mutex/condition variables
+	// This provides the best raw performance with atomic operations and condition variables
+	// but does not support context cancellation when the buffer is full
+	queueTypeRing = "ring"
+	// QueueTypeFlowBuffer uses a channel-based lock-free implementation
+	// This provides context cancellation support even when the buffer is full
+	// but is slower than QueueTypeRing and requires more memory
+	queueTypeFlowBuffer = "flowbuffer"
+)
+
+var queueTypeFromEnv string
+
+func init() {
+	queueTypeFromEnv = os.Getenv(queueTypeEnvVar)
+}
 
 const (
 	// DefaultCacheBytes is the default value of ClientOption.CacheSizeEachConn, which is 128 MiB
@@ -98,6 +124,7 @@ type ClientOption struct {
 	// Only used when DisableRetry is false.
 	RetryDelay RetryDelayFn
 
+	// Deprecated: use ReadNodeSelector instead.
 	// ReplicaSelector selects a replica node when `SendToReplicas` returns true.
 	// If the function is set, the client will send the selected command to the replica node.
 	// The Returned value is the index of the replica node in the replica slice.
@@ -108,7 +135,15 @@ type ClientOption struct {
 	// Each ReplicaInfo must not be modified.
 	// NOTE: This function can't be used with ReplicaOnly option.
 	// NOTE: This function must be used with the SendToReplicas function.
-	ReplicaSelector func(slot uint16, replicas []ReplicaInfo) int
+	ReplicaSelector func(slot uint16, replicas []NodeInfo) int
+
+	// ReadNodeSelector returns index of node selected for a read only command.
+	// If set, ReadNodeSelector is prioritized over ReplicaSelector.
+	// If the returned index is out of range, the primary node will be selected.
+	// The function is called only when SendToReplicas returns true.
+	// Each NodeInfo must not be modified.
+	// NOTE: This function can't be used with ReplicaSelector option.
+	ReadNodeSelector func(slot uint16, nodes []NodeInfo) int
 
 	// Sentinel options, including MasterSet and Auth options
 	Sentinel SentinelOption
@@ -276,11 +311,15 @@ type StandaloneOption struct {
 	ReplicaAddress []string
 }
 
-// ReplicaInfo is the information of a replica node in a valkey cluster.
-type ReplicaInfo struct {
+// NodeInfo is the information of a replica node in a valkey cluster.
+type NodeInfo struct {
+	conn conn
 	Addr string
 	AZ   string
 }
+
+// ReplicaInfo is the information of a replica node in a valkey cluster.
+type ReplicaInfo = NodeInfo
 
 type ClientMode string
 
