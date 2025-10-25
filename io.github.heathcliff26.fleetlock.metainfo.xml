@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="service">
+    <id>io.github.heathcliff26.fleetlock</id>
+
+    <name>fleetlock</name>
+    <summary>Zincati FleetLock protocol server</summary>
+
+    <metadata_license>MIT</metadata_license>
+    <project_license>Apache-2.0</project_license>
+
+    <description>
+        <p>
+            Coordinate update rollouts for Fedora CoreOS fleets using the Zincati FleetLock protocol.
+        </p>
+    </description>
+
+    <url type="homepage">https://github.com/heathcliff26/fleetlock</url>
+    <developer id="io.github.heathcliff26">
+        <name>Heathcliff</name>
+    </developer>
+
+    <launchable type="service">fleetlock.service</launchable>
+
+    <categories>
+        <category>Network</category>
+    </categories>
+</component>

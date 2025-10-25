@@ -16,3 +16,8 @@ test-deployment.yaml
 # Ignore e2e test outputs
 /logs
 tmp_fleetlock_image_fleetlock-e2e-*.tar
+
+# Packit RPM builds
+/tmp
+/x86_64
+/aarch64

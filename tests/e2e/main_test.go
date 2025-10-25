@@ -52,7 +52,13 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	imageArchive := fmt.Sprintf("tmp_fleetlock_image_%s.tar", clusterName)
+	err = os.Mkdir("tmp", 0755)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	imageArchive := fmt.Sprintf("tmp/fleetlock_image_%s.tar", clusterName)
 
 	err = utils.RunCommandWithSeperatedOutput(fmt.Sprintf("podman save -o %s localhost/fleetlock:%s", imageArchive, clusterName), os.Stdout, os.Stderr)
 	if err != nil {

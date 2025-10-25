@@ -1,0 +1,12 @@
+[Unit]
+Description=Zincati FleetLock protocol server
+After=network.target
+Wants=network-online.target
+
+[Service]
+Restart=always
+Type=simple
+ExecStart=/usr/bin/fleetlock -c /etc/fleetlock/config.yaml
+
+[Install]
+WantedBy=multi-user.target

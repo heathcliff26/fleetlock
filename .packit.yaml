@@ -1,0 +1,46 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+
+specfile_path: tmp/copr.spec
+
+packages:
+  fleetlock:
+    downstream_package_name: fleetlock
+    upstream_package_name: fleetlock
+    specfile_path: tmp/fleetlock.spec
+    actions:
+      post-upstream-clone:
+        - mkdir -p tmp
+        - cp tools/fleetlock.spec tmp/
+  fleetctl:
+    downstream_package_name: fleetctl
+    upstream_package_name: fleetctl
+    specfile_path: tmp/fleetctl.spec
+    actions:
+      post-upstream-clone:
+        - mkdir -p tmp
+        - cp tools/fleetctl.spec tmp/
+
+jobs:
+  - job: copr_build
+    trigger: pull_request
+    branch: main
+    targets:
+      - fedora-42-x86_64
+      - fedora-42-aarch64
+      - fedora-43-x86_64
+      - fedora-43-aarch64
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
+
+  - job: copr_build
+    trigger: release
+    targets:
+      - fedora-42-x86_64
+      - fedora-42-aarch64
+      - fedora-43-x86_64
+      - fedora-43-aarch64
+      - fedora-rawhide-x86_64
+      - fedora-rawhide-aarch64
+    owner: heathcliff26
+    project: cli
