@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="console-application">
+    <id>io.github.heathcliff26.fleetctl</id>
+
+    <name>fleetctl</name>
+    <summary>CLI client for fleetlock server</summary>
+
+    <metadata_license>MIT</metadata_license>
+    <project_license>Apache-2.0</project_license>
+
+    <description>
+        <p>
+            Simple CLI based client for debugging and testing fleetlock servers. Can be used to manually lock down or release a machine for maintenance.
+        </p>
+    </description>
+
+    <url type="homepage">https://github.com/heathcliff26/fleetlock</url>
+    <developer id="io.github.heathcliff26">
+        <name>Heathcliff</name>
+    </developer>
+
+    <content_rating type="oars-1.1" />
+
+    <categories>
+        <category>Network</category>
+        <category>Development</category>
+    </categories>
+
+    <provides>
+        <binary>fleetctl</binary>
+    </provides>
+</component>

@@ -52,13 +52,27 @@ manifests:
 validate:
 	hack/validate.sh
 
+# Validate the appstream metainfo file
+validate-metainfo:
+	appstreamcli validate io.github.heathcliff26.fleetlock.metainfo.xml
+	appstreamcli validate io.github.heathcliff26.fleetctl.metainfo.xml
+
 # Scan code for vulnerabilities using gosec
 gosec:
 	gosec ./...
 
+# Build rpm with code in current workdir using packit
+packit:
+	packit build locally
+
+# Build rpm of upstream code using packit + mock
+packit-mock:
+	packit build in-mock --resultdir tmp
+	rm *.src.rpm
+
 # Clean up generated files
 clean:
-	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_fleetlock_image_fleetlock-e2e-*.tar
+	hack/clean.sh
 
 # Install golangci-lint
 golangci-lint:
@@ -84,7 +98,10 @@ help:
 	fmt \
 	manifests \
 	validate \
+	validate-metainfo \
 	gosec \
+	packit \
+	packit-mock \
 	clean \
 	golangci-lint \
 	help \
