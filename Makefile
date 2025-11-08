@@ -37,7 +37,6 @@ coverprofile:
 
 # Run linter
 lint:
-	golangci-lint
 	golangci-lint run -v
 
 # Format code
@@ -74,10 +73,6 @@ packit-mock:
 clean:
 	hack/clean.sh
 
-# Install golangci-lint
-golangci-lint:
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-
 # Show this help message
 help:
 	@echo "Available targets:"
@@ -103,6 +98,5 @@ help:
 	packit \
 	packit-mock \
 	clean \
-	golangci-lint \
 	help \
 	$(NULL)
