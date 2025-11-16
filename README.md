@@ -61,7 +61,7 @@ An example configuration with documentation can be found [here](examples/config.
 Here is an example Zincati configuration file `/etc/zincati/config.d/50-updates-strategy.toml`:
 ```
 [identity]
-group = "worker"
+group = "default"
 [updates]
 strategy = "fleet_lock"
 [updates.fleet_lock]

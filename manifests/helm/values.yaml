@@ -23,9 +23,9 @@ config: |-
     groups:
       default:
         slots: 1
-      master:
+      control-plane:
         slots: 1
-      worker:
+      compute:
         slots: 1
 
 # This is for the secrets for pulling an image from a private repository.

@@ -135,17 +135,17 @@ func TestE2E(t *testing.T) {
 		assert.Equal(0, exitCode, "Should show the slot as locked")
 		assert.NoError(err, "Should show the slot as locked")
 
-		exitCode, err = execFleetctl("lock -g master -i abcdef", url)
-		assert.Equal(0, exitCode, "Should lock the slot in master group")
-		assert.NoError(err, "Should lock the slot in master group")
+		exitCode, err = execFleetctl("lock -g control-plane -i abcdef", url)
+		assert.Equal(0, exitCode, "Should lock the slot in control-plane group")
+		assert.NoError(err, "Should lock the slot in control-plane group")
 
 		exitCode, err = execFleetctl("lock -i abcdef", url)
 		assert.Equal(1, exitCode, "Should fail to lock the slot, as it is already locked")
 		assert.Error(err, "Should fail to lock the slot, as it is already locked")
 
-		exitCode, err = execFleetctl("release -g master -i abcdef", url)
-		assert.Equal(0, exitCode, "Should release the slot in master group")
-		assert.NoError(err, "Should release the slot in master group")
+		exitCode, err = execFleetctl("release -g control-plane -i abcdef", url)
+		assert.Equal(0, exitCode, "Should release the slot in control-plane group")
+		assert.NoError(err, "Should release the slot in control-plane group")
 
 		exitCode, err = execFleetctl("release", url)
 		assert.Equal(0, exitCode, "Should release the slot in default group")
