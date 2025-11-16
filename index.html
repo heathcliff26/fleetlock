@@ -2050,7 +2050,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="31">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov4" title="27">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2071,7 +2071,7 @@ func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) <span
                 return false, err
         }</span>
 
-        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="101">{
+        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="102">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov3" title="10">{
                         return true, nil
                 }</span>
@@ -2190,7 +2190,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="61">{
+        for i, l = range g.slots </span><span class="cov7" title="62">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2226,7 +2226,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="301">{
+        for _, lock := range g.slots </span><span class="cov10" title="297">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -2376,7 +2376,7 @@ type MySQLConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="9">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="10">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -2384,8 +2384,8 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
                 return nil, fmt.Errorf("failed to open mysql database: %w", err)
         }</span>
 
-        <span class="cov9" title="8">err = db.Ping()
-        if err != nil </span><span class="cov8" title="7">{
+        <span class="cov9" title="9">err = db.Ping()
+        if err != nil </span><span class="cov9" title="8">{
                 return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
@@ -2435,7 +2435,7 @@ type PostgresConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="3">{
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="2">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("pgx", "postgres://"+connStr)
@@ -2443,8 +2443,8 @@ func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="co
                 return nil, fmt.Errorf("failed to open postgres database: %w", err)
         }</span>
 
-        <span class="cov10" title="3">err = db.Ping()
-        if err != nil </span><span class="cov6" title="2">{
+        <span class="cov10" title="2">err = db.Ping()
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to ping postgres database: %w", err)
         }</span>
 
