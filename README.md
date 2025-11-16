@@ -19,6 +19,8 @@ Implements the [FleetLock protocol](https://coreos.github.io/zincati/development
   - [Examples](#examples)
     - [Zincati configuration](#zincati-configuration)
     - [Deploying to kubernetes](#deploying-to-kubernetes)
+      - [Using kubectl](#using-kubectl)
+      - [Using helm](#using-helm)
   - [Links](#links)
 
 ## Container Images
@@ -28,7 +30,8 @@ Implements the [FleetLock protocol](https://coreos.github.io/zincati/development
 | Container Registry                                                                             | Image                              |
 | ---------------------------------------------------------------------------------------------- | ---------------------------------- |
 | [Github Container](https://github.com/users/heathcliff26/packages/container/package/fleetlock) | `ghcr.io/heathcliff26/fleetlock`   |
-| [Docker Hub](https://hub.docker.com/r/heathcliff26/fleetlock)                  | `docker.io/heathcliff26/fleetlock` |
+| [Docker Hub](https://hub.docker.com/r/heathcliff26/fleetlock)                                  | `docker.io/heathcliff26/fleetlock` |
+| [Quay.io](https://quay.io/heathcliff26/fleetlock)                                              | `quay.io/heathcliff26/fleetlock`   |
 
 ### Tags
 
@@ -70,6 +73,7 @@ base_url = "http://fleetlock.example.org:8080/"
 
 ### Deploying to kubernetes
 
+#### Using kubectl
 An example deployment can be found [here](examples/deployment.yaml).
 
 To deploy it to your cluster, run:
@@ -83,6 +87,13 @@ You should edit the url to a domain of your choosing with
 ```
 kubectl -n fleetlock edit ingress fleetlock
 ```
+
+#### Using helm
+Fleetlock helm charts are released via oci repos and can be installed with:
+```
+helm install fleetlock oci://ghcr.io/heathcliff26/manifests/fleetlock --version <version>
+```
+Please use the latest version from the [releases page](https://github.com/heathcliff26/fleetlock/releases).
 
 ## Links
 
