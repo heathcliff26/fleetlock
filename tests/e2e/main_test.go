@@ -3,6 +3,7 @@ package e2e
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"sigs.k8s.io/e2e-framework/pkg/env"
@@ -28,7 +29,17 @@ func TestMain(m *testing.M) {
 	clusterName = envconf.RandomName("fleetlock-e2e", 24)
 	fleetctlBinary = envconf.RandomName("fleetctl-e2e", 24)
 
-	err := os.Chdir("../..")
+	tmpDir := filepath.Join(os.TempDir(), clusterName)
+	err := os.MkdirAll(tmpDir, 0755)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Printf("Using temporary directory %s\n", tmpDir)
+
+	os.Setenv("KUBECONFIG", filepath.Join(tmpDir, "kubeconfig"))
+
+	err = os.Chdir("../..")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -52,13 +63,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	err = os.Mkdir("tmp", 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	imageArchive := fmt.Sprintf("tmp/fleetlock_image_%s.tar", clusterName)
+	imageArchive := filepath.Join(tmpDir, "fleetlock-images.tar")
 
 	err = utils.RunCommandWithSeperatedOutput(fmt.Sprintf("podman save -o %s localhost/fleetlock:%s", imageArchive, clusterName), os.Stdout, os.Stderr)
 	if err != nil {
@@ -82,13 +87,6 @@ func TestMain(m *testing.M) {
 
 	fmt.Print("\nRunning cleanup\n\n")
 
-	fmt.Printf("Removing image archive file %s\n", imageArchive)
-	err = os.Remove(imageArchive)
-	if err != nil {
-		fmt.Printf("Failed to remove image archive %s: %v\n", imageArchive, err)
-		os.Exit(1)
-	}
-
 	fmt.Printf("Removing fleetctl binary %s\n", "bin/"+fleetctlBinary)
 	err = os.Remove("bin/" + fleetctlBinary)
 	if err != nil {
@@ -101,6 +99,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+
+	fmt.Printf("Removing temporary directory '%s'\n", tmpDir)
+	err = os.RemoveAll(tmpDir)
+	if err != nil {
+		fmt.Printf("Failed to remove temporary directory '%s': %v\n", tmpDir, err)
+		exitCode = 1
 	}
 
 	fmt.Println("")

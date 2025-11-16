@@ -129,7 +129,7 @@ func TestE2E(t *testing.T) {
 			assert.Eventually(t, func() bool {
 				res, err := http.Get(url + "/healthz")
 				if err != nil {
-					fmt.Printf("Fleetlock is not yet reachable on %s: %v", url, err)
+					fmt.Printf("Fleetlock is not yet reachable on %s: %v\n", url, err)
 					return false
 				}
 				return res.StatusCode == http.StatusOK
