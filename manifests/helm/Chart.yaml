@@ -1,0 +1,18 @@
+apiVersion: v2
+name: fleetlock
+description: A Helm chart for fleetlock - Manage upgrades to your fleet of CoreOS nodes
+type: application
+version: 0.1.0
+appVersion: "v0.1.0"
+home: https://github.com/heathcliff26/fleetlock
+maintainers:
+  - name: heathcliff26
+    email: heathcliff@heathcliff.eu
+keywords:
+  - fleetlock
+  - coreos
+  - updates
+  - fleet
+  - zincati
+sources:
+  - https://github.com/heathcliff26/fleetlock

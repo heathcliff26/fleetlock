@@ -26,3 +26,6 @@ fi
 
 echo "Check if metainfo file is valid"
 make validate-metainfo
+
+echo "Linting helm chart"
+make lint-helm
