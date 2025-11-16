@@ -39,6 +39,10 @@ coverprofile:
 lint:
 	golangci-lint run -v
 
+# Lint the helm charts
+lint-helm:
+	helm lint manifests/helm/
+
 # Format code
 fmt:
 	gofmt -s -w ./cmd ./pkg ./tests
@@ -90,6 +94,7 @@ help:
 	update-deps \
 	coverprofile \
 	lint \
+	lint-helm \
 	fmt \
 	manifests \
 	validate \

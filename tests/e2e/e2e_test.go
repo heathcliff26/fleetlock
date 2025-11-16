@@ -77,12 +77,12 @@ func TestE2E(t *testing.T) {
 					Name:      "nodeport",
 					Namespace: namespace,
 					Labels: map[string]string{
-						"app": "fleetlock",
+						"app.kubernetes.io/name": "fleetlock",
 					},
 				},
 				Spec: corev1.ServiceSpec{
 					Selector: map[string]string{
-						"app": "fleetlock",
+						"app.kubernetes.io/name": "fleetlock",
 					},
 					Type: corev1.ServiceTypeNodePort,
 					Ports: []corev1.ServicePort{

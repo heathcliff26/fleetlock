@@ -5,14 +5,26 @@ metadata:
   name: fleetlock
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fleetlock
+  namespace: fleetlock
+  labels:
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fleetlock-config
   namespace: fleetlock
   labels:
-    app: fleetlock
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
 data:
-  config.yaml: |
+  config.yaml: |-
     ---
     logLevel: info
     storage:
@@ -25,40 +37,14 @@ data:
       worker:
         slots: 1
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: fleetlock
-  namespace: fleetlock
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: fleetlock-leases
-  namespace: fleetlock
-rules:
-  - apiGroups: ["coordination.k8s.io"]
-    resources: ["leases"]
-    verbs: ["*"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: fleetlock-leases
-  namespace: fleetlock
-subjects:
-  - kind: ServiceAccount
-    name: fleetlock
-roleRef:
-  kind: Role
-  name: fleetlock-leases
-  apiGroup: rbac.authorization.k8s.io
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: fleetlock
-  namespace: fleetlock
+  labels:
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
 rules:
   - apiGroups: [""]
     resources: ["nodes"]
@@ -74,7 +60,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: fleetlock
-  namespace: fleetlock
+  labels:
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
 subjects:
   - kind: ServiceAccount
     name: fleetlock
@@ -84,27 +73,84 @@ roleRef:
   name: fleetlock
   apiGroup: rbac.authorization.k8s.io
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: fleetlock
+  namespace: fleetlock
+  labels:
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: fleetlock
+  namespace: fleetlock
+  labels:
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
+subjects:
+  - kind: ServiceAccount
+    name: fleetlock
+roleRef:
+  kind: Role
+  name: fleetlock
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fleetlock
+  namespace: fleetlock
+  labels:
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fleetlock
   namespace: fleetlock
   labels:
-    app: fleetlock
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: fleetlock
+      app.kubernetes.io/name: fleetlock
+      app.kubernetes.io/instance: fleetlock
   template:
     metadata:
       labels:
-        app: fleetlock
+        app.kubernetes.io/name: fleetlock
+        app.kubernetes.io/instance: fleetlock
+        app.kubernetes.io/version: "latest"
     spec:
       serviceAccountName: fleetlock
       containers:
         - name: fleetlock
-          image: ghcr.io/heathcliff26/fleetlock:latest
+          image: "ghcr.io/heathcliff26/fleetlock:latest"
+          imagePullPolicy: IfNotPresent
           args:
             - "-c"
             - "/config/config.yaml"
@@ -113,43 +159,26 @@ spec:
               containerPort: 8080
               protocol: TCP
           livenessProbe:
+            failureThreshold: 3
             httpGet:
-              path: "/healthz"
+              path: /healthz
               port: http
             initialDelaySeconds: 5
             periodSeconds: 5
             successThreshold: 1
-            failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: "/healthz"
+              path: /healthz
               port: http
             initialDelaySeconds: 5
             periodSeconds: 5
           volumeMounts:
             - mountPath: /config
-              name: fleetlock-config
+              name: config
       volumes:
-        - name: fleetlock-config
-          configMap:
+        - configMap:
             name: fleetlock-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: fleetlock
-  namespace: fleetlock
-  labels:
-    app: fleetlock
-spec:
-  selector:
-    app: fleetlock
-  type: ClusterIP
-  ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
-      name: http
+          name: config
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -157,10 +186,12 @@ metadata:
   name: fleetlock
   namespace: fleetlock
   labels:
-    app: fleetlock
+    app.kubernetes.io/name: fleetlock
+    app.kubernetes.io/instance: fleetlock
+    app.kubernetes.io/version: "latest"
 spec:
   rules:
-    - host: fleetlock.example.org
+    - host: "fleetlock.example.org"
       http:
         paths:
           - path: /
