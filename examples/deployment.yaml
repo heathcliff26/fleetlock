@@ -32,9 +32,9 @@ data:
     groups:
       default:
         slots: 1
-      master:
+      control-plane:
         slots: 1
-      worker:
+      compute:
         slots: 1
 ---
 apiVersion: rbac.authorization.k8s.io/v1
