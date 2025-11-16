@@ -46,12 +46,12 @@ There are different flavors of the image:
 ## Usage
 
 A simple example for testing:
-```
+```bash
 podman run -d -p 8080:8080 ghcr.io/heathcliff26/fleetlock
 ```
 
 A more advanced usage for production:
-```
+```bash
 podman run -d -p 8080:8080 -v fleetlock-data:/data -v /path/to/config.yaml:/config/config.yaml ghcr.io/heathcliff26/fleetlock --config /config/config.yaml
 ```
 
@@ -62,7 +62,7 @@ An example configuration with documentation can be found [here](examples/config.
 ### Zincati configuration
 
 Here is an example Zincati configuration file `/etc/zincati/config.d/50-updates-strategy.toml`:
-```
+```toml
 [identity]
 group = "default"
 [updates]
@@ -77,20 +77,20 @@ base_url = "http://fleetlock.example.org:8080/"
 An example deployment can be found [here](examples/deployment.yaml).
 
 To deploy it to your cluster, run:
-```
+```bash
 kubectl apply -f https://raw.githubusercontent.com/heathcliff26/fleetlock/main/examples/deployment.yaml
 ```
 
 This will deploy the app to your cluster into the namespace `fleetlock`. You can then access the app under `fleetlock.example.org`.
 
 You should edit the url to a domain of your choosing with
-```
+```bash
 kubectl -n fleetlock edit ingress fleetlock
 ```
 
 #### Using helm
 Fleetlock helm charts are released via oci repos and can be installed with:
-```
+```bash
 helm install fleetlock oci://ghcr.io/heathcliff26/manifests/fleetlock --version <version>
 ```
 Please use the latest version from the [releases page](https://github.com/heathcliff26/fleetlock/releases).
