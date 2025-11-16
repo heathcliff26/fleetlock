@@ -101,27 +101,7 @@ func TestE2E(t *testing.T) {
 				t.Fatalf("Failed to create node port: %v", err)
 			}
 
-			return ctx
-		}).
-		Assess("ip", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
-			var node corev1.Node
-			err := c.Client().Resources().Get(ctx, clusterName+"-control-plane", "", &node)
-			if err != nil {
-				t.Fatalf("Failed to get node %s: %v", clusterName+"-control-plane", err)
-			}
-
-			var nodeIP string
-			for _, addr := range node.Status.Addresses {
-				if addr.Type == corev1.NodeInternalIP {
-					nodeIP = addr.Address
-					break
-				}
-			}
-
-			if nodeIP == "" {
-				t.Fatalf("Failed to find nodes internal ip")
-			}
-			url = "http://" + nodeIP + ":" + strconv.Itoa(nodePort)
+			url = "http://localhost:" + strconv.Itoa(nodePort)
 
 			return ctx
 		}).

@@ -72,7 +72,7 @@ func TestMain(m *testing.M) {
 	}
 
 	testenv.Setup(
-		envfuncs.CreateCluster(kind.NewProvider(), clusterName),
+		envfuncs.CreateClusterWithConfig(kind.NewProvider(), clusterName, "tests/e2e/kind-config.yaml"),
 		envfuncs.LoadImageArchiveToCluster(clusterName, imageArchive),
 	)
 	testenv.Finish(
