@@ -36,21 +36,8 @@ helm template "${base_dir}/manifests/helm" \
     --namespace "${FLEETLOCK_NAMESPACE}" \
     | grep -v '# Source: fleetlock/templates/' \
     | grep -v 'helm.sh/chart: fleetlock' \
-    | grep -v 'app.kubernetes.io/managed-by: Helm' > "${deployment_file}.tmp"
-
-echo "Patching version labels"
-yq -i '
-    (
-        .metadata.labels."app.kubernetes.io/version" = env(TAG)
-    ) |
-    (
-        select(.spec.template.metadata.labels)
-        | .spec.template.metadata.labels."app.kubernetes.io/version" = env(TAG)
-    ) // .
-' "${deployment_file}.tmp"
-
-cat "${deployment_file}.tmp" >> "${deployment_file}"
-rm "${deployment_file}.tmp"
+    | grep -v 'app.kubernetes.io/managed-by: Helm' \
+    | sed "s/v0.0.0/${TAG}/g" >> "${deployment_file}"
 
 echo "Wrote manifests to ${output_dir}"
 
