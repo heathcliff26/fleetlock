@@ -2050,7 +2050,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="42">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="39">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2190,7 +2190,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="51">{
+        for i, l = range g.slots </span><span class="cov7" title="56">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2226,7 +2226,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="287">{
+        for _, lock := range g.slots </span><span class="cov10" title="284">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -2376,7 +2376,7 @@ type MySQLConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="8">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="9">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -2384,8 +2384,8 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
                 return nil, fmt.Errorf("failed to open mysql database: %w", err)
         }</span>
 
-        <span class="cov9" title="7">err = db.Ping()
-        if err != nil </span><span class="cov8" title="6">{
+        <span class="cov9" title="8">err = db.Ping()
+        if err != nil </span><span class="cov8" title="7">{
                 return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
@@ -2435,7 +2435,7 @@ type PostgresConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="2">{
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="3">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("pgx", "postgres://"+connStr)
@@ -2443,8 +2443,8 @@ func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="co
                 return nil, fmt.Errorf("failed to open postgres database: %w", err)
         }</span>
 
-        <span class="cov10" title="2">err = db.Ping()
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov10" title="3">err = db.Ping()
+        if err != nil </span><span class="cov6" title="2">{
                 return nil, fmt.Errorf("failed to ping postgres database: %w", err)
         }</span>
 
@@ -2663,21 +2663,21 @@ func (s *SQLBackend) Close() error <span class="cov2" title="3">{
 		
 		<pre class="file" id="file30" style="display: none">package sql
 
-func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="10">{
+func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="12">{
         var connStr string
-        if username != "" </span><span class="cov9" title="8">{
+        if username != "" </span><span class="cov9" title="10">{
                 connStr += username
-                if password != "" </span><span class="cov9" title="8">{
+                if password != "" </span><span class="cov9" title="10">{
                         connStr += ":" + password
                 }</span>
-                <span class="cov9" title="8">connStr += "@"</span>
+                <span class="cov9" title="10">connStr += "@"</span>
         }
-        <span class="cov10" title="10">connStr += address + "/" + database
+        <span class="cov10" title="12">connStr += address + "/" + database
         if options != "" </span><span class="cov0" title="0">{
                 connStr += "?" + options
         }</span>
 
-        <span class="cov10" title="10">return connStr</span>
+        <span class="cov10" title="12">return connStr</span>
 }
 </pre>
 		
