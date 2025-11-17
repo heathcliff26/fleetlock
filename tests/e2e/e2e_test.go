@@ -54,8 +54,8 @@ func TestE2E(t *testing.T) {
 			if err != nil || pods.Items == nil {
 				t.Fatalf("Error while getting pods: %v", err)
 			}
-			if len(pods.Items) != 2 {
-				t.Fatalf("Not enough fleetlock pods, expected 2 but got %d", len(pods.Items))
+			if len(pods.Items) != 1 {
+				t.Fatalf("Not enough fleetlock pods, expected 1 but got %d", len(pods.Items))
 			}
 			for _, pod := range pods.Items {
 				err = wait.For(conditions.New(c.Client().Resources()).PodConditionMatch(&pod, corev1.PodReady, corev1.ConditionTrue), wait.WithTimeout(time.Minute*1))

@@ -134,7 +134,7 @@ metadata:
     app.kubernetes.io/instance: fleetlock
     app.kubernetes.io/version: "latest"
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: fleetlock
