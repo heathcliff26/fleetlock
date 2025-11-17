@@ -24,7 +24,7 @@ metadata:
     app.kubernetes.io/instance: fleetlock
     app.kubernetes.io/version: "latest"
 data:
-  config.yaml: |-
+  config.yaml:   |-
     ---
     logLevel: info
     storage:
