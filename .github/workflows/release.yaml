@@ -59,3 +59,4 @@ jobs:
       release-artifacts: "release/*"
       artifacts: "{fleetctl-*,manifests}"
       prerelease: ${{ inputs.prerelease }}
+    secrets: inherit
