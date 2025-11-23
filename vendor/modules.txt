@@ -89,7 +89,7 @@ github.com/gorilla/websocket
 # github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
 ## explicit; go 1.23.0
 github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options
-# github.com/heathcliff26/simple-fileserver v1.2.14
+# github.com/heathcliff26/simple-fileserver v1.2.15
 ## explicit; go 1.24.0
 github.com/heathcliff26/simple-fileserver/pkg/middleware
 # github.com/inconshreveable/mousetrap v1.1.0
@@ -920,7 +920,7 @@ modernc.org/mathutil
 # modernc.org/memory v1.11.0
 ## explicit; go 1.23.0
 modernc.org/memory
-# modernc.org/sqlite v1.40.0
+# modernc.org/sqlite v1.40.1
 ## explicit; go 1.24.0
 modernc.org/sqlite
 modernc.org/sqlite/lib

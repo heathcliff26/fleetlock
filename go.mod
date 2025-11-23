@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/heathcliff26/simple-fileserver v1.2.14
+	github.com/heathcliff26/simple-fileserver v1.2.15
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
@@ -16,7 +16,7 @@ require (
 	k8s.io/api v0.34.2
 	k8s.io/apimachinery v0.34.2
 	k8s.io/client-go v0.34.2
-	modernc.org/sqlite v1.40.0
+	modernc.org/sqlite v1.40.1
 	sigs.k8s.io/e2e-framework v0.6.0
 	sigs.k8s.io/yaml v1.6.0
 )
