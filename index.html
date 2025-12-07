@@ -1756,17 +1756,17 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
         <span class="cov9" title="445">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov4" title="11">{
+        if err != nil || !ok </span><span class="cov4" title="12">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov9" title="434">lGroup.RWLock.Lock()
+        <span class="cov9" title="433">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov6" title="50">{
+        if err != nil || !ok </span><span class="cov6" title="49">{
                 return false, err
         }</span>
 
@@ -1774,13 +1774,13 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="879">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="878">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov10" title="879">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov10" title="878">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
 func (lm *LockManager) Release(group, id string) error <span class="cov8" title="235">{
@@ -2050,7 +2050,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="43">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="31">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2099,8 +2099,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1957">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="754">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1960">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="757">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2171,13 +2171,13 @@ func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov6
 }
 
 // Returns the current number of locks for the given group
-func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="130">{
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="129">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 return 0, nil
         }</span>
 
-        <span class="cov8" title="130">return len(g.slots), nil</span>
+        <span class="cov8" title="129">return len(g.slots), nil</span>
 }
 
 // Release the lock currently held by the id.
@@ -2190,7 +2190,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="71">{
+        for i, l = range g.slots </span><span class="cov7" title="57">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2226,7 +2226,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="290">{
+        for _, lock := range g.slots </span><span class="cov10" title="295">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -2376,7 +2376,7 @@ type MySQLConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="10">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="8">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -2384,8 +2384,8 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
                 return nil, fmt.Errorf("failed to open mysql database: %w", err)
         }</span>
 
-        <span class="cov9" title="9">err = db.Ping()
-        if err != nil </span><span class="cov9" title="8">{
+        <span class="cov9" title="7">err = db.Ping()
+        if err != nil </span><span class="cov8" title="6">{
                 return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
@@ -2435,7 +2435,7 @@ type PostgresConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="5">{
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="3">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("pgx", "postgres://"+connStr)
@@ -2443,8 +2443,8 @@ func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="co
                 return nil, fmt.Errorf("failed to open postgres database: %w", err)
         }</span>
 
-        <span class="cov10" title="5">err = db.Ping()
-        if err != nil </span><span class="cov8" title="4">{
+        <span class="cov10" title="3">err = db.Ping()
+        if err != nil </span><span class="cov6" title="2">{
                 return nil, fmt.Errorf("failed to ping postgres database: %w", err)
         }</span>
 
@@ -2663,21 +2663,21 @@ func (s *SQLBackend) Close() error <span class="cov2" title="3">{
 		
 		<pre class="file" id="file30" style="display: none">package sql
 
-func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="15">{
+func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="11">{
         var connStr string
-        if username != "" </span><span class="cov9" title="13">{
+        if username != "" </span><span class="cov9" title="9">{
                 connStr += username
-                if password != "" </span><span class="cov9" title="13">{
+                if password != "" </span><span class="cov9" title="9">{
                         connStr += ":" + password
                 }</span>
-                <span class="cov9" title="13">connStr += "@"</span>
+                <span class="cov9" title="9">connStr += "@"</span>
         }
-        <span class="cov10" title="15">connStr += address + "/" + database
+        <span class="cov10" title="11">connStr += address + "/" + database
         if options != "" </span><span class="cov0" title="0">{
                 connStr += "?" + options
         }</span>
 
-        <span class="cov10" title="15">return connStr</span>
+        <span class="cov10" title="11">return connStr</span>
 }
 </pre>
 		
