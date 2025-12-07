@@ -11,22 +11,138 @@ image:
   tag: ""
   pullPolicy: IfNotPresent
 
-# The port fleetlock listens on
-port: 8080
-
 # Configuration for fleetlock
-config: |-
-    ---
-    logLevel: info
-    storage:
-      type: kubernetes
-    groups:
-      default:
-        slots: 1
-      control-plane:
-        slots: 1
-      compute:
-        slots: 1
+config:
+  # The level of logging output
+  logLevel: info
+
+  kubernetes:
+    # The path to the kubeconfig file. Used for draining nodes and the kubernetes storage option if used.
+    # Intended to be used for development purposes. It is recommended to leave it empty when using kubernetes, as this
+    # then uses the in-cluster configuration mechanism via serviceaccount.
+    kubeconfig: ""
+    # The timeout for drain node in seconds.
+    # Defaults to 5m.
+    drainTimeoutSeconds: 300
+    # The amount of times draining the node will be retried before giving up.
+    # Default value of 0 means infinite retries.
+    drainRetries: 0
+
+  server:
+    # The listen address of the server in the form of <ip>:<port>
+    listen: ":8080"
+    ssl:
+      # Enable ssl
+      enabled: false
+      # ssl certificate
+      cert: ""
+      # ssl private key
+      key: ""
+
+  storage:
+    # The storage backend to use
+    #
+    # Options:
+    #   memory:     Ephemeral, not recommended for production
+    #   sqlite:     Persistent, does not really support High Availability
+    #   postgres:   Use postgres database
+    #   mysql:      Use mysql database
+    #   valkey:     Use valkey database (Any redis-api compatible database will do)
+    #   etcd:       Use etcd database
+    #   kubernetes: Use kubernetes leases
+    #   mongodb:    Use MongoDB database
+    #
+    # Default: memory
+    #
+    type: kubernetes
+    sqlite:
+      # The file to use for storing the database
+      file: test.db
+    postgres:
+      # The address of the database
+      address: "localhost:26257"
+      # The username and password for login
+      username: ""
+      password: ""
+      # The database name
+      database: ""
+      # Additional options for connections. Will be appended with ?
+      options: ""
+    mysql:
+      # The address of the database
+      address: "tcp(localhost:3306)"
+      # The username and password for login
+      username: ""
+      password: ""
+      # The database name
+      database: ""
+      # Additional options for connections. Will be appended with ?
+      options: ""
+    valkey:
+      # Address(es) of the databases
+      # When more than 1 is provided, they will be loadbalanced via failover.
+      addresses:
+        - "localhost:1234"
+      # (Optional) Username for authentication
+      username: ""
+      # (Optional) Password for authentication
+      password: ""
+      # (Optional) Database to use
+      db: 0
+      # (Optional) Use TLS when connecting to database
+      tls: false
+      # (Optional) Sentinel options
+      sentinel:
+        # Enable sentinel
+        enabled: false
+        # Master name
+        master: ""
+        # Addresses for sentinel server(s)
+        addresses:
+          - ""
+        # (Optional) Username for authentication with sentinel
+        username: ""
+        # (Optional) Password for authentication with sentinel
+        password: ""
+    etcd:
+      # The etcd endpoints
+      endpoints:
+        - "localhost:2379"
+      # (Optional) Username for authentication
+      username: ""
+      # (Optional) Password for authentication
+      password: ""
+      # (Optional) Client certificate for authentication
+      cert: ""
+      # (Optional) Private key of client certificate for authentication
+      key: ""
+    kubernetes:
+      # The kubeconfig setting is inherited from the global setting
+
+      # (Optional) Namespace to create leases in, default reads it from file inside pod or defaults to fleetlock
+      namespace: ""
+    mongodb:
+      # The connection url to the mongodb
+      url: ""
+      # (Optional) The name of the database to use
+      database: "fleetlock"
+
+  # The configured groups to serve, when it isn't defined here, it is not accepted.
+  #
+  # Format:
+  #   <name>:
+  #     slots: int
+  #
+  # When empty, it uses the default group with 1 slot
+  #
+  groups:
+    default:
+      # Number of slots that can be reserved simultaneously by clients
+      slots: 1
+    control-plane:
+      slots: 1
+    compute:
+      slots: 1
 
 # This is for the secrets for pulling an image from a private repository.
 imagePullSecrets: []

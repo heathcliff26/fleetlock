@@ -6,4 +6,5 @@ metadata:
   labels:
     {{- include "fleetlock.labels" . | nindent 4 }}
 data:
-  config.yaml: {{ .Values.config | toYaml | indent 2 }}
+  config.yaml: |-
+{{- .Values.config | toYaml | nindent 4 }}
