@@ -181,6 +181,11 @@ securityContext: {}
 service:
   # This sets the service type.
   type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
+  # Configure service IP families
+  ipFamilies:
+    # - IPv4
+    # - IPv6
   # Port to expose the service on.
   port: 80
 
