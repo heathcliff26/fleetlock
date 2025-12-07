@@ -1,5 +1,5 @@
 ---
-# The level of loggin output
+# The level of logging output
 logLevel: info
 
 kubernetes:
@@ -77,7 +77,7 @@ storage:
     db: 0
     # (Optional) Use TLS when connecting to database
     tls: false
-    # (Optional) Sentinel optiones
+    # (Optional) Sentinel options
     sentinel:
       # Enable sentinel
       enabled: false
@@ -123,5 +123,5 @@ storage:
 #
 groups:
   default:
-    # Number of slots that can be reserved simoultanously by clients
+    # Number of slots that can be reserved simultaneously by clients
     slots: 1

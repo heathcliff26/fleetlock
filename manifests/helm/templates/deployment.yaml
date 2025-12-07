@@ -44,7 +44,7 @@ spec:
             - "/config/config.yaml"
           ports:
             - name: http
-              containerPort: {{ .Values.port }}
+              containerPort: {{ (split ":" .Values.config.server.listen)._1 | default "8080" | int }}
               protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:

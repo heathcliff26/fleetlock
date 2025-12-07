@@ -24,18 +24,67 @@ metadata:
     app.kubernetes.io/instance: fleetlock
     app.kubernetes.io/version: "latest"
 data:
-  config.yaml:   |-
-    ---
-    logLevel: info
-    storage:
-      type: kubernetes
+  config.yaml: |-
     groups:
-      default:
+      compute:
         slots: 1
       control-plane:
         slots: 1
-      compute:
+      default:
         slots: 1
+    kubernetes:
+      drainRetries: 0
+      drainTimeoutSeconds: 300
+      kubeconfig: ""
+    logLevel: info
+    server:
+      listen: :8080
+      ssl:
+        cert: ""
+        enabled: false
+        key: ""
+    storage:
+      etcd:
+        cert: ""
+        endpoints:
+        - localhost:2379
+        key: ""
+        password: ""
+        username: ""
+      kubernetes:
+        namespace: ""
+      mongodb:
+        database: fleetlock
+        url: ""
+      mysql:
+        address: tcp(localhost:3306)
+        database: ""
+        options: ""
+        password: ""
+        username: ""
+      postgres:
+        address: localhost:26257
+        database: ""
+        options: ""
+        password: ""
+        username: ""
+      sqlite:
+        file: test.db
+      type: kubernetes
+      valkey:
+        addresses:
+        - localhost:1234
+        db: 0
+        password: ""
+        sentinel:
+          addresses:
+          - ""
+          enabled: false
+          master: ""
+          password: ""
+          username: ""
+        tls: false
+        username: ""
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
