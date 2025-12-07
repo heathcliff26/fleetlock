@@ -7,9 +7,9 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/heathcliff26/simple-fileserver v1.2.15
 	github.com/jackc/pgx/v5 v5.7.6
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
-	github.com/valkey-io/valkey-go v1.0.68
+	github.com/valkey-io/valkey-go v1.0.69
 	go.etcd.io/etcd/client/pkg/v3 v3.6.6
 	go.etcd.io/etcd/client/v3 v3.6.6
 	go.mongodb.org/mongo-driver/v2 v2.4.0

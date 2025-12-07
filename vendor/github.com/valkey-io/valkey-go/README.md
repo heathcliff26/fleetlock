@@ -271,6 +271,15 @@ to make sure manually cancellation is respected, especially for blocking request
 All read-only commands are automatically retried on failures by default before their context deadlines exceeded.
 You can disable this by setting `DisableRetry` or adjust the number of retries and durations between retries using `RetryDelay` function.
 
+### Retryable Commands
+
+Write commands can set Retryable to automatically retried on failures like read-only commands. Make sure you only use this feature with idempotent operations.
+
+```golang
+client.Do(ctx, client.B().Set().Key("key").Value("val").Build().ToRetryable())
+client.DoMulti(ctx, client.B().Set().Key("key").Value("val").Build().ToRetryable())
+```
+
 ## Pub/Sub
 
 To receive messages from channels, `client.Receive()` should be used. It supports `SUBSCRIBE`, `PSUBSCRIBE`, and Valkey 7.0's `SSUBSCRIBE`:
@@ -480,6 +489,13 @@ client, err := valkey.NewClient(valkey.ClientOption{
         MasterSet: "my_master",
     },
 })
+// connect to valkey node through unix socket
+client, err := valkey.NewClient(valkey.ClientOption{
+    InitAddress: []string{"/run/valkey.sock"},
+    DialCtxFn: func(ctx context.Context, s string, d *net.Dialer, c *tls.Config) (conn net.Conn, err error) {
+        return d.DialContext(ctx, "unix", s)
+    },
+})
 ```
 
 ### Valkey URL
@@ -497,6 +513,8 @@ client, err = valkey.NewClient(valkey.MustParseURL("redis://127.0.0.1:7001?addr=
 client, err = valkey.NewClient(valkey.MustParseURL("redis://127.0.0.1:6379/0"))
 // connect to a valkey sentinel
 client, err = valkey.NewClient(valkey.MustParseURL("redis://127.0.0.1:26379/0?master_set=my_master"))
+// connecting to valkey node using unix socket
+client, err = valkey.NewClient(valkey.MustParseURL("unix:///run/valkey.conf?db=0"))
 ```
 
 ### Availability Zone Affinity Routing
