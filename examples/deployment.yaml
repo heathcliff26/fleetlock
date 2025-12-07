@@ -164,6 +164,7 @@ metadata:
     app.kubernetes.io/version: "latest"
 spec:
   type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
   ports:
     - port: 80
       targetPort: http
