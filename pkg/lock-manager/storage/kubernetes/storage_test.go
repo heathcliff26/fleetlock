@@ -6,19 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestConflictingGroupNames(t *testing.T) {
 	nsName := "fleetlock"
-	storage, client := NewKubernetesBackendWithFakeClient(nsName)
-	ns := &v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: nsName,
-		},
-	}
-	_, _ = client.CoreV1().Namespaces().Create(t.Context(), ns, metav1.CreateOptions{})
+	storage, _ := NewKubernetesBackendWithFakeClient(nsName)
 
 	assert := assert.New(t)
 
@@ -42,12 +35,6 @@ func TestCompliantLeaseNames(t *testing.T) {
 
 	nsName := "fleetlock"
 	storage, client := NewKubernetesBackendWithFakeClient(nsName)
-	ns := &v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: nsName,
-		},
-	}
-	_, _ = client.CoreV1().Namespaces().Create(ctx, ns, metav1.CreateOptions{})
 
 	assert := assert.New(t)
 
