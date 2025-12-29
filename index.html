@@ -101,7 +101,7 @@
 				
 				<option value="file22">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd/storage.go (79.1%)</option>
 				
-				<option value="file23">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes/storage.go (78.0%)</option>
+				<option value="file23">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/kubernetes/storage.go (78.3%)</option>
 				
 				<option value="file24">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/memory/storage.go (84.6%)</option>
 				
@@ -961,6 +961,7 @@ import (
         policyv1 "k8s.io/api/policy/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
         "k8s.io/apimachinery/pkg/fields"
+        "k8s.io/apimachinery/pkg/runtime"
         "k8s.io/apimachinery/pkg/types"
         "k8s.io/client-go/kubernetes"
         "k8s.io/client-go/kubernetes/fake"
@@ -1000,9 +1001,10 @@ func NewClient(config Config) (*Client, error) <span class="cov5" title="4">{
         }, nil</span>
 }
 
-// Create a test client with a fake kubernetes clientset
-func NewFakeClient() (*Client, *fake.Clientset) <span class="cov10" title="15">{
-        fakeclient := fake.NewSimpleClientset()
+// Create a test client with a fake kubernetes clientset.
+// Initialize the fake k8s client with the provided runtime objects.
+func NewFakeClient(objects ...runtime.Object) (*Client, *fake.Clientset) <span class="cov10" title="15">{
+        fakeclient := fake.NewClientset(objects...)
         return &amp;Client{
                 client:              fakeclient,
                 namespace:           "fleetlock",
@@ -1756,17 +1758,17 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
                 return lm.checkSlots(group, lGroup.Config)
         }</span>
         <span class="cov9" title="445">ok, err = checkAvailableSlots()
-        if err != nil || !ok </span><span class="cov4" title="16">{
+        if err != nil || !ok </span><span class="cov4" title="11">{
                 return false, err
         }</span>
 
         // Get Write Lock
-        <span class="cov9" title="429">lGroup.RWLock.Lock()
+        <span class="cov9" title="434">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 
         // Re-check, since another write could have happened between checking the first time and now
         ok, err = lm.checkSlots(group, lGroup.Config)
-        if err != nil || !ok </span><span class="cov6" title="45">{
+        if err != nil || !ok </span><span class="cov6" title="50">{
                 return false, err
         }</span>
 
@@ -1774,13 +1776,13 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9
         return err == nil, err</span>
 }
 
-func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="874">{
+func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) <span class="cov10" title="879">{
         usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span><span class="cov0" title="0">{
                 return false, err
         }</span>
 
-        <span class="cov10" title="874">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov10" title="879">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
 func (lm *LockManager) Release(group, id string) error <span class="cov8" title="235">{
@@ -1950,6 +1952,7 @@ import (
         "github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
 
         coordv1 "k8s.io/api/coordination/v1"
+        corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
         "k8s.io/client-go/kubernetes/fake"
         v1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
@@ -1989,9 +1992,15 @@ func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) <spa
 
 // Create a test client with a fake kubernetes clientset
 func NewKubernetesBackendWithFakeClient(namespace string) (*KubernetesBackend, *fake.Clientset) <span class="cov2" title="3">{
-        fakeclient := fake.NewSimpleClientset()
+        ns := &amp;corev1.Namespace{
+                ObjectMeta: metav1.ObjectMeta{
+                        Name: namespace,
+                },
+        }
+        fakeclient := fake.NewClientset(ns)
         return &amp;KubernetesBackend{
-                client: fakeclient.CoordinationV1(),
+                client:    fakeclient.CoordinationV1(),
+                namespace: namespace,
         }, fakeclient
 }</span>
 
@@ -2050,7 +2059,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="31">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="46">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2071,7 +2080,7 @@ func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) <span
                 return false, err
         }</span>
 
-        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="101">{
+        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="108">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov3" title="10">{
                         return true, nil
                 }</span>
@@ -2099,8 +2108,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1962">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="759">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1976">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="773">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2171,13 +2180,13 @@ func (m *MemoryBackend) Reserve(group string, id string) error <span class="cov6
 }
 
 // Returns the current number of locks for the given group
-func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="125">{
+func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" title="130">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 return 0, nil
         }</span>
 
-        <span class="cov8" title="125">return len(g.slots), nil</span>
+        <span class="cov8" title="130">return len(g.slots), nil</span>
 }
 
 // Release the lock currently held by the id.
@@ -2190,7 +2199,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="63">{
+        for i, l = range g.slots </span><span class="cov7" title="58">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2226,7 +2235,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="104">{
-        for _, lock := range g.slots </span><span class="cov10" title="308">{
+        for _, lock := range g.slots </span><span class="cov10" title="292">{
                 if id == lock.id </span><span class="cov4" title="12">{
                         return true
                 }</span>
@@ -2376,7 +2385,7 @@ type MySQLConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="9">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="8">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -2384,8 +2393,8 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
                 return nil, fmt.Errorf("failed to open mysql database: %w", err)
         }</span>
 
-        <span class="cov9" title="8">err = db.Ping()
-        if err != nil </span><span class="cov8" title="7">{
+        <span class="cov9" title="7">err = db.Ping()
+        if err != nil </span><span class="cov8" title="6">{
                 return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
@@ -2435,7 +2444,7 @@ type PostgresConfig struct {
         Options  string `json:"options,omitempty"`
 }
 
-func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="3">{
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="4">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("pgx", "postgres://"+connStr)
@@ -2443,8 +2452,8 @@ func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="co
                 return nil, fmt.Errorf("failed to open postgres database: %w", err)
         }</span>
 
-        <span class="cov10" title="3">err = db.Ping()
-        if err != nil </span><span class="cov6" title="2">{
+        <span class="cov10" title="4">err = db.Ping()
+        if err != nil </span><span class="cov8" title="3">{
                 return nil, fmt.Errorf("failed to ping postgres database: %w", err)
         }</span>
 
