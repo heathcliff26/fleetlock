@@ -13,6 +13,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/types"
 
 	coordv1 "k8s.io/api/coordination/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	v1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
@@ -52,9 +53,15 @@ func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) {
 
 // Create a test client with a fake kubernetes clientset
 func NewKubernetesBackendWithFakeClient(namespace string) (*KubernetesBackend, *fake.Clientset) {
-	fakeclient := fake.NewSimpleClientset()
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespace,
+		},
+	}
+	fakeclient := fake.NewClientset(ns)
 	return &KubernetesBackend{
-		client: fakeclient.CoordinationV1(),
+		client:    fakeclient.CoordinationV1(),
+		namespace: namespace,
 	}, fakeclient
 }
 

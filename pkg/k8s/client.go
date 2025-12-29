@@ -12,6 +12,7 @@ import (
 	policyv1 "k8s.io/api/policy/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
@@ -51,9 +52,10 @@ func NewClient(config Config) (*Client, error) {
 	}, nil
 }
 
-// Create a test client with a fake kubernetes clientset
-func NewFakeClient() (*Client, *fake.Clientset) {
-	fakeclient := fake.NewSimpleClientset()
+// Create a test client with a fake kubernetes clientset.
+// Initialize the fake k8s client with the provided runtime objects.
+func NewFakeClient(objects ...runtime.Object) (*Client, *fake.Clientset) {
+	fakeclient := fake.NewClientset(objects...)
 	return &Client{
 		client:              fakeclient,
 		namespace:           "fleetlock",

@@ -25,9 +25,8 @@ const (
 	testPodName       = "Pod1"
 )
 
-func initTestCluster(t *testing.T, client *fake.Clientset) {
-	ctx := t.Context()
-
+func initTestCluster(t *testing.T) (*Client, *fake.Clientset) {
+	t.Helper()
 	testNode := &v1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNodeName,
@@ -36,15 +35,11 @@ func initTestCluster(t *testing.T, client *fake.Clientset) {
 			NodeInfo: v1.NodeSystemInfo{MachineID: testNodeMachineID},
 		},
 	}
-	_, _ = client.CoreV1().Nodes().Create(ctx, testNode, metav1.CreateOptions{})
-
 	testNS := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNamespace,
 		},
 	}
-	_, _ = client.CoreV1().Namespaces().Create(ctx, testNS, metav1.CreateOptions{})
-
 	testPod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testPodName,
@@ -55,7 +50,7 @@ func initTestCluster(t *testing.T, client *fake.Clientset) {
 			TerminationGracePeriodSeconds: utils.Pointer(int64(1)),
 		},
 	}
-	_, _ = client.CoreV1().Pods(testNamespace).Create(ctx, testPod, metav1.CreateOptions{})
+	return NewFakeClient(testNode, testNS, testPod)
 }
 
 func TestNewClient(t *testing.T) {
@@ -103,8 +98,7 @@ func TestNewClient(t *testing.T) {
 
 func TestDrainNode(t *testing.T) {
 	t.Run("NoLease", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		ctx := t.Context()
 
@@ -123,8 +117,7 @@ func TestDrainNode(t *testing.T) {
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("LeaseValid", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -143,8 +136,7 @@ func TestDrainNode(t *testing.T) {
 		assert.Equal(t, NewErrorDrainIsLocked(), err, "Should return an error signaling that a drain is already in progress")
 	})
 	t.Run("LeaseInvalid", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -161,8 +153,7 @@ func TestDrainNode(t *testing.T) {
 		assert.Equal(t, NewErrorInvalidLease(), err, "Should return an error signaling that the lease is invalid")
 	})
 	t.Run("LeaseExpired", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		ctx := t.Context()
 
@@ -193,8 +184,7 @@ func TestDrainNode(t *testing.T) {
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("DrainTimeout", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		client.PrependReactor("create", "pods", func(action clienttesting.Action) (bool, runtime.Object, error) {
 			time.Sleep(5 * time.Second)
@@ -215,8 +205,7 @@ func TestDrainNode(t *testing.T) {
 }
 
 func TestFindNodeByZincatiID(t *testing.T) {
-	c, client := NewFakeClient()
-	initTestCluster(t, client)
+	c, _ := initTestCluster(t)
 
 	node, err := c.FindNodeByZincatiID(testNodeZincatiID)
 
@@ -231,8 +220,7 @@ func TestFindNodeByZincatiID(t *testing.T) {
 }
 
 func TestUncordonNode(t *testing.T) {
-	c, client := NewFakeClient()
-	initTestCluster(t, client)
+	c, client := initTestCluster(t)
 
 	ctx := t.Context()
 
@@ -270,8 +258,7 @@ func TestUncordonNode(t *testing.T) {
 
 func TestIsDrained(t *testing.T) {
 	t.Run("NoLease", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, _ := initTestCluster(t)
 
 		res, err := c.IsDrained(testNodeName)
 
@@ -281,8 +268,7 @@ func TestIsDrained(t *testing.T) {
 		assert.False(res, "Should return false")
 	})
 	t.Run("LeaseDone", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -305,8 +291,7 @@ func TestIsDrained(t *testing.T) {
 		assert.True(res, "Should return true")
 	})
 	t.Run("LeaseDraining", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -329,8 +314,7 @@ func TestIsDrained(t *testing.T) {
 		assert.False(res, "Should return false")
 	})
 	t.Run("LeaseError", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 
 		lease := &coordv1.Lease{
 			ObjectMeta: metav1.ObjectMeta{
@@ -353,8 +337,7 @@ func TestIsDrained(t *testing.T) {
 		assert.False(res, "Should return false")
 	})
 	t.Run("LeaseRetries", func(t *testing.T) {
-		c, client := NewFakeClient()
-		initTestCluster(t, client)
+		c, client := initTestCluster(t)
 		c.drainRetries = 3
 
 		ctx := t.Context()
