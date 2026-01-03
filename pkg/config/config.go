@@ -8,7 +8,7 @@ import (
 	"github.com/heathcliff26/fleetlock/pkg/k8s"
 	lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
 	"github.com/heathcliff26/fleetlock/pkg/server"
-	"sigs.k8s.io/yaml"
+	"go.yaml.in/yaml/v3"
 )
 
 const (
@@ -28,11 +28,11 @@ func init() {
 }
 
 type Config struct {
-	LogLevel         string                    `json:"logLevel,omitempty"`
-	KubernetesConfig k8s.Config                `json:"kubernetes,omitempty"`
-	Server           *server.ServerConfig      `json:"server,omitempty"`
-	Storage          lockmanager.StorageConfig `json:"storage,omitempty"`
-	Groups           lockmanager.Groups        `json:"groups,omitempty"`
+	LogLevel         string                    `yaml:"logLevel,omitempty"`
+	KubernetesConfig k8s.Config                `yaml:"kubernetes,omitempty"`
+	Server           *server.ServerConfig      `yaml:"server,omitempty"`
+	Storage          lockmanager.StorageConfig `yaml:"storage,omitempty"`
+	Groups           lockmanager.Groups        `yaml:"groups,omitempty"`
 }
 
 // Parse a given string and set the resulting log level

@@ -8,7 +8,7 @@ import (
 )
 
 type SQLiteConfig struct {
-	File string `json:"file"`
+	File string `yaml:"file"`
 }
 
 func NewSQLiteBackend(cfg SQLiteConfig) (*SQLBackend, error) {

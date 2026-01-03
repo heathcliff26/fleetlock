@@ -18,20 +18,20 @@ type ValkeyBackend struct {
 }
 
 type ValkeyConfig struct {
-	Addrs    []string             `json:"addresses,omitempty"`
-	Username string               `json:"username,omitempty"`
-	Password string               `json:"password,omitempty"`
-	DB       int                  `json:"db,omitempty"`
-	TLS      bool                 `json:"tls,omitempty"`
-	Sentinel ValkeySentinelConfig `json:"sentinel,omitempty"`
+	Addrs    []string             `yaml:"addresses,omitempty"`
+	Username string               `yaml:"username,omitempty"`
+	Password string               `yaml:"password,omitempty"`
+	DB       int                  `yaml:"db,omitempty"`
+	TLS      bool                 `yaml:"tls,omitempty"`
+	Sentinel ValkeySentinelConfig `yaml:"sentinel,omitempty"`
 }
 
 type ValkeySentinelConfig struct {
-	Enabled    bool     `json:"enabled,omitempty"`
-	MasterName string   `json:"master,omitempty"`
-	Addresses  []string `json:"addresses,omitempty"`
-	Username   string   `json:"username,omitempty"`
-	Password   string   `json:"password,omitempty"`
+	Enabled    bool     `yaml:"enabled,omitempty"`
+	MasterName string   `yaml:"master,omitempty"`
+	Addresses  []string `yaml:"addresses,omitempty"`
+	Username   string   `yaml:"username,omitempty"`
+	Password   string   `yaml:"password,omitempty"`
 }
 
 func NewValkeyBackend(cfg ValkeyConfig) (*ValkeyBackend, error) {

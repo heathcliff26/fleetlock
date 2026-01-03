@@ -6,6 +6,7 @@ import (
 
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/mongodb"
 	"github.com/heathcliff26/fleetlock/tests/utils"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMongoDBBackend(t *testing.T) {
@@ -25,22 +26,18 @@ func TestMongoDBBackend(t *testing.T) {
 	})
 
 	cfg := mongodb.MongoDBConfig{
-		URL:      "mongodb://localhost:27017/",
+		URL:      "mongodb://127.0.0.1:27017/",
 		Database: mongodb.DEFAULT_DATABASE,
 	}
 
 	var storage *mongodb.MongoDBBackend
-	for i := 0; i < 20; {
+	require.Eventually(t, func() bool {
 		storage, err = mongodb.NewMongoDBBackend(cfg)
-		if err == nil {
-			break
+		if err != nil {
+			t.Logf("Failed to connect to mongodb: %v", err)
 		}
-		<-time.After(time.Second)
-		i++
-	}
-	if err != nil {
-		t.Fatalf("Failed to create storage backend: %v", err)
-	}
+		return err == nil
+	}, time.Minute, 5*time.Second, "Should connect to mongodb backend")
 
 	RunLockManagerTestsuiteWithStorage(t, storage)
 }

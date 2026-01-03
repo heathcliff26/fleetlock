@@ -10,20 +10,20 @@ import (
 )
 
 type StorageConfig struct {
-	Type       string                      `json:"type"`
-	SQLite     sql.SQLiteConfig            `json:"sqlite,omitempty"`
-	Postgres   sql.PostgresConfig          `json:"postgres,omitempty"`
-	MySQL      sql.MySQLConfig             `json:"mysql,omitempty"`
-	Valkey     valkey.ValkeyConfig         `json:"valkey,omitempty"`
-	Etcd       etcd.EtcdConfig             `json:"etcd,omitempty"`
-	Kubernetes kubernetes.KubernetesConfig `json:"kubernetes,omitempty"`
-	MongoDB    mongodb.MongoDBConfig       `json:"mongodb,omitempty"`
+	Type       string                      `yaml:"type"`
+	SQLite     sql.SQLiteConfig            `yaml:"sqlite,omitempty"`
+	Postgres   sql.PostgresConfig          `yaml:"postgres,omitempty"`
+	MySQL      sql.MySQLConfig             `yaml:"mysql,omitempty"`
+	Valkey     valkey.ValkeyConfig         `yaml:"valkey,omitempty"`
+	Etcd       etcd.EtcdConfig             `yaml:"etcd,omitempty"`
+	Kubernetes kubernetes.KubernetesConfig `yaml:"kubernetes,omitempty"`
+	MongoDB    mongodb.MongoDBConfig       `yaml:"mongodb,omitempty"`
 }
 
 type Groups map[string]GroupConfig
 
 type GroupConfig struct {
-	Slots int `json:"slots"`
+	Slots int `yaml:"slots"`
 }
 
 // Create a new storage config with default values
