@@ -8,11 +8,11 @@ import (
 )
 
 type MySQLConfig struct {
-	Address  string `json:"address"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Database string `json:"database"`
-	Options  string `json:"options,omitempty"`
+	Address  string `yaml:"address"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Database string `yaml:"database"`
+	Options  string `yaml:"options,omitempty"`
 }
 
 func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) {

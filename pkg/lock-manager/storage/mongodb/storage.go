@@ -19,8 +19,8 @@ type MongoDBBackend struct {
 }
 
 type MongoDBConfig struct {
-	URL      string `json:"url,omitempty"`
-	Database string `json:"database,omitempty"`
+	URL      string `yaml:"url,omitempty"`
+	Database string `yaml:"database,omitempty"`
 }
 
 type MongoLock struct {

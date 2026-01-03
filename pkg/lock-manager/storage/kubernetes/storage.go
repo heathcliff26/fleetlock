@@ -27,8 +27,8 @@ type KubernetesBackend struct {
 }
 
 type KubernetesConfig struct {
-	Kubeconfig string `json:"-"`
-	Namespace  string `json:"namespace,omitempty"`
+	Kubeconfig string `yaml:"-"`
+	Namespace  string `yaml:"namespace,omitempty"`
 }
 
 func NewKubernetesBackend(cfg KubernetesConfig) (*KubernetesBackend, error) {

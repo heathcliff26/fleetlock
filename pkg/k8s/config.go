@@ -1,9 +1,9 @@
 package k8s
 
 type Config struct {
-	Kubeconfig          string `json:"kubeconfig,omitempty"`
-	DrainTimeoutSeconds int32  `json:"drainTimeoutSeconds,omitempty"`
-	DrainRetries        int    `json:"drainRetries,omitempty"`
+	Kubeconfig          string `yaml:"kubeconfig,omitempty"`
+	DrainTimeoutSeconds int32  `yaml:"drainTimeoutSeconds,omitempty"`
+	DrainRetries        int    `yaml:"drainRetries,omitempty"`
 }
 
 func NewDefaultConfig() Config {
