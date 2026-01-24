@@ -162,6 +162,7 @@ func (s *Server) drainNode(rw http.ResponseWriter, params api.FleetLockRequest) 
 		}
 	}()
 
+	// Return non-200 status to indicate the request is successful but the client needs to wait as it is still being processed.
 	rw.WriteHeader(http.StatusAccepted)
 	sendResponse(rw, msgWaitingForNodeDrain)
 	return false
