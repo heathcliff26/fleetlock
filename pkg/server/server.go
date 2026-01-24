@@ -162,7 +162,7 @@ func (s *Server) drainNode(rw http.ResponseWriter, params api.FleetLockRequest) 
 		}
 	}()
 
-	rw.WriteHeader(http.StatusAccepted)
+	rw.WriteHeader(http.StatusOK)
 	sendResponse(rw, msgWaitingForNodeDrain)
 	return false
 }

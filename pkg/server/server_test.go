@@ -235,18 +235,18 @@ func TestDrainNode(t *testing.T) {
 	s.handleReserve(rr, params)
 	res, response, err := parseResponse(rr)
 
-	assert.NoError(err)
-	assert.Equal(http.StatusOK, res.StatusCode)
-	assert.Equal(msgSuccess, response)
+	assert.NoError(err, "Requests should be handled without error")
+	assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when k8s node not found")
+	assert.Equal(msgSuccess, response, "Should return success message when k8s node not found")
 
 	rr = httptest.NewRecorder()
 	params.Client.ID = testNodeZincatiID
 	s.handleReserve(rr, params)
 	res, response, err = parseResponse(rr)
 
-	assert.NoError(err)
-	assert.Equal(http.StatusAccepted, res.StatusCode)
-	assert.Equal(msgWaitingForNodeDrain, response)
+	assert.NoError(err, "Requests should be handled without error")
+	assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when node is still being drained")
+	assert.Equal(msgWaitingForNodeDrain, response, "Should return message for node drain in progress")
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -254,9 +254,9 @@ func TestDrainNode(t *testing.T) {
 	s.handleReserve(rr, params)
 	res, response, err = parseResponse(rr)
 
-	assert.NoError(err)
-	assert.Equal(http.StatusOK, res.StatusCode)
-	assert.Equal(msgSuccess, response)
+	assert.NoError(err, "Requests should be handled without error")
+	assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when node has been drained")
+	assert.Equal(msgSuccess, response, "Should return success message when node has been drained")
 }
 
 func TestUncordonNode(t *testing.T) {
