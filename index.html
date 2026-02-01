@@ -1249,13 +1249,13 @@ func NewLease(name string, client client.LeaseInterface) *lease <span class="cov
 
 // Fetch the lease from the kubernetes server and store it in the local object.
 // Does not need to be called manually.
-func (l *lease) get(ctx context.Context) error <span class="cov10" title="19">{
+func (l *lease) get(ctx context.Context) error <span class="cov9" title="18">{
         lease, err := l.client.Get(ctx, l.name, metav1.GetOptions{})
-        if err != nil </span><span class="cov7" title="9">{
+        if err != nil </span><span class="cov6" title="7">{
                 return err
         }</span>
 
-        <span class="cov8" title="10">l.lease = lease
+        <span class="cov8" title="11">l.lease = lease
         return nil</span>
 }
 
@@ -1293,15 +1293,15 @@ func (l *lease) update(ctx context.Context) error <span class="cov5" title="5">{
 }
 
 func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="cov7" title="9">{
-        if l.lease == nil </span><span class="cov4" title="3">{
+        if l.lease == nil </span><span class="cov3" title="2">{
                 err := l.get(ctx)
-                if err != nil </span><span class="cov4" title="3">{
+                if err != nil </span><span class="cov3" title="2">{
                         return 0, err
                 }</span>
         }
 
-        <span class="cov6" title="6">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
-        if !ok </span><span class="cov5" title="4">{
+        <span class="cov6" title="7">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
+        if !ok </span><span class="cov5" title="5">{
                 return 0, nil
         }</span>
         <span class="cov3" title="2">return strconv.Atoi(failCounterStr)</span>
@@ -1310,10 +1310,10 @@ func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="co
 // Return the count of failed attempts, defaults to 0 if no lease is found
 func (l *lease) GetFailCounter(ctx context.Context) (int, error) <span class="cov6" title="7">{
         count, err := l.getFailCounter(ctx)
-        if errors.IsNotFound(err) </span><span class="cov4" title="3">{
+        if errors.IsNotFound(err) </span><span class="cov3" title="2">{
                 return 0, nil
         }</span>
-        <span class="cov5" title="4">return count, err</span>
+        <span class="cov5" title="5">return count, err</span>
 }
 
 // Increase the fail counter by 1.
@@ -1403,14 +1403,14 @@ func (l *lease) Delete(ctx context.Context) error <span class="cov4" title="3">{
 func (l *lease) IsDone(ctx context.Context) (bool, error) <span class="cov7" title="9">{
         if l.lease == nil </span><span class="cov7" title="9">{
                 err := l.get(ctx)
-                if errors.IsNotFound(err) </span><span class="cov4" title="3">{
+                if errors.IsNotFound(err) </span><span class="cov3" title="2">{
                         return false, nil
-                }</span> else<span class="cov6" title="6"> if err != nil </span><span class="cov0" title="0">{
+                }</span> else<span class="cov6" title="7"> if err != nil </span><span class="cov0" title="0">{
                         return false, err
                 }</span>
         }
 
-        <span class="cov6" title="6">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
+        <span class="cov6" title="7">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
 }
 
 // Set the lease to an error state and increase the fail counter by one
@@ -2059,7 +2059,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="37">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="33">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2080,7 +2080,7 @@ func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) <span
                 return false, err
         }</span>
 
-        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="101">{
+        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="103">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov3" title="10">{
                         return true, nil
                 }</span>
@@ -2108,8 +2108,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1962">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="759">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1966">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="763">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2199,7 +2199,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="74">{
+        for i, l = range g.slots </span><span class="cov7" title="76">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2235,7 +2235,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="105">{
-        for _, lock := range g.slots </span><span class="cov10" title="292">{
+        for _, lock := range g.slots </span><span class="cov10" title="283">{
                 if id == lock.id </span><span class="cov5" title="13">{
                         return true
                 }</span>
@@ -2444,7 +2444,7 @@ type PostgresConfig struct {
         Options  string `yaml:"options,omitempty"`
 }
 
-func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="3">{
+func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="cov10" title="4">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("pgx", "postgres://"+connStr)
@@ -2452,8 +2452,8 @@ func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) <span class="co
                 return nil, fmt.Errorf("failed to open postgres database: %w", err)
         }</span>
 
-        <span class="cov10" title="3">err = db.Ping()
-        if err != nil </span><span class="cov6" title="2">{
+        <span class="cov10" title="4">err = db.Ping()
+        if err != nil </span><span class="cov8" title="3">{
                 return nil, fmt.Errorf("failed to ping postgres database: %w", err)
         }</span>
 
@@ -2672,21 +2672,21 @@ func (s *SQLBackend) Close() error <span class="cov2" title="3">{
 		
 		<pre class="file" id="file30" style="display: none">package sql
 
-func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="12">{
+func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="13">{
         var connStr string
-        if username != "" </span><span class="cov9" title="10">{
+        if username != "" </span><span class="cov9" title="11">{
                 connStr += username
-                if password != "" </span><span class="cov9" title="10">{
+                if password != "" </span><span class="cov9" title="11">{
                         connStr += ":" + password
                 }</span>
-                <span class="cov9" title="10">connStr += "@"</span>
+                <span class="cov9" title="11">connStr += "@"</span>
         }
-        <span class="cov10" title="12">connStr += address + "/" + database
+        <span class="cov10" title="13">connStr += address + "/" + database
         if options != "" </span><span class="cov0" title="0">{
                 connStr += "?" + options
         }</span>
 
-        <span class="cov10" title="12">return connStr</span>
+        <span class="cov10" title="13">return connStr</span>
 }
 </pre>
 		
@@ -2755,11 +2755,11 @@ func (lb *loadbalancer) HealthCheck() <span class="cov7" title="6">{
                 opt.InitAddress = []string{addr}
 
                 client, err := valkey.NewClient(opt)
-                if err != nil </span><span class="cov7" title="5">{
+                if err != nil </span><span class="cov7" title="6">{
                         slog.Debug("Endpoint down", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
-                <span class="cov7" title="6">defer client.Close()
+                <span class="cov7" title="5">defer client.Close()
 
                 cmdInfo := client.B().Info().Build()
                 res, err := client.Do(context.Background(), cmdInfo).ToString()
@@ -2767,7 +2767,7 @@ func (lb *loadbalancer) HealthCheck() <span class="cov7" title="6">{
                         slog.Error("Failed to get endpoint info", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
-                <span class="cov7" title="6">s := strings.Split(res, "\r\n")
+                <span class="cov7" title="5">s := strings.Split(res, "\r\n")
                 if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") </span><span class="cov3" title="2">{
                         lb.rwlock.Lock()
                         defer lb.rwlock.Unlock()
