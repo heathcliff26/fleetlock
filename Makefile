@@ -5,7 +5,7 @@ CONTAINER_NAME ?= fleetlock
 TAG ?= latest
 
 # Build all binaries
-build:
+build: build-fleetctl build-fleetlock
 
 # Build fleetctl binary
 build-fleetctl:
@@ -86,8 +86,9 @@ help:
 	@echo "Run 'make <target>' to execute a specific target."
 
 .PHONY: \
-	default \
 	build \
+	build-fleetctl \
+	build-fleetlock \
 	image \
 	test \
 	test-e2e \
