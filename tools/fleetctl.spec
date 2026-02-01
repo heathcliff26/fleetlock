@@ -10,7 +10,7 @@ License:        Apache-2.0
 URL:            https://github.com/heathcliff26/fleetlock
 Source:         %{url}/archive/refs/tags/v%{version}.tar.gz
 
-BuildRequires: golang >= 1.24
+BuildRequires: golang >= 1.24.9
 
 %global _description %{expand:
 Simple CLI based client for debugging and testing fleetlock servers.}
