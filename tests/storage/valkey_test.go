@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -59,8 +60,11 @@ func TestValkeySentinelBackend(t *testing.T) {
 		_ = utils.ExecCRI("rm", "fleetlock-valkey-sentinel-db")
 	})
 
-	err = utils.ExecCRI("run", "--name", "fleetlock-valkey-sentinel-sentinel", "-d", "--net", "host",
-		"-v", "./testdata/valkey-sentinel.conf:/config/sentinel.conf:z", "--userns=keep-id",
+	err = utils.ExecCRI("run", "--name", "fleetlock-valkey-sentinel-sentinel", "-d",
+		"--net", "host",
+		"-v", "./testdata/valkey-sentinel.conf:/config/sentinel.conf:z",
+		"-v", fmt.Sprintf("%s:/data:z", t.TempDir()),
+		"--userns=keep-id",
 		"docker.io/valkey/valkey:latest",
 		"/config/sentinel.conf", "--sentinel",
 	)
