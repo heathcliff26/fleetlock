@@ -20,7 +20,7 @@ type loadbalancer struct {
 	addrs []string
 	// Options for connecting to valkey
 	options valkey.ClientOption
-	// Context to cancle health check
+	// Context to cancel health check
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -41,7 +41,7 @@ func NewValkeyLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalance
 		cancel:  cancel,
 	}
 
-	opt.DialFn = lb.DialFn
+	opt.DialCtxFn = lb.DialCtxFn
 
 	client, err := valkey.NewClient(opt)
 	if err != nil {
@@ -51,7 +51,7 @@ func NewValkeyLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalance
 	lb.client = client
 	lb.PeriodicHealthCheck()
 
-	return client, lb, nil
+	return lb.client, lb, nil
 }
 
 // Determine the first healthy master node
@@ -59,6 +59,9 @@ func (lb *loadbalancer) HealthCheck() {
 	found := false
 
 	for i, addr := range lb.addrs {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
 		opt := lb.options
 		opt.InitAddress = []string{addr}
 
@@ -70,21 +73,24 @@ func (lb *loadbalancer) HealthCheck() {
 		defer client.Close()
 
 		cmdInfo := client.B().Info().Build()
-		res, err := client.Do(context.Background(), cmdInfo).ToString()
+		res, err := client.Do(ctx, cmdInfo).ToString()
 		if err != nil {
 			slog.Error("Failed to get endpoint info", slog.String("addr", addr), "err", err)
 			continue
 		}
 		s := strings.Split(res, "\r\n")
-		if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") {
+		// Check if the endpoint is a write enabled node. If no role is returned, it is likely either single node or miniredis for testing.
+		if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") || !strings.Contains(res, "role") {
 			lb.rwlock.Lock()
-			defer lb.rwlock.Unlock()
 
 			if lb.selected != i {
 				lb.selected = i
+				lb.rwlock.Unlock()
 				slog.Info("Failed over to new database", slog.String("addr", addr))
 				// valkey keeps a connection. Try to ping it to ensure it gets terminated and the next try will be a new connection
-				_ = lb.client.Do(context.Background(), client.B().Ping().Build())
+				_ = lb.client.Do(ctx, client.B().Ping().Build())
+			} else {
+				lb.rwlock.Unlock()
 			}
 
 			found = true
@@ -92,7 +98,7 @@ func (lb *loadbalancer) HealthCheck() {
 		}
 	}
 
-	if found {
+	if !found {
 		slog.Info("Could not connect to any valkey database, all connections are down")
 	}
 }
@@ -114,15 +120,19 @@ func (lb *loadbalancer) periodicHealthCheck() {
 	}
 }
 
-func (lb *loadbalancer) DialFn(_ string, dialer *net.Dialer, cfg *tls.Config) (conn net.Conn, err error) {
+func (lb *loadbalancer) DialCtxFn(ctx context.Context, _ string, dialer *net.Dialer, cfg *tls.Config) (conn net.Conn, err error) {
 	lb.rwlock.RLock()
 	defer lb.rwlock.RUnlock()
 	dst := lb.addrs[lb.selected]
 
 	if cfg != nil {
-		return tls.DialWithDialer(dialer, "tcp", dst, cfg)
+		tlsDialer := &tls.Dialer{
+			Config:    cfg,
+			NetDialer: dialer,
+		}
+		return tlsDialer.DialContext(ctx, "tcp", dst)
 	}
-	return dialer.Dial("tcp", dst)
+	return dialer.DialContext(ctx, "tcp", dst)
 }
 
 func (lb *loadbalancer) Close() {
