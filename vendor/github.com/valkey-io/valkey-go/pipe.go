@@ -21,7 +21,7 @@ import (
 )
 
 const LibName = "valkey"
-const LibVer = "1.0.72"
+const LibVer = "1.0.73"
 
 var (
 	noHello = regexp.MustCompile("unknown command .?(HELLO|hello).?")
@@ -1364,7 +1364,7 @@ process:
 	if err = p.w.Flush(); err != nil {
 		goto abort
 	}
-	for i := 0; i < len(resp); i++ {
+	for i := range resp {
 		if msg, err = syncRead(p.r); err != nil {
 			goto abort
 		}
@@ -1378,7 +1378,7 @@ abort:
 	p.error.CompareAndSwap(nil, &errs{error: err})
 	p.conn.Close()
 	p.background() // start the background worker to clean up goroutines
-	for i := 0; i < len(resp); i++ {
+	for i := range resp {
 		resp[i] = newErrResult(err)
 	}
 }
