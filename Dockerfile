@@ -27,7 +27,7 @@ WORKDIR /
 
 COPY --from=build-stage /app/bin/fleetlock /
 
-USER 1001
+USER nobody:nobody
 
 ENTRYPOINT ["/fleetlock"]
 
