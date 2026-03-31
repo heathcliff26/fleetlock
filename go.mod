@@ -6,7 +6,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.37.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/heathcliff26/simple-fileserver v1.3.0
-	github.com/jackc/pgx/v5 v5.8.0
+	github.com/jackc/pgx/v5 v5.9.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/valkey-io/valkey-go v1.0.73
@@ -17,7 +17,7 @@ require (
 	k8s.io/api v0.35.3
 	k8s.io/apimachinery v0.35.3
 	k8s.io/client-go v0.35.3
-	modernc.org/sqlite v1.47.0
+	modernc.org/sqlite v1.48.0
 	sigs.k8s.io/e2e-framework v0.6.0
 )
 
