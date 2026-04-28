@@ -374,3 +374,15 @@ func TestIsDrained(t *testing.T) {
 		assert.True(res, "Should return true")
 	})
 }
+
+func TestEvictPod(t *testing.T) {
+	c, _ := initTestCluster(t)
+	assert := assert.New(t)
+
+	ctx := t.Context()
+
+	assert.NotPanics(func() {
+		err := c.evictPod(ctx, testPodName, testNamespace, nil)
+		assert.Nil(err, "Should not return an error")
+	}, "Should not panic on nil pointer")
+}
