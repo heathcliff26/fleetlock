@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/k8s/utils"
@@ -102,6 +103,8 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 	}
 
 	var returnError error
+	evictSelf := false
+	selfName, selfNamespace := os.Getenv("POD_NAME"), os.Getenv("POD_NAMESPACE")
 	for _, pod := range pods.Items {
 		// Skip mirror pods
 		if _, ok := pod.Annotations[v1.MirrorPodAnnotationKey]; ok {
@@ -113,17 +116,13 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 			continue
 		}
 
-		err = c.client.PolicyV1().Evictions(pod.GetNamespace()).Evict(ctx, &policyv1.Eviction{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "policy/v1",
-				Kind:       "Eviction",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      pod.GetName(),
-				Namespace: pod.GetNamespace(),
-			},
-			DeleteOptions: metav1.NewDeleteOptions(*pod.Spec.TerminationGracePeriodSeconds),
-		})
+		if pod.GetName() == selfName && pod.GetNamespace() == selfNamespace {
+			slog.Debug("Delaying evicting myself until all other pods are evicted", slog.String("node", node))
+			evictSelf = true
+			continue
+		}
+
+		err = c.evictPod(ctx, pod.GetName(), pod.GetNamespace(), pod.Spec.TerminationGracePeriodSeconds)
 		if err != nil {
 			slog.Info("Failed to evict pod", "err", err, slog.String("node", node), slog.String("pod", pod.GetName()), slog.String("namespace", pod.GetNamespace()))
 			returnError = NewErrorFailedToEvictAllPods()
@@ -144,6 +143,14 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 
 		if done {
 			break
+		}
+	}
+
+	if evictSelf {
+		err = c.evictPod(ctx, selfName, selfNamespace, utils.Pointer(int64(10)))
+		if err != nil {
+			slog.Info("Failed to evict myself", "err", err, slog.String("node", node), slog.String("pod", selfName), slog.String("namespace", selfNamespace))
+			returnError = NewErrorFailedToEvictAllPods()
 		}
 	}
 
@@ -201,4 +208,22 @@ func (c *Client) IsDrained(node string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// Evict a pod
+func (c *Client) evictPod(ctx context.Context, name, namespace string, terminationPeriod *int64) error {
+	eviction := &policyv1.Eviction{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "policy/v1",
+			Kind:       "Eviction",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+	if terminationPeriod != nil {
+		eviction.DeleteOptions = metav1.NewDeleteOptions(*terminationPeriod)
+	}
+	return c.client.PolicyV1().Evictions(namespace).Evict(ctx, eviction)
 }
