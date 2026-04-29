@@ -1274,13 +1274,13 @@ func NewLease(name string, client client.LeaseInterface) *lease <span class="cov
 
 // Fetch the lease from the kubernetes server and store it in the local object.
 // Does not need to be called manually.
-func (l *lease) get(ctx context.Context) error <span class="cov9" title="18">{
+func (l *lease) get(ctx context.Context) error <span class="cov10" title="19">{
         lease, err := l.client.Get(ctx, l.name, metav1.GetOptions{})
-        if err != nil </span><span class="cov6" title="7">{
+        if err != nil </span><span class="cov7" title="9">{
                 return err
         }</span>
 
-        <span class="cov8" title="11">l.lease = lease
+        <span class="cov8" title="10">l.lease = lease
         return nil</span>
 }
 
@@ -1318,15 +1318,15 @@ func (l *lease) update(ctx context.Context) error <span class="cov5" title="5">{
 }
 
 func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="cov7" title="9">{
-        if l.lease == nil </span><span class="cov3" title="2">{
+        if l.lease == nil </span><span class="cov4" title="3">{
                 err := l.get(ctx)
-                if err != nil </span><span class="cov3" title="2">{
+                if err != nil </span><span class="cov4" title="3">{
                         return 0, err
                 }</span>
         }
 
-        <span class="cov6" title="7">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
-        if !ok </span><span class="cov5" title="5">{
+        <span class="cov6" title="6">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
+        if !ok </span><span class="cov5" title="4">{
                 return 0, nil
         }</span>
         <span class="cov3" title="2">return strconv.Atoi(failCounterStr)</span>
@@ -1335,10 +1335,10 @@ func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="co
 // Return the count of failed attempts, defaults to 0 if no lease is found
 func (l *lease) GetFailCounter(ctx context.Context) (int, error) <span class="cov6" title="7">{
         count, err := l.getFailCounter(ctx)
-        if errors.IsNotFound(err) </span><span class="cov3" title="2">{
+        if errors.IsNotFound(err) </span><span class="cov4" title="3">{
                 return 0, nil
         }</span>
-        <span class="cov5" title="5">return count, err</span>
+        <span class="cov5" title="4">return count, err</span>
 }
 
 // Increase the fail counter by 1.
@@ -1428,14 +1428,14 @@ func (l *lease) Delete(ctx context.Context) error <span class="cov4" title="3">{
 func (l *lease) IsDone(ctx context.Context) (bool, error) <span class="cov7" title="9">{
         if l.lease == nil </span><span class="cov7" title="9">{
                 err := l.get(ctx)
-                if errors.IsNotFound(err) </span><span class="cov3" title="2">{
+                if errors.IsNotFound(err) </span><span class="cov4" title="3">{
                         return false, nil
-                }</span> else<span class="cov6" title="7"> if err != nil </span><span class="cov0" title="0">{
+                }</span> else<span class="cov6" title="6"> if err != nil </span><span class="cov0" title="0">{
                         return false, err
                 }</span>
         }
 
-        <span class="cov6" title="7">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
+        <span class="cov6" title="6">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
 }
 
 // Set the lease to an error state and increase the fail counter by one
@@ -2084,7 +2084,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="43">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov4" title="29">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2224,7 +2224,7 @@ func (m *MemoryBackend) Release(group string, id string) error <span class="cov6
 
         <span class="cov6" title="25">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="68">{
+        for i, l = range g.slots </span><span class="cov7" title="65">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
@@ -2260,7 +2260,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="105">{
-        for _, lock := range g.slots </span><span class="cov10" title="297">{
+        for _, lock := range g.slots </span><span class="cov10" title="292">{
                 if id == lock.id </span><span class="cov5" title="13">{
                         return true
                 }</span>
