@@ -63,8 +63,7 @@ func TestLoadbalancer(t *testing.T) {
 
 		assert.Equal(0, lb.selected, "Should have currently the first client selected")
 
-		mr1.Close()
-		time.Sleep(1 * time.Second) // Wait for mr1 to close
+		lb.addrs[0] = "not-a-host:1234"
 
 		lb.HealthCheck()
 		require.Equal(1, lb.selected, "Should have failed over")
