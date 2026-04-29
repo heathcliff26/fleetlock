@@ -117,7 +117,7 @@
 				
 				<option value="file30">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/sql/util.go (90.0%)</option>
 				
-				<option value="file31">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/loadbalancer.go (88.5%)</option>
+				<option value="file31">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/loadbalancer.go (90.4%)</option>
 				
 				<option value="file32">github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/valkey/storage.go (85.7%)</option>
 				
@@ -1274,13 +1274,13 @@ func NewLease(name string, client client.LeaseInterface) *lease <span class="cov
 
 // Fetch the lease from the kubernetes server and store it in the local object.
 // Does not need to be called manually.
-func (l *lease) get(ctx context.Context) error <span class="cov10" title="19">{
+func (l *lease) get(ctx context.Context) error <span class="cov9" title="18">{
         lease, err := l.client.Get(ctx, l.name, metav1.GetOptions{})
-        if err != nil </span><span class="cov7" title="9">{
+        if err != nil </span><span class="cov6" title="7">{
                 return err
         }</span>
 
-        <span class="cov8" title="10">l.lease = lease
+        <span class="cov8" title="11">l.lease = lease
         return nil</span>
 }
 
@@ -1318,15 +1318,15 @@ func (l *lease) update(ctx context.Context) error <span class="cov5" title="5">{
 }
 
 func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="cov7" title="9">{
-        if l.lease == nil </span><span class="cov4" title="3">{
+        if l.lease == nil </span><span class="cov3" title="2">{
                 err := l.get(ctx)
-                if err != nil </span><span class="cov4" title="3">{
+                if err != nil </span><span class="cov3" title="2">{
                         return 0, err
                 }</span>
         }
 
-        <span class="cov6" title="6">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
-        if !ok </span><span class="cov5" title="4">{
+        <span class="cov6" title="7">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
+        if !ok </span><span class="cov5" title="5">{
                 return 0, nil
         }</span>
         <span class="cov3" title="2">return strconv.Atoi(failCounterStr)</span>
@@ -1335,10 +1335,10 @@ func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="co
 // Return the count of failed attempts, defaults to 0 if no lease is found
 func (l *lease) GetFailCounter(ctx context.Context) (int, error) <span class="cov6" title="7">{
         count, err := l.getFailCounter(ctx)
-        if errors.IsNotFound(err) </span><span class="cov4" title="3">{
+        if errors.IsNotFound(err) </span><span class="cov3" title="2">{
                 return 0, nil
         }</span>
-        <span class="cov5" title="4">return count, err</span>
+        <span class="cov5" title="5">return count, err</span>
 }
 
 // Increase the fail counter by 1.
@@ -1428,14 +1428,14 @@ func (l *lease) Delete(ctx context.Context) error <span class="cov4" title="3">{
 func (l *lease) IsDone(ctx context.Context) (bool, error) <span class="cov7" title="9">{
         if l.lease == nil </span><span class="cov7" title="9">{
                 err := l.get(ctx)
-                if errors.IsNotFound(err) </span><span class="cov4" title="3">{
+                if errors.IsNotFound(err) </span><span class="cov3" title="2">{
                         return false, nil
-                }</span> else<span class="cov6" title="6"> if err != nil </span><span class="cov0" title="0">{
+                }</span> else<span class="cov6" title="7"> if err != nil </span><span class="cov0" title="0">{
                         return false, err
                 }</span>
         }
 
-        <span class="cov6" title="6">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
+        <span class="cov6" title="7">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
 }
 
 // Set the lease to an error state and increase the fail counter by one
@@ -2084,7 +2084,7 @@ func (k *KubernetesBackend) Release(group string, id string) error <span class="
                 return err
         }</span>
 
-        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="31">{
+        <span class="cov4" title="23">for _, lease := range leases </span><span class="cov5" title="43">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov4" title="21">{
                         return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
                 }</span>
@@ -2105,7 +2105,7 @@ func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) <span
                 return false, err
         }</span>
 
-        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="103">{
+        <span class="cov5" title="54">for _, lease := range leases </span><span class="cov6" title="101">{
                 if *lease.Spec.HolderIdentity == id </span><span class="cov3" title="10">{
                         return true, nil
                 }</span>
@@ -2133,8 +2133,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
 
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 
-        for _, lease := range leases.Items </span><span class="cov10" title="1965">{
-                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="762">{
+        for _, lease := range leases.Items </span><span class="cov10" title="1962">{
+                if matcher.MatchString(lease.GetName()) </span><span class="cov8" title="759">{
                         result = append(result, lease)
                 }</span>
         }
@@ -2260,7 +2260,7 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
 }</span>
 
 func (g *group) hasLock(id string) bool <span class="cov8" title="105">{
-        for _, lock := range g.slots </span><span class="cov10" title="318">{
+        for _, lock := range g.slots </span><span class="cov10" title="297">{
                 if id == lock.id </span><span class="cov5" title="13">{
                         return true
                 }</span>
@@ -2775,7 +2775,7 @@ func NewValkeyLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalance
 func (lb *loadbalancer) HealthCheck() <span class="cov8" title="7">{
         found := false
 
-        for i, addr := range lb.addrs </span><span class="cov10" title="10">{
+        for i, addr := range lb.addrs </span><span class="cov10" title="11">{
                 ctx, cancel := context.WithTimeout(context.Background(), time.Second)
                 defer cancel()
 
@@ -2783,11 +2783,11 @@ func (lb *loadbalancer) HealthCheck() <span class="cov8" title="7">{
                 opt.InitAddress = []string{addr}
 
                 client, err := valkey.NewClient(opt)
-                if err != nil </span><span class="cov5" title="3">{
+                if err != nil </span><span class="cov7" title="5">{
                         slog.Debug("Endpoint down", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
-                <span class="cov8" title="7">defer client.Close()
+                <span class="cov7" title="6">defer client.Close()
 
                 cmdInfo := client.B().Info().Build()
                 res, err := client.Do(ctx, cmdInfo).ToString()
@@ -2795,9 +2795,9 @@ func (lb *loadbalancer) HealthCheck() <span class="cov8" title="7">{
                         slog.Error("Failed to get endpoint info", slog.String("addr", addr), "err", err)
                         continue</span>
                 }
-                <span class="cov8" title="7">s := strings.Split(res, "\r\n")
+                <span class="cov7" title="6">s := strings.Split(res, "\r\n")
                 // Check if the endpoint is a write enabled node. If no role is returned, it is likely either single node or miniredis for testing.
-                if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") || !strings.Contains(res, "role") </span><span class="cov8" title="7">{
+                if slices.Contains(s, "role:master") || slices.Contains(s, "role:active-replica") || !strings.Contains(res, "role") </span><span class="cov7" title="6">{
                         lb.rwlock.Lock()
 
                         if lb.selected != i </span><span class="cov3" title="2">{
@@ -2806,16 +2806,16 @@ func (lb *loadbalancer) HealthCheck() <span class="cov8" title="7">{
                                 slog.Info("Failed over to new database", slog.String("addr", addr))
                                 // valkey keeps a connection. Try to ping it to ensure it gets terminated and the next try will be a new connection
                                 _ = lb.client.Do(ctx, client.B().Ping().Build())
-                        }</span> else<span class="cov7" title="5"> {
+                        }</span> else<span class="cov6" title="4"> {
                                 lb.rwlock.Unlock()
                         }</span>
 
-                        <span class="cov8" title="7">found = true
+                        <span class="cov7" title="6">found = true
                         break</span>
                 }
         }
 
-        <span class="cov8" title="7">if !found </span><span class="cov0" title="0">{
+        <span class="cov8" title="7">if !found </span><span class="cov1" title="1">{
                 slog.Info("Could not connect to any valkey database, all connections are down")
         }</span>
 }
@@ -2837,7 +2837,7 @@ func (lb *loadbalancer) periodicHealthCheck() <span class="cov6" title="4">{
         }
 }
 
-func (lb *loadbalancer) DialCtxFn(ctx context.Context, _ string, dialer *net.Dialer, cfg *tls.Config) (conn net.Conn, err error) <span class="cov9" title="9">{
+func (lb *loadbalancer) DialCtxFn(ctx context.Context, _ string, dialer *net.Dialer, cfg *tls.Config) (conn net.Conn, err error) <span class="cov8" title="8">{
         lb.rwlock.RLock()
         defer lb.rwlock.RUnlock()
         dst := lb.addrs[lb.selected]
@@ -2849,7 +2849,7 @@ func (lb *loadbalancer) DialCtxFn(ctx context.Context, _ string, dialer *net.Dia
                 }
                 return tlsDialer.DialContext(ctx, "tcp", dst)
         }</span>
-        <span class="cov9" title="9">return dialer.DialContext(ctx, "tcp", dst)</span>
+        <span class="cov8" title="8">return dialer.DialContext(ctx, "tcp", dst)</span>
 }
 
 func (lb *loadbalancer) Close() <span class="cov6" title="4">{
