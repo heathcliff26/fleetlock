@@ -158,7 +158,7 @@ func TestE2E(t *testing.T) {
 }
 
 func execFleetctl(args, url string) (int, error) {
-	err := utils.RunCommandWithSeperatedOutput("bin/"+fleetctlBinary+" "+args+" "+url, os.Stdout, os.Stderr)
+	err := utils.RunCommandWithSeperatedOutputContext(context.Background(), "bin/"+fleetctlBinary+" "+args+" "+url, os.Stdout, os.Stderr)
 
 	exitCode := 0
 	if err != nil {
