@@ -57,6 +57,6 @@ jobs:
       update: ${{ inputs.update }}
       tag: ${{ inputs.tag }}
       release-artifacts: "release/*"
-      artifacts: "{fleetctl-*,manifests}"
+      artifacts: "{fleetctl,manifests}"
       prerelease: ${{ inputs.prerelease }}
     secrets: inherit

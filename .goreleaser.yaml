@@ -1,0 +1,31 @@
+---
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+version: 2
+
+project_name: fleetlock
+
+env:
+  - CGO_ENABLED=0
+  - RELEASE_VERSION={{ if index .Env "RELEASE_VERSION"  }}{{ .Env.RELEASE_VERSION }}{{ else }}devel{{ end }}
+
+builds:
+  - binary: fleetctl
+    main: ./cmd/fleetctl
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -X github.com/heathcliff26/{{ .ProjectName }}/pkg/version.gitVersion={{ .Env.RELEASE_VERSION }} -X github.com/heathcliff26/{{ .ProjectName }}/pkg/version.gitCommit={{ .Commit }}
+
+archives:
+  - formats: ["binary"]
+
+changelog:
+  disable: true
+release:
+  disable: true
