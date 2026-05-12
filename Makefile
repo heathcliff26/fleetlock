@@ -19,6 +19,10 @@ build-fleetlock:
 image:
 	podman build -t $(REPOSITORY)/$(CONTAINER_NAME):$(TAG) .
 
+# Build all artifacts used for release, except the container images
+release:
+	hack/release.sh
+
 # Run unit-tests
 test:
 	go test -v -race -coverprofile=coverprofile.out -coverpkg "./pkg/..." ./cmd/... ./pkg/... ./tests/storage/...
@@ -90,6 +94,7 @@ help:
 	build-fleetctl \
 	build-fleetlock \
 	image \
+	release \
 	test \
 	test-e2e \
 	update-deps \

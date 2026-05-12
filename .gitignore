@@ -1,5 +1,6 @@
 # Ignore binaries
 /bin
+/dist
 
 # Ignore generated manifests
 /manifests/release

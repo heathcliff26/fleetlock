@@ -90,19 +90,11 @@ jobs:
     needs:
       - lint
       - unit-tests
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-          - arch: arm64
     with:
       release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
-      goos: "linux"
-      goarch: "${{ matrix.arch }}"
-      artifact: "bin/fleetctl-${{ matrix.arch }}"
-      artifact-name: "fleetctl-${{ matrix.arch }}"
-      cmd: "hack/build.sh fleetctl fleetctl-${{ matrix.arch }}"
+      artifact: "dist/fleetctl*"
+      artifact-name: "fleetctl"
+      cmd: "make release"
     secrets: inherit
 
   build-fleetlock:
