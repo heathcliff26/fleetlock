@@ -28,6 +28,8 @@ jobs:
     targets:
       - fedora-all-x86_64
       - fedora-all-aarch64
+    additional_repos:
+      - copr://@go-sig/golang-rawhide
 
   - job: copr_build
     trigger: release
@@ -36,3 +38,5 @@ jobs:
       - fedora-all-aarch64
     owner: heathcliff26
     project: cli
+    additional_repos:
+      - copr://@go-sig/golang-rawhide
