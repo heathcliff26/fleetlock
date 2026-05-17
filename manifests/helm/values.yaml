@@ -250,8 +250,8 @@ listenerSet:
     namespace: ""
   # List of listeners
   listeners: []
-    # - name: cerberus-mergeguard
-    #   hostname: cerberus-mergeguard.example.org
+    # - name: fleetlock
+    #   hostname: fleetlock.example.org
     #   port: 80
     #   protocol: HTTP
 
