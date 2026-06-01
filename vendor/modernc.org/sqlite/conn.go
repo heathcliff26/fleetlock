@@ -33,6 +33,14 @@ type conn struct {
 	intToTime         bool
 	textToTime        bool
 	integerTimeFormat string
+
+	// inMemory records whether the underlying database resides only in
+	// memory (DSN like ":memory:", "file::memory:", or a shared-cache
+	// memory URI). For such databases, dropping the *only* connection
+	// also drops the database itself, so IsValid must not discard the
+	// connection just because an in-flight query was interrupted.
+	// See #196.
+	inMemory bool
 }
 
 func newConn(dsn string) (*conn, error) {
@@ -73,6 +81,18 @@ func newConn(dsn string) (*conn, error) {
 		c.Close()
 		return nil, err
 	}
+
+	// sqlite3_db_filename returns an empty string for databases that
+	// are not backed by a file (":memory:", "file::memory:", shared-cache
+	// memory URIs, temporary databases). Cache the answer once so we
+	// don't have to re-derive it on every IsValid call.
+	zMain, mainErr := libc.CString("main")
+	if mainErr != nil {
+		c.Close()
+		return nil, mainErr
+	}
+	defer libc.Xfree(c.tls, zMain)
+	c.inMemory = libc.GoString(sqlite3.Xsqlite3_db_filename(c.tls, c.db, zMain)) == ""
 
 	if err = applyQueryParams(c, query); err != nil {
 		c.Close()
@@ -822,7 +842,18 @@ func (c *conn) IsValid() bool {
 }
 
 func (c *conn) usable() bool {
-	return c.db != 0 && sqlite3.Xsqlite3_is_interrupted(c.tls, c.db) == 0
+	if c.db == 0 {
+		return false
+	}
+	// For in-memory databases the connection is the database: discarding
+	// it because the previous query was interrupted destroys all the data.
+	// Treat an interrupted in-memory connection as still valid so that
+	// database/sql returns it to the pool instead of dropping it. See #196
+	// (regressed by the fix for #198 which added the is_interrupted check).
+	if c.inMemory {
+		return true
+	}
+	return sqlite3.Xsqlite3_is_interrupted(c.tls, c.db) == 0
 }
 
 type userDefinedFunction struct {
