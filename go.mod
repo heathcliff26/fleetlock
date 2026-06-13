@@ -5,8 +5,8 @@ go 1.26.0
 require (
 	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/go-sql-driver/mysql v1.10.0
-	github.com/heathcliff26/simple-fileserver v1.3.2
-	github.com/jackc/pgx/v5 v5.9.2
+	github.com/heathcliff26/simple-fileserver v1.3.3
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/valkey-io/valkey-go v1.0.75
@@ -14,10 +14,10 @@ require (
 	go.etcd.io/etcd/client/v3 v3.6.12
 	go.mongodb.org/mongo-driver/v2 v2.6.0
 	go.yaml.in/yaml/v3 v3.0.4
-	k8s.io/api v0.36.1
-	k8s.io/apimachinery v0.36.1
-	k8s.io/client-go v0.36.1
-	modernc.org/sqlite v1.51.0
+	k8s.io/api v0.36.2
+	k8s.io/apimachinery v0.36.2
+	k8s.io/client-go v0.36.2
+	modernc.org/sqlite v1.52.0
 	sigs.k8s.io/e2e-framework v0.7.0
 )
 
@@ -95,7 +95,7 @@ require (
 	k8s.io/component-base v0.35.3 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260317180543-43fb72c5454a // indirect
-	k8s.io/streaming v0.36.1 // indirect
+	k8s.io/streaming v0.36.2 // indirect
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
 	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
