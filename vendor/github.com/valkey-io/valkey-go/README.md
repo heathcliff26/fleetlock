@@ -330,6 +330,27 @@ err := client.Receive(ctx, client.B().Subscribe().Channel("news").Build(), func(
 })
 ```
 
+#### Cleanup on Receive return
+
+Note that `client.Receive()` doesn't unsubscribe channels automatically when it is about to return. Use `valkey.WithOnReceiveReturnHook` if you need to execute cleanup commands (e.g., `UNSUBSCRIBE`) on the underlying connection.
+
+```go
+ctx, cancel := context.WithCancel(context.Background())
+
+ctx = valkey.WithOnReceiveReturnHook(context.Background(), func(err error, client valkey.CommandClient) error {
+  if errors.Is(err, context.Canceled) {
+    // Send UNSUBSCRIBE command to the connection
+    return client.Do(context.Background(), client.B().Unsubscribe().Channel("news").Build()).Error()
+  }
+  return err
+})
+
+err := client.Receive(ctx, client.B().Subscribe().Channel("news").Build(), func(m valkey.PubSubMessage) {
+  // Handle message
+  cancel() // trigger context cancellation to return from Receive
+})
+```
+
 ### Alternative PubSub Hooks
 
 The `client.Receive()` requires users to provide a subscription command in advance.
@@ -533,7 +554,7 @@ client, err := valkey.NewClient(valkey.ClientOption{
   InitAddress:         []string{"address.example.com:6379"},
   EnableReplicaAZInfo: true,
   SendToReplicas: func(cmd valkey.Completed) bool {
-    return cmd.IsReadOnly()
+    return cmd.IsReadOnly() && !cmd.NoReply()
   },
   ReadNodeSelector: valkey.AZAffinityNodeSelector("us-east-1a"),
 })
@@ -544,7 +565,7 @@ client, err := valkey.NewClient(valkey.ClientOption{
   InitAddress:         []string{"address.example.com:6379"},
   EnableReplicaAZInfo: true,
   SendToReplicas: func(cmd valkey.Completed) bool {
-    return cmd.IsReadOnly()
+    return cmd.IsReadOnly() && !cmd.NoReply()
   },
   ReadNodeSelector: func(slot uint16, nodes []valkey.NodeInfo) int {
     for i, node := range nodes {
