@@ -23,7 +23,7 @@ func TestMySQLBackend(t *testing.T) {
 		t.Fatalf("Failed to start test db: %v\n", err)
 	}
 	t.Cleanup(func() {
-		_ = utils.ExecCRI("stop", "fleetlock-mysql-db")
+		_ = utils.ExecCRI("kill", "fleetlock-mysql-db")
 	})
 
 	var storage *sql.SQLBackend
