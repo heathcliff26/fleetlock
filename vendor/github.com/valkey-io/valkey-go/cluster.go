@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"math/rand"
 	"net"
 	"strconv"
 	"sync"
@@ -153,7 +154,47 @@ func (c *clusterClient) refresh(ctx context.Context) (err error) {
 }
 
 func (c *clusterClient) lazyRefresh() {
-	c.sc.LazyDo(time.Second, c._refresh)
+	c.sc.DelayDo(c.clusterRefreshStartDelay(), c._refresh)
+}
+
+func (c *clusterClient) clusterRefreshStartDelay() time.Duration {
+	maxDelay := c.clusterRefreshMaxDelay()
+	return time.Duration(util.FastRand(int(maxDelay)))
+}
+
+func (c *clusterClient) clusterRefreshMaxDelay() time.Duration {
+	c.mu.RLock()
+	n := len(c.conns)
+	c.mu.RUnlock()
+	return clusterRefreshAutoMaxDelay(n)
+}
+
+func (c *clusterClient) clusterRefreshBatchDelay() time.Duration {
+	return clusterRefreshBatchDelayFromMaxDelay(c.clusterRefreshMaxDelay())
+}
+
+func clusterRefreshBatchDelayFromMaxDelay(maxDelay time.Duration) time.Duration {
+	switch {
+	case maxDelay <= time.Second:
+		return 0
+	case maxDelay >= 30*time.Second:
+		return 100 * time.Millisecond
+	default:
+		// Linearly scale 1s..30s max delay from 0ms to 100ms batch delay.
+		return (maxDelay - time.Second) * 100 * time.Millisecond / (29 * time.Second)
+	}
+}
+
+func clusterRefreshAutoMaxDelay(n int) time.Duration {
+	switch {
+	case n < 100:
+		return time.Second
+	case n >= 1000:
+		return 30 * time.Second
+	default:
+		// Linearly scale 100..1000 nodes from 1s to 30s.
+		return time.Second + time.Duration(n-100)*(29*time.Second)/900
+	}
 }
 
 type clusterslots struct {
@@ -186,33 +227,11 @@ func getClusterSlots(c conn, timeout time.Duration) clusterslots {
 }
 
 func (c *clusterClient) _refresh() (err error) {
-	c.mu.RLock()
-	results := make(chan clusterslots, len(c.conns))
-	pending := make([]conn, 0, len(c.conns))
-	for _, cc := range c.conns {
-		pending = append(pending, cc.conn)
-	}
-	c.mu.RUnlock()
-
-	var result clusterslots
-	for i := 0; i < cap(results); i++ {
-		if i&3 == 0 { // batch CLUSTER SLOTS/CLUSTER SHARDS for every 4 connections
-			for j := i; j < i+4 && j < len(pending); j++ {
-				go func(c conn, timeout time.Duration) {
-					results <- getClusterSlots(c, timeout)
-				}(pending[j], c.opt.ConnWriteTimeout)
-			}
-		}
-		result = <-results
-		err = result.reply.Error()
-		if len(result.reply.val.values()) != 0 {
-			break
-		}
-	}
+	batchDelay := c.clusterRefreshBatchDelay()
+	result, err := c.refreshConns(c.clusterRefreshConns(), batchDelay)
 	if err != nil {
 		return err
 	}
-	pending = nil
 
 	groups := result.parse(c.opt.TLSConfig != nil)
 	conns := make(map[string]connrole, len(groups))
@@ -339,6 +358,50 @@ func (c *clusterClient) _refresh() (err error) {
 	return nil
 }
 
+func (c *clusterClient) clusterRefreshConns() []conn {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if !c.opt.ClusterOption.PreferInitAddressRefresh {
+		pending := make([]conn, 0, len(c.conns))
+		for _, cc := range c.conns {
+			pending = append(pending, cc.conn)
+		}
+		rand.Shuffle(len(pending), func(i, j int) { pending[i], pending[j] = pending[j], pending[i] })
+		return pending
+	}
+
+	pending := make([]conn, 0, len(c.opt.InitAddress))
+	for _, addr := range c.opt.InitAddress {
+		if cc, ok := c.conns[addr]; ok {
+			pending = append(pending, cc.conn)
+		}
+	}
+	rand.Shuffle(len(pending), func(i, j int) { pending[i], pending[j] = pending[j], pending[i] })
+	return pending
+}
+
+func (c *clusterClient) refreshConns(pending []conn, batchDelay time.Duration) (result clusterslots, err error) {
+	results := make(chan clusterslots, len(pending))
+	for i := 0; i < len(pending); i++ {
+		if i&3 == 0 { // batch CLUSTER SLOTS/CLUSTER SHARDS for every 4 connections
+			if i > 0 && batchDelay > 0 {
+				time.Sleep(batchDelay)
+			}
+			for j := i; j < i+4 && j < len(pending); j++ {
+				go func(c conn, timeout time.Duration) {
+					results <- getClusterSlots(c, timeout)
+				}(pending[j], c.opt.ConnWriteTimeout)
+			}
+		}
+		result = <-results
+		err = result.reply.Error()
+		if len(result.reply.val.values()) != 0 {
+			break
+		}
+	}
+	return result, err
+}
+
 func (c *clusterClient) single() (conn conn) {
 	return c._pick(cmds.InitSlot, false)
 }
@@ -375,21 +438,33 @@ func parseEndpoint(fallback, endpoint string, port int64) string {
 func parseSlots(slots ValkeyMessage, defaultAddr string) map[string]group {
 	groups := make(map[string]group, len(slots.values()))
 	for _, v := range slots.values() {
-		master := parseEndpoint(defaultAddr, v.values()[2].values()[0].string(), v.values()[2].values()[1].intlen)
+		values := v.values()
+		if len(values) < 3 {
+			continue
+		}
+		masterValues := values[2].values()
+		if len(masterValues) < 2 {
+			continue
+		}
+		master := parseEndpoint(defaultAddr, masterValues[0].string(), masterValues[1].intlen)
 		if master == "" {
 			continue
 		}
 		g, ok := groups[master]
 		if !ok {
 			g.slots = make([][2]int64, 0)
-			g.nodes = make(nodes, 0, len(v.values())-2)
-			for i := 2; i < len(v.values()); i++ {
-				if dst := parseEndpoint(defaultAddr, v.values()[i].values()[0].string(), v.values()[i].values()[1].intlen); dst != "" {
+			g.nodes = make(nodes, 0, len(values)-2)
+			for i := 2; i < len(values); i++ {
+				nodeValues := values[i].values()
+				if len(nodeValues) < 2 {
+					continue
+				}
+				if dst := parseEndpoint(defaultAddr, nodeValues[0].string(), nodeValues[1].intlen); dst != "" {
 					g.nodes = append(g.nodes, NodeInfo{Addr: dst})
 				}
 			}
 		}
-		g.slots = append(g.slots, [2]int64{v.values()[0].intlen, v.values()[1].intlen})
+		g.slots = append(g.slots, [2]int64{values[0].intlen, values[1].intlen})
 		groups[master] = g
 	}
 	return groups
@@ -1031,10 +1106,40 @@ func (c *clusterClient) askingMulti(cc conn, ctx context.Context, multi []Comple
 }
 
 func (c *clusterClient) askingMultiCache(cc conn, ctx context.Context, multi []CacheableTTL) *valkeyresults {
-	commands := make([]Completed, 0, len(multi)*6)
-	for _, cmd := range multi {
-		ck, _ := cmds.CacheKey(cmd.Cmd)
-		commands = append(commands, cc.OptInCmd(), cmds.AskingCmd, cmds.MultiCmd, cmds.NewCompleted([]string{"PTTL", ck}), Completed(cmd.Cmd), cmds.ExecCmd)
+	// Runs on the ASK-target (cc); origin's Flight slot was cancelled
+	// on -ASK. ASK-target's read loop populates its own cache as a
+	// pre-warm. All-or-nothing: stride-3 only when every cmd is tagged.
+	skipMultiExec := true
+	for _, ct := range multi {
+		if !cmds.IsStaticTTL(Completed(ct.Cmd)) {
+			skipMultiExec = false
+			break
+		}
+	}
+	var (
+		commands []Completed
+		stride   int
+		offset   int
+	)
+	if skipMultiExec {
+		// [OPT_IN, ASKING, cmd]
+		stride = 3
+		offset = 2
+		commands = make([]Completed, 0, len(multi)*stride)
+		for _, cmd := range multi {
+			commands = append(commands, cc.OptInCmd(), cmds.AskingCmd, Completed(cmd.Cmd))
+		}
+	} else {
+		// [OPT_IN, ASKING, MULTI, PTTL, cmd, EXEC]; tag stripped so the
+		// static-TTL gate cannot fire on "QUEUED" inside MULTI/EXEC.
+		stride = 6
+		offset = 5
+		commands = make([]Completed, 0, len(multi)*stride)
+		for _, cmd := range multi {
+			ck, _ := cmds.CacheKey(cmd.Cmd)
+			cmds.ClearStaticTTL(&cmd.Cmd)
+			commands = append(commands, cc.OptInCmd(), cmds.AskingCmd, cmds.MultiCmd, cmds.NewCompleted([]string{"PTTL", ck}), Completed(cmd.Cmd), cmds.ExecCmd)
+		}
 	}
 	results := resultsp.Get(0, len(multi))
 	resps := cc.DoMulti(ctx, commands...)
@@ -1042,9 +1147,9 @@ func (c *clusterClient) askingMultiCache(cc conn, ctx context.Context, multi []C
 		var ml []Completed
 	recover:
 		ml = ml[:0]
-		for i := 5; i < len(resps.s); i += 6 { // check exec command error only
+		for i := offset; i < len(resps.s); i += stride {
 			if resps.s[i].NonValkeyError() == errConnExpired {
-				ml = commands[i-5:]
+				ml = commands[i-offset:]
 				break
 			}
 		}
@@ -1054,14 +1159,21 @@ func (c *clusterClient) askingMultiCache(cc conn, ctx context.Context, multi []C
 			goto recover
 		}
 	}
-	for i := 5; i < len(resps.s); i += 6 {
-		if arr, err := resps.s[i].ToArray(); err != nil {
-			if preErr := resps.s[i-1].Error(); preErr != nil { // if {Cmd} get a ValkeyError
-				err = preErr
+	if skipMultiExec {
+		// Cmd reply is the user-visible result directly (no EXEC unwrap).
+		for i := offset; i < len(resps.s); i += stride {
+			results.s = append(results.s, resps.s[i])
+		}
+	} else {
+		for i := offset; i < len(resps.s); i += stride {
+			if arr, err := resps.s[i].ToArray(); err != nil {
+				if preErr := resps.s[i-1].Error(); preErr != nil { // if {Cmd} get a ValkeyError
+					err = preErr
+				}
+				results.s = append(results.s, newErrResult(err))
+			} else {
+				results.s = append(results.s, newResult(arr[len(arr)-1], nil))
 			}
-			results.s = append(results.s, newErrResult(err))
-		} else {
-			results.s = append(results.s, newResult(arr[len(arr)-1], nil))
 		}
 	}
 	resultsp.Put(resps)
