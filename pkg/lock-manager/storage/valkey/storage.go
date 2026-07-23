@@ -68,6 +68,9 @@ func NewValkeyBackend(cfg ValkeyConfig) (*ValkeyBackend, error) {
 		client, err = valkey.NewClient(opt)
 	case len(cfg.Addrs) > 1:
 		client, lb, err = NewValkeyLoadbalancer(opt)
+		if lb != nil {
+			lb.PeriodicHealthCheck()
+		}
 	default:
 		client, err = valkey.NewClient(opt)
 	}
