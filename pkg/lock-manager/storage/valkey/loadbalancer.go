@@ -49,7 +49,6 @@ func NewValkeyLoadbalancer(opt valkey.ClientOption) (valkey.Client, *loadbalance
 	}
 
 	lb.client = client
-	lb.PeriodicHealthCheck()
 
 	return lb.client, lb, nil
 }
@@ -137,4 +136,5 @@ func (lb *loadbalancer) DialCtxFn(ctx context.Context, _ string, dialer *net.Dia
 
 func (lb *loadbalancer) Close() {
 	lb.cancel()
+	lb.client.Close()
 }
