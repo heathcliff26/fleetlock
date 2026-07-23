@@ -101,13 +101,11 @@ func initGroups(groups Groups) map[string]*lockGroup {
 	return g
 }
 
+// Reserve a slot for the given group and id
 func (lm *LockManager) Reserve(group, id string) (bool, error) {
-	lGroup := lm.groups[group]
-	if lGroup == nil {
-		return false, errors.NewErrorUnknownGroup(group)
-	}
-	if id == "" {
-		return false, errors.ErrorEmptyID{}
+	lGroup, err := lm.getGroup(group, id)
+	if err != nil {
+		return false, err
 	}
 
 	checkHasLock := func() (bool, error) {
@@ -160,13 +158,11 @@ func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) {
 	return usedSlots < cfg.Slots, nil
 }
 
+// Release a slot for the given group and id
 func (lm *LockManager) Release(group, id string) error {
-	lGroup := lm.groups[group]
-	if lGroup == nil {
-		return errors.NewErrorUnknownGroup(group)
-	}
-	if id == "" {
-		return errors.ErrorEmptyID{}
+	lGroup, err := lm.getGroup(group, id)
+	if err != nil {
+		return err
 	}
 
 	lGroup.RWLock.Lock()
@@ -175,6 +171,30 @@ func (lm *LockManager) Release(group, id string) error {
 	return lm.storage.Release(group, id)
 }
 
+// Check if a slot is reserved for the given group and id
+func (lm *LockManager) HasLock(group, id string) (bool, error) {
+	lGroup, err := lm.getGroup(group, id)
+	if err != nil {
+		return false, err
+	}
+
+	lGroup.RWLock.RLock()
+	defer lGroup.RWLock.RUnlock()
+
+	return lm.storage.HasLock(group, id)
+}
+
 func (lm *LockManager) Close() error {
 	return lm.storage.Close()
+}
+
+func (lm *LockManager) getGroup(group, id string) (*lockGroup, error) {
+	lGroup := lm.groups[group]
+	if lGroup == nil {
+		return nil, errors.NewErrorUnknownGroup(group)
+	}
+	if id == "" {
+		return nil, errors.ErrorEmptyID{}
+	}
+	return lGroup, nil
 }

@@ -118,8 +118,21 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params api.FleetLockReque
 //
 //	URL: /v1/steady-state
 func (s *Server) handleRelease(rw http.ResponseWriter, params api.FleetLockRequest) {
-	if s.k8s != nil && !s.uncordonNode(rw, params) {
-		return
+	if s.k8s != nil {
+		ok, err := s.lm.HasLock(params.Client.Group, params.Client.ID)
+		if err != nil {
+			slog.Error("Failed fetch slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
+			rw.WriteHeader(http.StatusInternalServerError)
+			sendResponse(rw, msgUnexpectedError)
+			return
+		}
+		if !ok {
+			sendResponse(rw, msgSuccess)
+			return
+		}
+		if !s.uncordonNode(rw, params) {
+			return
+		}
 	}
 
 	err := s.lm.Release(params.Client.Group, params.Client.ID)
