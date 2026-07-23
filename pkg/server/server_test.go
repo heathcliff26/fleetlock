@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/fake"
 )
 
@@ -215,6 +217,67 @@ func TestHandleRelease(t *testing.T) {
 	assert.Equal(msgUnexpectedError, response)
 }
 
+func TestHandleReleaseHasLockError(t *testing.T) {
+	lm := lockmanager.NewManagerWithStorage(lockmanager.NewDefaultGroups(), memory.NewMemoryBackend([]string{"default"}))
+	k8sClient, fakeclient := k8s.NewFakeClient()
+	initTestCluster(t, fakeclient)
+	s := &Server{
+		lm:  lm,
+		k8s: k8sClient,
+	}
+
+	assert := assert.New(t)
+
+	rr := httptest.NewRecorder()
+	params := newFleetlockRequest("", "testUser")
+	s.handleRelease(rr, params)
+	res, response, err := parseResponse(rr)
+
+	assert.NoError(err)
+	assert.Equal(http.StatusInternalServerError, res.StatusCode)
+	assert.Equal(msgUnexpectedError, response)
+}
+
+func TestHandleReleaseUncordonNodeError(t *testing.T) {
+	assert := assert.New(t)
+
+	lm := lockmanager.NewManagerWithStorage(lockmanager.NewDefaultGroups(), memory.NewMemoryBackend([]string{"default"}))
+	ok, err := lm.Reserve("default", "testUser")
+	assert.NoError(err, "Should resever lock")
+	assert.True(ok, "Should reserve lock")
+
+	k8sClient, fakeclient := k8s.NewFakeClient()
+	initTestCluster(t, fakeclient)
+
+	badNode := &v1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "BadNode",
+		},
+		Status: v1.NodeStatus{
+			NodeInfo: v1.NodeSystemInfo{MachineID: "not-a-hex-string"},
+		},
+	}
+	_, err = fakeclient.CoreV1().Nodes().Create(t.Context(), badNode, metav1.CreateOptions{})
+	assert.NoError(err)
+
+	s := &Server{
+		lm:  lm,
+		k8s: k8sClient,
+	}
+
+	rr := httptest.NewRecorder()
+	params := newFleetlockRequest("default", "testUser")
+	s.handleRelease(rr, params)
+	res, response, err := parseResponse(rr)
+
+	assert.NoError(err)
+	assert.Equal(http.StatusInternalServerError, res.StatusCode)
+	assert.Equal(msgUnexpectedError, response)
+
+	ok, _ = lm.HasLock("default", "testUser")
+	assert.True(ok, "Lock should still be held after failed uncordonNode")
+}
+
 func TestDrainNode(t *testing.T) {
 	groups := lockmanager.NewDefaultGroups()
 	groups["default"] = lockmanager.GroupConfig{
@@ -258,6 +321,39 @@ func TestDrainNode(t *testing.T) {
 	assert.NoError(err, "Requests should be handled without error")
 	assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when node has been drained")
 	assert.Equal(msgSuccess, response, "Should return success message when node has been drained")
+}
+
+func TestHandleReleaseSkipUncordonWithoutLock(t *testing.T) {
+	groups := lockmanager.NewDefaultGroups()
+	groups["default"] = lockmanager.GroupConfig{
+		Slots: 1,
+	}
+	lm := lockmanager.NewManagerWithStorage(groups, memory.NewMemoryBackend([]string{"default"}))
+	k8sClient, fakeclient := k8s.NewFakeClient()
+	s := &Server{
+		lm:  lm,
+		k8s: k8sClient,
+	}
+	initTestCluster(t, fakeclient)
+
+	assert := assert.New(t)
+
+	nodePatch := []byte(`{"spec":{"unschedulable":true}}`)
+	_, err := fakeclient.CoreV1().Nodes().Patch(context.Background(), testNodeName, types.MergePatchType, nodePatch, metav1.PatchOptions{})
+	assert.NoError(err)
+
+	params := newFleetlockRequest("default", testNodeZincatiID)
+
+	rr := httptest.NewRecorder()
+	s.handleRelease(rr, params)
+	res, response, err := parseResponse(rr)
+	assert.NoError(err)
+	assert.Equal(http.StatusOK, res.StatusCode)
+	assert.Equal(msgSuccess, response)
+
+	node, err := fakeclient.CoreV1().Nodes().Get(context.Background(), testNodeName, metav1.GetOptions{})
+	assert.NoError(err)
+	assert.True(node.Spec.Unschedulable, "Node should not be uncordoned when lock is not held")
 }
 
 func TestUncordonNode(t *testing.T) {
