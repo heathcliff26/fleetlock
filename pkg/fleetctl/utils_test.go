@@ -1,6 +1,8 @@
 package fleetctl
 
 import (
+	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -90,4 +92,19 @@ func TestGetClientFromCMD(t *testing.T) {
 			}
 		})
 	}
+}
+
+func execExitTest(t *testing.T, test string, exitsError bool) {
+	cmd := exec.Command(os.Args[0], "-test.run="+test)
+	cmd.Env = append(os.Environ(), "RUN_CRASH_TEST=1")
+	err := cmd.Run()
+	if exitsError && err == nil {
+		t.Fatal("Process exited without error")
+	} else if !exitsError && err == nil {
+		return
+	}
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with err %v, want exit status 1", err)
 }

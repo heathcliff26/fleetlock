@@ -1,0 +1,8 @@
+kubernetes:
+  drainTimeoutSeconds: 0
+server:
+  listen: ":8081"
+  storage:
+    type: memory
+groups:
+  default: {}

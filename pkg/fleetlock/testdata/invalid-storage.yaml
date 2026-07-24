@@ -1,0 +1,8 @@
+kubernetes:
+  drainTimeoutSeconds: 300
+server:
+  listen: ":8082"
+  storage:
+    type: "invalid-storage-type"
+groups:
+  default: {}
