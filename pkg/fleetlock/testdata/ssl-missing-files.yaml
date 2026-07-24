@@ -1,0 +1,12 @@
+kubernetes:
+  drainTimeoutSeconds: 300
+server:
+  listen: ":8083"
+  ssl:
+    enabled: true
+    cert: "/nonexistent/cert.pem"
+    key: "/nonexistent/key.pem"
+  storage:
+    type: memory
+groups:
+  default: {}

@@ -3,6 +3,7 @@ package fleetctl
 import (
 	"bytes"
 	"io"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,4 +46,14 @@ func TestIDCommand(t *testing.T) {
 	out, err = io.ReadAll(b)
 	require.NoError(err, "Output should be parsed without error")
 	assert.Equal("35ba2101ae3f4d45b96e9c51f461bbff\n", string(out), "Should output the correct app id")
+}
+
+func TestIDCommandExitError(t *testing.T) {
+	if os.Getenv("RUN_CRASH_TEST") == "1" {
+		cmd := NewIDCommand()
+		cmd.SetArgs([]string{"--" + flagNameMachineID, "invalid-not-hex"})
+		_ = cmd.Execute()
+		os.Exit(0)
+	}
+	execExitTest(t, "TestIDCommandExitError", true)
 }
