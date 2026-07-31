@@ -173,13 +173,13 @@ func ParseRequest(body io.ReadCloser) (FleetLockRequest, error) <span class="cov
 }
 
 // Parse an http response body and extract the parameters
-func ParseResponse(body io.ReadCloser) (FleetLockResponse, error) <span class="cov10" title="27">{
+func ParseResponse(body io.ReadCloser) (FleetLockResponse, error) <span class="cov10" title="26">{
         var res FleetLockResponse
         err := json.NewDecoder(body).Decode(&amp;res)
         if err != nil </span><span class="cov1" title="1">{
                 return FleetLockResponse{}, err
         }</span>
-        <span class="cov9" title="26">return res, nil</span>
+        <span class="cov9" title="25">return res, nil</span>
 }
 
 // Create a new http request pody based on the provided parameters
@@ -1015,13 +1015,13 @@ func NewFakeClient(objects ...runtime.Object) (*Client, *fake.Clientset) <span c
 
 // Drain a node from all pods and set it to unschedulable.
 // Status will be tracked in lease, only one drain will be run at a time.
-func (c *Client) DrainNode(node string) error <span class="cov7" title="8">{
+func (c *Client) DrainNode(node string) error <span class="cov6" title="7">{
         ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.drainTimeoutSeconds)*time.Second)
         defer cancel()
 
         lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
         err := lease.Lock(ctx, c.drainTimeoutSeconds)
-        if err != nil </span><span class="cov5" title="4">{
+        if err != nil </span><span class="cov4" title="3">{
                 return err
         }</span>
 
@@ -1107,20 +1107,20 @@ func (c *Client) drainNode(ctx context.Context, node string) error <span class="
 }
 
 // Find the node in the cluster with the matching machine id
-func (c *Client) FindNodeByZincatiID(zincatiID string) (string, error) <span class="cov7" title="9">{
+func (c *Client) FindNodeByZincatiID(zincatiID string) (string, error) <span class="cov7" title="8">{
         nodes, err := c.client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov7" title="9">for _, node := range nodes.Items </span><span class="cov7" title="9">{
+        <span class="cov7" title="8">for _, node := range nodes.Items </span><span class="cov7" title="8">{
                 machineID := node.Status.NodeInfo.MachineID
                 appID, err := systemdutils.ZincatiMachineID(machineID)
                 if err != nil </span><span class="cov1" title="1">{
                         return "", err
                 }</span>
 
-                <span class="cov7" title="8">if appID == zincatiID </span><span class="cov6" title="6">{
+                <span class="cov6" title="7">if appID == zincatiID </span><span class="cov5" title="5">{
                         slog.Info("Matched node with zincati app id", slog.String("node", node.GetName()), slog.String("appid", zincatiID))
                         return node.Name, nil
                 }</span>
@@ -1140,15 +1140,15 @@ func (c *Client) UncordonNode(node string) error <span class="cov4" title="3">{
 }
 
 // Check if a node has been drained
-func (c *Client) IsDrained(node string) (bool, error) <span class="cov8" title="10">{
+func (c *Client) IsDrained(node string) (bool, error) <span class="cov7" title="9">{
         ctx := context.Background()
         lease := NewLease(drainLeaseName(node), c.client.CoordinationV1().Leases(c.namespace))
         done, err := lease.IsDone(ctx)
         if err != nil || done </span><span class="cov3" title="2">{
                 return done, err
         }</span>
-        <span class="cov7" title="8">fails, err := lease.GetFailCounter(ctx)
-        if err != nil || fails == 0 </span><span class="cov6" title="6">{
+        <span class="cov6" title="7">fails, err := lease.GetFailCounter(ctx)
+        if err != nil || fails == 0 </span><span class="cov5" title="5">{
                 return false, err
         }</span>
 
@@ -1207,17 +1207,17 @@ func (e ErrorFailedToEvictAllPods) Error() string <span class="cov0" title="0">{
 
 type ErrorDrainIsLocked struct{}
 
-func NewErrorDrainIsLocked() error <span class="cov10" title="4">{
+func NewErrorDrainIsLocked() error <span class="cov10" title="3">{
         return ErrorDrainIsLocked{}
 }</span>
 
-func (e ErrorDrainIsLocked) Error() string <span class="cov5" title="2">{
+func (e ErrorDrainIsLocked) Error() string <span class="cov1" title="1">{
         return "Can't drain node, as another drain is already in progress"
 }</span>
 
 type ErrorInvalidLease struct{}
 
-func NewErrorInvalidLease() error <span class="cov5" title="2">{
+func NewErrorInvalidLease() error <span class="cov6" title="2">{
         return ErrorInvalidLease{}
 }</span>
 
@@ -1265,7 +1265,7 @@ type lease struct {
 }
 
 // Create a new lease instance. Does not create a lease on the kubernetes side.
-func NewLease(name string, client client.LeaseInterface) *lease <span class="cov10" title="21">{
+func NewLease(name string, client client.LeaseInterface) *lease <span class="cov10" title="19">{
         return &amp;lease{
                 name:   name,
                 client: client,
@@ -1274,13 +1274,13 @@ func NewLease(name string, client client.LeaseInterface) *lease <span class="cov
 
 // Fetch the lease from the kubernetes server and store it in the local object.
 // Does not need to be called manually.
-func (l *lease) get(ctx context.Context) error <span class="cov10" title="21">{
+func (l *lease) get(ctx context.Context) error <span class="cov10" title="19">{
         lease, err := l.client.Get(ctx, l.name, metav1.GetOptions{})
         if err != nil </span><span class="cov7" title="9">{
                 return err
         }</span>
 
-        <span class="cov8" title="12">l.lease = lease
+        <span class="cov8" title="10">l.lease = lease
         return nil</span>
 }
 
@@ -1317,7 +1317,7 @@ func (l *lease) update(ctx context.Context) error <span class="cov5" title="5">{
         return nil</span>
 }
 
-func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="cov7" title="10">{
+func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="cov7" title="9">{
         if l.lease == nil </span><span class="cov4" title="3">{
                 err := l.get(ctx)
                 if err != nil </span><span class="cov4" title="3">{
@@ -1325,20 +1325,20 @@ func (l *lease) getFailCounter(ctx context.Context) (int, error) <span class="co
                 }</span>
         }
 
-        <span class="cov6" title="7">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
-        if !ok </span><span class="cov5" title="5">{
+        <span class="cov6" title="6">failCounterStr, ok := l.lease.GetAnnotations()[leaseFailCounterName]
+        if !ok </span><span class="cov5" title="4">{
                 return 0, nil
         }</span>
         <span class="cov3" title="2">return strconv.Atoi(failCounterStr)</span>
 }
 
 // Return the count of failed attempts, defaults to 0 if no lease is found
-func (l *lease) GetFailCounter(ctx context.Context) (int, error) <span class="cov7" title="8">{
+func (l *lease) GetFailCounter(ctx context.Context) (int, error) <span class="cov6" title="7">{
         count, err := l.getFailCounter(ctx)
         if errors.IsNotFound(err) </span><span class="cov4" title="3">{
                 return 0, nil
         }</span>
-        <span class="cov5" title="5">return count, err</span>
+        <span class="cov5" title="4">return count, err</span>
 }
 
 // Increase the fail counter by 1.
@@ -1360,19 +1360,19 @@ func (l *lease) increaseFailCounter(ctx context.Context) error <span class="cov3
 }
 
 // Aquire the lease for draining
-func (l *lease) Lock(ctx context.Context, duration int32) error <span class="cov7" title="8">{
+func (l *lease) Lock(ctx context.Context, duration int32) error <span class="cov6" title="7">{
         err := l.get(ctx)
         if errors.IsNotFound(err) </span><span class="cov4" title="3">{
                 return l.create(ctx, duration)
-        }</span> else<span class="cov5" title="5"> if err != nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov5" title="4"> if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov5" title="5">if l.lease.Spec.AcquireTime == nil || l.lease.Spec.LeaseDurationSeconds == nil || l.lease.Spec.HolderIdentity == nil </span><span class="cov1" title="1">{
+        <span class="cov5" title="4">if l.lease.Spec.AcquireTime == nil || l.lease.Spec.LeaseDurationSeconds == nil || l.lease.Spec.HolderIdentity == nil </span><span class="cov1" title="1">{
                 return NewErrorInvalidLease()
         }</span>
 
-        <span class="cov5" title="4">validUntil := l.lease.Spec.AcquireTime.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
+        <span class="cov4" title="3">validUntil := l.lease.Spec.AcquireTime.Add(time.Duration(*l.lease.Spec.LeaseDurationSeconds) * time.Second)
 
         if time.Now().After(validUntil) </span><span class="cov1" title="1">{
                 if *l.lease.Spec.HolderIdentity == leaseStateDraining </span><span class="cov1" title="1">{
@@ -1389,7 +1389,7 @@ func (l *lease) Lock(ctx context.Context, duration int32) error <span class="cov
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
-        } else<span class="cov4" title="3"> {
+        } else<span class="cov3" title="2"> {
                 return NewErrorDrainIsLocked()
         }</span>
 
@@ -1425,17 +1425,17 @@ func (l *lease) Delete(ctx context.Context) error <span class="cov4" title="3">{
 
 // Return true if the lease is done.
 // Does not return an error if the lease does not exist.
-func (l *lease) IsDone(ctx context.Context) (bool, error) <span class="cov7" title="10">{
-        if l.lease == nil </span><span class="cov7" title="10">{
+func (l *lease) IsDone(ctx context.Context) (bool, error) <span class="cov7" title="9">{
+        if l.lease == nil </span><span class="cov7" title="9">{
                 err := l.get(ctx)
                 if errors.IsNotFound(err) </span><span class="cov4" title="3">{
                         return false, nil
-                }</span> else<span class="cov6" title="7"> if err != nil </span><span class="cov0" title="0">{
+                }</span> else<span class="cov6" title="6"> if err != nil </span><span class="cov0" title="0">{
                         return false, err
                 }</span>
         }
 
-        <span class="cov6" title="7">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
+        <span class="cov6" title="6">return *l.lease.Spec.HolderIdentity == leaseStateDone, nil</span>
 }
 
 // Set the lease to an error state and increase the fail counter by one
@@ -1461,7 +1461,7 @@ import (
         "fmt"
 )
 
-func drainLeaseName(id string) string <span class="cov10" title="33">{
+func drainLeaseName(id string) string <span class="cov10" title="31">{
         return fmt.Sprintf("fleetlock-drain-%s", id)
 }</span>
 
@@ -1752,21 +1752,21 @@ func initGroups(groups Groups) map[string]*lockGroup <span class="cov5" title="2
 }
 
 // Reserve a slot for the given group and id
-func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9" title="552">{
+func (lm *LockManager) Reserve(group, id string) (bool, error) <span class="cov9" title="551">{
         lGroup, err := lm.getGroup(group, id)
         if err != nil </span><span class="cov2" title="3">{
                 return false, err
         }</span>
 
-        <span class="cov9" title="549">checkHasLock := func() (bool, error) </span><span class="cov9" title="549">{
+        <span class="cov9" title="548">checkHasLock := func() (bool, error) </span><span class="cov9" title="548">{
                 // Lock group for reading to ensure that no writing is happening during it and result is accurate
                 lGroup.RWLock.RLock()
                 defer lGroup.RWLock.RUnlock()
 
                 return lm.storage.HasLock(group, id)
         }</span>
-        <span class="cov9" title="549">ok, err := checkHasLock()
-        if ok &amp;&amp; err == nil </span><span class="cov7" title="103">{
+        <span class="cov9" title="548">ok, err := checkHasLock()
+        if ok &amp;&amp; err == nil </span><span class="cov7" title="102">{
                 return true, nil
         }</span> else<span class="cov9" title="446"> if err != nil </span><span class="cov0" title="0">{
                 return false, err
@@ -1838,15 +1838,15 @@ func (lm *LockManager) Close() error <span class="cov4" title="10">{
         return lm.storage.Close()
 }</span>
 
-func (lm *LockManager) getGroup(group, id string) (*lockGroup, error) <span class="cov9" title="791">{
+func (lm *LockManager) getGroup(group, id string) (*lockGroup, error) <span class="cov9" title="790">{
         lGroup := lm.groups[group]
         if lGroup == nil </span><span class="cov3" title="5">{
                 return nil, errors.NewErrorUnknownGroup(group)
         }</span>
-        <span class="cov9" title="786">if id == "" </span><span class="cov1" title="2">{
+        <span class="cov9" title="785">if id == "" </span><span class="cov1" title="2">{
                 return nil, errors.ErrorEmptyID{}
         }</span>
-        <span class="cov9" title="784">return lGroup, nil</span>
+        <span class="cov9" title="783">return lGroup, nil</span>
 }
 </pre>
 		
@@ -2236,27 +2236,27 @@ func (m *MemoryBackend) GetLocks(group string) (int, error) <span class="cov8" t
 
 // Release the lock currently held by the id.
 // Does not fail when no lock is held.
-func (m *MemoryBackend) Release(group string, id string) error <span class="cov6" title="24">{
+func (m *MemoryBackend) Release(group string, id string) error <span class="cov5" title="24">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 return nil
         }</span>
 
-        <span class="cov6" title="24">var i int
+        <span class="cov5" title="24">var i int
         var l lock
-        for i, l = range g.slots </span><span class="cov7" title="64">{
+        for i, l = range g.slots </span><span class="cov7" title="59">{
                 if l.id == id </span><span class="cov5" title="22">{
                         break</span>
                 }
         }
-        <span class="cov6" title="24">if len(g.slots) &gt; 1 </span><span class="cov5" title="18">{
+        <span class="cov5" title="24">if len(g.slots) &gt; 1 </span><span class="cov5" title="18">{
                 g.slots[i] = g.slots[len(g.slots)-1]
                 g.slots = g.slots[:len(g.slots)-1]
         }</span> else<span class="cov3" title="6"> {
                 g.slots = g.slots[:0]
         }</span>
 
-        <span class="cov6" title="24">return nil</span>
+        <span class="cov5" title="24">return nil</span>
 }
 
 // Return all locks older than x
@@ -2265,13 +2265,13 @@ func (m *MemoryBackend) GetStaleLocks(ts time.Duration) ([]types.Lock, error) <s
 }
 
 // Check if a given id already has a lock for this group
-func (m *MemoryBackend) HasLock(group, id string) (bool, error) <span class="cov7" title="69">{
+func (m *MemoryBackend) HasLock(group, id string) (bool, error) <span class="cov7" title="68">{
         g := m.groups[group]
         if g == nil </span><span class="cov0" title="0">{
                 // All groups should be initialized at the beginning
                 return false, errors.NewErrorUnknownGroup(group)
         }</span>
-        <span class="cov7" title="69">return g.hasLock(id), nil</span>
+        <span class="cov7" title="68">return g.hasLock(id), nil</span>
 }
 
 // Calls all necessary finalization if necessary
@@ -2279,9 +2279,9 @@ func (m *MemoryBackend) Close() error <span class="cov1" title="1">{
         return nil
 }</span>
 
-func (g *group) hasLock(id string) bool <span class="cov8" title="112">{
-        for _, lock := range g.slots </span><span class="cov10" title="286">{
-                if id == lock.id </span><span class="cov5" title="16">{
+func (g *group) hasLock(id string) bool <span class="cov8" title="111">{
+        for _, lock := range g.slots </span><span class="cov10" title="318">{
+                if id == lock.id </span><span class="cov5" title="15">{
                         return true
                 }</span>
         }
@@ -2430,7 +2430,7 @@ type MySQLConfig struct {
         Options  string `yaml:"options,omitempty"`
 }
 
-func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="9">{
+func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" title="10">{
         connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 
         db, err := sql.Open("mysql", connStr)
@@ -2438,8 +2438,8 @@ func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) <span class="cov10" t
                 return nil, fmt.Errorf("failed to open mysql database: %w", err)
         }</span>
 
-        <span class="cov9" title="8">err = db.Ping()
-        if err != nil </span><span class="cov8" title="7">{
+        <span class="cov9" title="9">err = db.Ping()
+        if err != nil </span><span class="cov9" title="8">{
                 return nil, fmt.Errorf("failed to ping mysql database: %w", err)
         }</span>
 
@@ -2717,21 +2717,21 @@ func (s *SQLBackend) Close() error <span class="cov2" title="3">{
 		
 		<pre class="file" id="file30" style="display: none">package sql
 
-func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="11">{
+func createConnectionString(username, password, address, database, options string) string <span class="cov10" title="12">{
         var connStr string
-        if username != "" </span><span class="cov9" title="9">{
+        if username != "" </span><span class="cov9" title="10">{
                 connStr += username
-                if password != "" </span><span class="cov9" title="9">{
+                if password != "" </span><span class="cov9" title="10">{
                         connStr += ":" + password
                 }</span>
-                <span class="cov9" title="9">connStr += "@"</span>
+                <span class="cov9" title="10">connStr += "@"</span>
         }
-        <span class="cov10" title="11">connStr += address + "/" + database
+        <span class="cov10" title="12">connStr += address + "/" + database
         if options != "" </span><span class="cov0" title="0">{
                 connStr += "?" + options
         }</span>
 
-        <span class="cov10" title="11">return connStr</span>
+        <span class="cov10" title="12">return connStr</span>
 }
 </pre>
 		
@@ -3135,7 +3135,7 @@ type Server struct {
 }
 
 // Create a new Server
-func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmanager.StorageConfig, k8s *k8s.Client) (*Server, error) <span class="cov3" title="2">{
+func NewServer(cfg *ServerConfig, groups lockmanager.Groups, storageCfg lockmanager.StorageConfig, k8s *k8s.Client) (*Server, error) <span class="cov4" title="2">{
         lm, err := lockmanager.NewManager(groups, storageCfg)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
@@ -3178,7 +3178,7 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span
                 return
         }</span>
 
-        <span class="cov6" title="4">if strings.Contains(params.Client.Group, "\n") || !groupValidationRegex.MatchString(params.Client.Group) </span><span class="cov1" title="1">{
+        <span class="cov7" title="4">if strings.Contains(params.Client.Group, "\n") || !groupValidationRegex.MatchString(params.Client.Group) </span><span class="cov1" title="1">{
                 slog.Debug("Request contained invalid characters for group", slog.String("group", params.Client.Group), slog.String("remote", ReadUserIP(req)))
                 rw.WriteHeader(http.StatusBadRequest)
                 sendResponse(rw, msgInvalidGroupValue)
@@ -3192,13 +3192,13 @@ func (s *Server) requestHandler(rw http.ResponseWriter, req *http.Request) <span
                 return
         }</span>
 
-        <span class="cov3" title="2">handleFunc(rw, params)</span>
+        <span class="cov4" title="2">handleFunc(rw, params)</span>
 }
 
 // Handle requests to reserve a slot
 //
 //        URL: /v1/pre-reboot
-func (s *Server) handleReserve(rw http.ResponseWriter, params api.FleetLockRequest) <span class="cov10" title="9">{
+func (s *Server) handleReserve(rw http.ResponseWriter, params api.FleetLockRequest) <span class="cov10" title="8">{
         ok, err := s.lm.Reserve(params.Client.Group, params.Client.ID)
         if err != nil </span><span class="cov1" title="1">{
                 slog.Error("Failed to reserve slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -3207,12 +3207,12 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params api.FleetLockReque
                 return
         }</span>
 
-        <span class="cov9" title="8">if ok </span><span class="cov8" title="7">{
+        <span class="cov9" title="7">if ok </span><span class="cov8" title="6">{
                 slog.Info("Reserved slot", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
-                if s.k8s != nil &amp;&amp; !s.drainNode(rw, params) </span><span class="cov5" title="3">{
+                if s.k8s != nil &amp;&amp; !s.drainNode(rw, params) </span><span class="cov4" title="2">{
                         return
                 }</span>
-                <span class="cov6" title="4">sendResponse(rw, msgSuccess)</span>
+                <span class="cov7" title="4">sendResponse(rw, msgSuccess)</span>
         } else<span class="cov1" title="1"> {
                 slog.Debug("Could not reserve slot, all slots where filled", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
                 rw.WriteHeader(http.StatusLocked)
@@ -3224,7 +3224,7 @@ func (s *Server) handleReserve(rw http.ResponseWriter, params api.FleetLockReque
 //
 //        URL: /v1/steady-state
 func (s *Server) handleRelease(rw http.ResponseWriter, params api.FleetLockRequest) <span class="cov8" title="6">{
-        if s.k8s != nil </span><span class="cov6" title="4">{
+        if s.k8s != nil </span><span class="cov7" title="4">{
                 ok, err := s.lm.HasLock(params.Client.Group, params.Client.ID)
                 if err != nil </span><span class="cov1" title="1">{
                         slog.Error("Failed fetch slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -3232,7 +3232,7 @@ func (s *Server) handleRelease(rw http.ResponseWriter, params api.FleetLockReque
                         sendResponse(rw, msgUnexpectedError)
                         return
                 }</span>
-                <span class="cov5" title="3">if !ok </span><span class="cov3" title="2">{
+                <span class="cov5" title="3">if !ok </span><span class="cov4" title="2">{
                         sendResponse(rw, msgSuccess)
                         return
                 }</span>
@@ -3241,7 +3241,7 @@ func (s *Server) handleRelease(rw http.ResponseWriter, params api.FleetLockReque
                 }</span>
         }
 
-        <span class="cov3" title="2">err := s.lm.Release(params.Client.Group, params.Client.ID)
+        <span class="cov4" title="2">err := s.lm.Release(params.Client.Group, params.Client.ID)
         if err != nil </span><span class="cov1" title="1">{
                 slog.Error("Failed to release slot", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
                 rw.WriteHeader(http.StatusInternalServerError)
@@ -3254,27 +3254,27 @@ func (s *Server) handleRelease(rw http.ResponseWriter, params api.FleetLockReque
 
 // Drain the node after reservation and before sending success to api.
 // Requires k8s client to be non-nil.
-func (s *Server) drainNode(rw http.ResponseWriter, params api.FleetLockRequest) bool <span class="cov7" title="5">{
+func (s *Server) drainNode(rw http.ResponseWriter, params api.FleetLockRequest) bool <span class="cov7" title="4">{
         node, ok := s.matchNodeToId(rw, params)
         if node == "" </span><span class="cov1" title="1">{
                 return ok
         }</span>
 
-        <span class="cov6" title="4">drained, err := s.k8s.IsDrained(node)
+        <span class="cov5" title="3">drained, err := s.k8s.IsDrained(node)
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Could not check if node has been drained", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
                 rw.WriteHeader(http.StatusInternalServerError)
                 sendResponse(rw, msgUnexpectedError)
                 return false
         }</span>
-        <span class="cov6" title="4">if drained </span><span class="cov1" title="1">{
+        <span class="cov5" title="3">if drained </span><span class="cov1" title="1">{
                 slog.Info("Node is drained, client can continue", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
                 return true
         }</span>
 
-        <span class="cov5" title="3">go func() </span><span class="cov5" title="3">{
+        <span class="cov4" title="2">go func() </span><span class="cov4" title="2">{
                 err := s.k8s.DrainNode(node)
-                if err != nil </span><span class="cov3" title="2">{
+                if err != nil </span><span class="cov1" title="1">{
                         slog.Error("Failed to drain node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
                 }</span> else<span class="cov1" title="1"> {
                         slog.Info("Node finished draining, waiting for client to call again", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID), slog.String("node", node))
@@ -3282,14 +3282,14 @@ func (s *Server) drainNode(rw http.ResponseWriter, params api.FleetLockRequest) 
         }()
 
         // Return non-200 status to indicate the request is successful but the client needs to wait as it is still being processed.
-        <span class="cov5" title="3">rw.WriteHeader(http.StatusAccepted)
+        <span class="cov4" title="2">rw.WriteHeader(http.StatusAccepted)
         sendResponse(rw, msgWaitingForNodeDrain)
         return false</span>
 }
 
 // Uncordon the node before release.
 // Requires k8s client to be non-nil.
-func (s *Server) uncordonNode(rw http.ResponseWriter, params api.FleetLockRequest) bool <span class="cov3" title="2">{
+func (s *Server) uncordonNode(rw http.ResponseWriter, params api.FleetLockRequest) bool <span class="cov4" title="2">{
         node, ok := s.matchNodeToId(rw, params)
         if node == "" </span><span class="cov1" title="1">{
                 return ok
@@ -3306,7 +3306,7 @@ func (s *Server) uncordonNode(rw http.ResponseWriter, params api.FleetLockReques
         return true</span>
 }
 
-func (s *Server) matchNodeToId(rw http.ResponseWriter, params api.FleetLockRequest) (string, bool) <span class="cov8" title="7">{
+func (s *Server) matchNodeToId(rw http.ResponseWriter, params api.FleetLockRequest) (string, bool) <span class="cov8" title="6">{
         node, err := s.k8s.FindNodeByZincatiID(params.Client.ID)
         if err != nil </span><span class="cov1" title="1">{
                 slog.Error("An error occured when matching client id to node", "error", err, slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
@@ -3315,11 +3315,11 @@ func (s *Server) matchNodeToId(rw http.ResponseWriter, params api.FleetLockReque
                 return "", false
         }</span>
 
-        <span class="cov8" title="6">if node == "" </span><span class="cov1" title="1">{
+        <span class="cov7" title="5">if node == "" </span><span class="cov1" title="1">{
                 slog.Info("Did not find a matching node for id", slog.String("group", params.Client.Group), slog.String("id", params.Client.ID))
         }</span>
 
-        <span class="cov8" title="6">return node, true</span>
+        <span class="cov7" title="5">return node, true</span>
 }
 
 // Return a health status of the server
@@ -3375,7 +3375,7 @@ func (s *Server) Run() error <span class="cov0" title="0">{
         <span class="cov0" title="0">return fmt.Errorf("failed to start server: %w", err)</span>
 }
 
-func (s *Server) Shutdown() error <span class="cov3" title="2">{
+func (s *Server) Shutdown() error <span class="cov4" title="2">{
         if s.httpServer == nil </span><span class="cov1" title="1">{
                 return nil
         }</span>
@@ -3410,14 +3410,14 @@ func ReadUserIP(req *http.Request) string <span class="cov5" title="4">{
 }
 
 // Send a response to the writer and handle impossible parse errors
-func sendResponse(rw http.ResponseWriter, res any) <span class="cov10" title="20">{
+func sendResponse(rw http.ResponseWriter, res any) <span class="cov10" title="19">{
         b, err := json.MarshalIndent(res, "", "  ")
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to create Response", "err", err)
                 return
         }</span>
 
-        <span class="cov10" title="20">_, err = rw.Write(b)
+        <span class="cov10" title="19">_, err = rw.Write(b)
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to send response to client", "err", err)
         }</span>
@@ -3438,12 +3438,12 @@ import (
 const ZincatiAppID = "de35106b6ec24688b63afddaa156679b"
 
 // Derive the local app id for zincati from the machine id
-func ZincatiMachineID(machineID string) (string, error) <span class="cov9" title="32">{
+func ZincatiMachineID(machineID string) (string, error) <span class="cov9" title="31">{
         return AppSpecificID(machineID, ZincatiAppID)
 }</span>
 
 // Derive the machine specific app id from a given apps id and the local machine id
-func AppSpecificID(machineID, appID string) (string, error) <span class="cov10" title="34">{
+func AppSpecificID(machineID, appID string) (string, error) <span class="cov10" title="33">{
         // Remove any UUID dash formatting
         machineID = strings.ReplaceAll(machineID, "-", "")
 
@@ -3451,12 +3451,12 @@ func AppSpecificID(machineID, appID string) (string, error) <span class="cov10" 
         if err != nil </span><span class="cov3" title="3">{
                 return "", err
         }</span>
-        <span class="cov9" title="31">appBytes, err := hex.DecodeString(appID)
+        <span class="cov9" title="30">appBytes, err := hex.DecodeString(appID)
         if err != nil </span><span class="cov1" title="1">{
                 return "", err
         }</span>
 
-        <span class="cov9" title="30">mac := hmac.New(sha256.New, machineBytes)
+        <span class="cov9" title="29">mac := hmac.New(sha256.New, machineBytes)
         mac.Write(appBytes)
         sum := mac.Sum(nil)
 
