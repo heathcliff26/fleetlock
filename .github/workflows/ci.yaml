@@ -115,34 +115,3 @@ jobs:
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
     secrets: inherit
 
-  build-manifests:
-    uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
-    if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
-    permissions:
-      contents: read
-    needs:
-      - validate
-    with:
-      release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
-      artifact: "manifests/release/*.yaml"
-      artifact-name: "manifests"
-      cmd: "make manifests"
-      cache: false
-    secrets: inherit
-
-  push-helm:
-    uses: heathcliff26/ci/.github/workflows/push-helm-chart.yaml@main
-    if: ${{ inputs.tag != '' && inputs.tag != 'rolling' }}
-    permissions:
-      contents: read
-      packages: write
-    needs:
-      - lint
-      - unit-tests
-      - e2e
-      - build-fleetctl
-      - validate
-    with:
-      tag: "${{ inputs.tag }}"
-      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
-    secrets: inherit
