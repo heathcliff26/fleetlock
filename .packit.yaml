@@ -21,22 +21,18 @@ packages:
         - mkdir -p tmp
         - cp tools/fleetctl.spec tmp/
 
+targets:
+  - fedora-all-x86_64
+  - fedora-all-aarch64
+additional_repos:
+  - copr://heathcliff26/golang
+
 jobs:
   - job: copr_build
     trigger: pull_request
     branch: main
-    targets:
-      - fedora-all-x86_64
-      - fedora-all-aarch64
-    additional_repos:
-      - copr://@go-sig/golang-rawhide
 
   - job: copr_build
     trigger: release
-    targets:
-      - fedora-all-x86_64
-      - fedora-all-aarch64
     owner: heathcliff26
     project: cli
-    additional_repos:
-      - copr://@go-sig/golang-rawhide
