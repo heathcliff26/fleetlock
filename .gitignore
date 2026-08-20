@@ -22,3 +22,4 @@ tmp_fleetlock_image_fleetlock-e2e-*.tar
 /tmp
 /x86_64
 /aarch64
+*.src.rpm
