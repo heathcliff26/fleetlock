@@ -1,7 +1,8 @@
 package server
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"log/slog"
 	"net/http"
 )
@@ -19,7 +20,7 @@ func ReadUserIP(req *http.Request) string {
 
 // Send a response to the writer and handle impossible parse errors
 func sendResponse(rw http.ResponseWriter, res any) {
-	b, err := json.MarshalIndent(res, "", "  ")
+	b, err := json.Marshal(res, jsontext.WithIndent("  "))
 	if err != nil {
 		slog.Error("Failed to create Response", "err", err)
 		return
