@@ -1,7 +1,8 @@
 package fake
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -65,10 +66,10 @@ func (s *FakeServer) handleRequest(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	rw.WriteHeader(s.StatusCode)
-	b, err := json.MarshalIndent(api.FleetLockResponse{
+	b, err := json.Marshal(api.FleetLockResponse{
 		Kind:  "ok",
 		Value: "Success",
-	}, "", "  ")
+	}, jsontext.WithIndent("  "))
 	if !s.assert.NoError(err, "Error in fake server: failed to prepare response") {
 		return
 	}

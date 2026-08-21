@@ -2,14 +2,14 @@ package api
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"io"
 )
 
 // Parse an http request body and extract the parameters
 func ParseRequest(body io.ReadCloser) (FleetLockRequest, error) {
 	var res FleetLockRequest
-	err := json.NewDecoder(body).Decode(&res)
+	err := json.UnmarshalRead(body, &res)
 	if err != nil {
 		return FleetLockRequest{}, err
 	}
@@ -19,7 +19,7 @@ func ParseRequest(body io.ReadCloser) (FleetLockRequest, error) {
 // Parse an http response body and extract the parameters
 func ParseResponse(body io.ReadCloser) (FleetLockResponse, error) {
 	var res FleetLockResponse
-	err := json.NewDecoder(body).Decode(&res)
+	err := json.UnmarshalRead(body, &res)
 	if err != nil {
 		return FleetLockResponse{}, err
 	}

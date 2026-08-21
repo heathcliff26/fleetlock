@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -398,7 +398,7 @@ func TestHealthCheck(t *testing.T) {
 	assert.Equal("application/json", rr.Header().Get("Content-Type"), "Content type should be json")
 
 	var res api.FleetlockHealthResponse
-	err := json.NewDecoder(rr.Result().Body).Decode(&res)
+	err := json.UnmarshalRead(rr.Result().Body, &res)
 
 	assert.NoError(err, "Response should be parsable")
 	expectedRes := api.FleetlockHealthResponse{
