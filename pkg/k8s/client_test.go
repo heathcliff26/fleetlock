@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/k8s/utils"
@@ -184,23 +185,25 @@ func TestDrainNode(t *testing.T) {
 		assert.Equal(time.Now().Round(time.Second), lease.Spec.AcquireTime.Round(time.Second), "AcquireTime should be now")
 	})
 	t.Run("DrainTimeout", func(t *testing.T) {
-		c, client := initTestCluster(t)
+		synctest.Test(t, func(t *testing.T) {
+			c, client := initTestCluster(t)
 
-		client.PrependReactor("create", "pods", func(action clienttesting.Action) (bool, runtime.Object, error) {
-			time.Sleep(5 * time.Second)
-			return false, nil, nil
+			client.PrependReactor("create", "pods", func(action clienttesting.Action) (bool, runtime.Object, error) {
+				synctest.Sleep(5 * time.Second)
+				return false, nil, nil
+			})
+
+			c.drainTimeoutSeconds = 1
+
+			err := c.DrainNode(testNodeName)
+
+			assert := assert.New(t)
+
+			assert.Equal(context.DeadlineExceeded, err, "Should exceed deadline")
+			lease, _ := client.CoordinationV1().Leases(testNamespace).Get(t.Context(), drainLeaseName(testNodeName), metav1.GetOptions{})
+			assert.Equal(leaseStateError, *lease.Spec.HolderIdentity, "Lease state should be error")
+			assert.Equal("1", lease.GetAnnotations()[leaseFailCounterName], "Lease fail counter should be 1")
 		})
-
-		c.drainTimeoutSeconds = 1
-
-		err := c.DrainNode(testNodeName)
-
-		assert := assert.New(t)
-
-		assert.Equal(context.DeadlineExceeded, err, "Should exceed deadline")
-		lease, _ := client.CoordinationV1().Leases(testNamespace).Get(t.Context(), drainLeaseName(testNodeName), metav1.GetOptions{})
-		assert.Equal(leaseStateError, *lease.Spec.HolderIdentity, "Lease state should be error")
-		assert.Equal("1", lease.GetAnnotations()[leaseFailCounterName], "Lease fail counter should be 1")
 	})
 }
 

@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/heathcliff26/fleetlock/pkg/api"
@@ -279,48 +280,52 @@ func TestHandleReleaseUncordonNodeError(t *testing.T) {
 }
 
 func TestDrainNode(t *testing.T) {
-	groups := lockmanager.NewDefaultGroups()
-	groups["default"] = lockmanager.GroupConfig{
-		Slots: 2,
-	}
-	lm := lockmanager.NewManagerWithStorage(groups, memory.NewMemoryBackend([]string{"default"}))
-	k8s, fakeclient := k8s.NewFakeClient()
-	s := &Server{
-		lm:  lm,
-		k8s: k8s,
-	}
-	initTestCluster(t, fakeclient)
+	synctest.Test(t, func(t *testing.T) {
+		groups := lockmanager.NewDefaultGroups()
+		groups["default"] = lockmanager.GroupConfig{
+			Slots: 2,
+		}
+		lm := lockmanager.NewManagerWithStorage(groups, memory.NewMemoryBackend([]string{"default"}))
+		k8s, fakeclient := k8s.NewFakeClient()
+		s := &Server{
+			lm:  lm,
+			k8s: k8s,
+		}
+		initTestCluster(t, fakeclient)
 
-	assert := assert.New(t)
+		assert := assert.New(t)
 
-	rr := httptest.NewRecorder()
-	params := newFleetlockRequest("default", "abcdef123456789")
-	s.handleReserve(rr, params)
-	res, response, err := parseResponse(rr)
+		// Drain non-existing node
+		rr := httptest.NewRecorder()
+		params := newFleetlockRequest("default", "abcdef123456789")
+		s.handleReserve(rr, params)
+		res, response, err := parseResponse(rr)
 
-	assert.NoError(err, "Requests should be handled without error")
-	assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when k8s node not found")
-	assert.Equal(msgSuccess, response, "Should return success message when k8s node not found")
+		assert.NoError(err, "Requests should be handled without error")
+		assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when k8s node not found")
+		assert.Equal(msgSuccess, response, "Should return success message when k8s node not found")
 
-	rr = httptest.NewRecorder()
-	params.Client.ID = testNodeZincatiID
-	s.handleReserve(rr, params)
-	res, response, err = parseResponse(rr)
+		// Drain existing node
+		rr = httptest.NewRecorder()
+		params.Client.ID = testNodeZincatiID
+		s.handleReserve(rr, params)
+		res, response, err = parseResponse(rr)
 
-	assert.NoError(err, "Requests should be handled without error")
-	assert.Equal(http.StatusAccepted, res.StatusCode, "Should return 202 Accepted when node is still being drained")
-	assert.Equal(msgWaitingForNodeDrain, response, "Should return message for node drain in progress")
+		assert.NoError(err, "Requests should be handled without error")
+		assert.Equal(http.StatusAccepted, res.StatusCode, "Should return 202 Accepted when node is still being drained")
+		assert.Equal(msgWaitingForNodeDrain, response, "Should return message for node drain in progress")
 
-	assert.Eventually(func() bool {
+		// Wait for the node to be drained
+		synctest.Sleep(time.Minute)
+
 		rr = httptest.NewRecorder()
 		s.handleReserve(rr, params)
 		res, response, err = parseResponse(rr)
-		return err == nil && res.StatusCode == http.StatusOK
-	}, 5*time.Second, time.Millisecond, "Node drain should eventually be completed")
 
-	assert.NoError(err, "Requests should be handled without error")
-	assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when node has been drained")
-	assert.Equal(msgSuccess, response, "Should return success message when node has been drained")
+		assert.NoError(err, "Requests should be handled without error")
+		assert.Equal(http.StatusOK, res.StatusCode, "Should return 200 OK when node has been drained")
+		assert.Equal(msgSuccess, response, "Should return success message when node has been drained")
+	})
 }
 
 func TestHandleReleaseSkipUncordonWithoutLock(t *testing.T) {
