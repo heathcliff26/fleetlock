@@ -1,38 +1,37 @@
 package storage
 
 import (
+	"log"
 	"testing"
 	"time"
+
+	"go.etcd.io/etcd/server/v3/embed"
 
 	"github.com/heathcliff26/fleetlock/pkg/lock-manager/storage/etcd"
 	"github.com/heathcliff26/fleetlock/tests/utils"
 )
 
 func TestEtcdBackend(t *testing.T) {
-	if !utils.HasContainerRuntimer() {
-		t.Skip("Missing Container Runtime")
-	}
-	t.Parallel()
-
-	// The latest tag on the etcd image is not being updated
-	err := utils.ExecCRI("run", "--name", "fleetlock-etcd-db", "-d", "-p", "2379:2379", "-p", "2380:2380",
-		"quay.io/coreos/etcd:v3.5.15",
-		"etcd",
-		"--listen-client-urls", "http://0.0.0.0:2379",
-		"--advertise-client-urls", "http://localhost:2379",
-	)
+	serverCfg := embed.NewConfig()
+	serverCfg.Dir = t.TempDir()
+	serverCfg.LogLevel = "fatal"
+	e, err := embed.StartEtcd(serverCfg)
 	if err != nil {
-		t.Fatalf("Failed to start test db: %v\n", err)
+		t.Fatalf("Failed to start etcd: %v", err)
 	}
-	t.Cleanup(func() {
-		_ = utils.ExecCRI("stop", "fleetlock-etcd-db")
-		_ = utils.ExecCRI("rm", "fleetlock-etcd-db")
-	})
+	defer e.Close()
 
-	<-time.After(time.Second * 5)
+	select {
+	case <-e.Server.ReadyNotify():
+		log.Printf("Server is ready!")
+	case <-time.After(60 * time.Second):
+		e.Server.Stop()
+		t.Fatalf("Timed out waiting for etcd to be ready: %v", <-e.Err())
+	}
 
-	cfg := etcd.EtcdConfig{
-		Endpoints: []string{"http://localhost:2379"},
+	cfg := etcd.EtcdConfig{}
+	for _, url := range e.Config().ListenClientUrls {
+		cfg.Endpoints = append(cfg.Endpoints, url.String())
 	}
 	storage, err := etcd.NewEtcdBackend(cfg)
 	if err != nil {
