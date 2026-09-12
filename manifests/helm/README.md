@@ -34,13 +34,15 @@ See [values.yaml](./values.yaml) for all available configuration options.
 
 ### Key Parameters
 
-| Parameter          | Description                | Default                          |
-| ------------------ | -------------------------- | -------------------------------- |
-| `image.repository` | Container image repository | `ghcr.io/heathcliff26/fleetlock` |
-| `image.tag`        | Container image tag        | Same as chart version            |
-| `replicaCount`     | Number of replicas         | `2`                              |
-| `ingress.enabled`  | Enable ingress             | `false`                          |
-| `rbac.create`      | Create RBAC resources      | `true`                           |
+| Parameter          | Description                                                    | Default                          |
+| ------------------ | -------------------------------------------------------------- | -------------------------------- |
+| `image.repository` | Container image repository                                     | `ghcr.io/heathcliff26/fleetlock` |
+| `image.tag`        | Container image tag                                            | Same as chart version            |
+| `replicaCount`     | Number of replicas                                             | `2`                              |
+| `ingress.enabled`  | Enable ingress                                                 | `false`                          |
+| `rbac.create`      | Create RBAC resources                                          | `true`                           |
+| `config`           | Configure the app                                              | See [values.yaml](./values.yaml) |
+| `env`              | Additional environment variables, useful for injecting secrets | []                               |
 
 ## Support
 

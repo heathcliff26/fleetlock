@@ -7,4 +7,4 @@ metadata:
     {{- include "fleetlock.labels" . | nindent 4 }}
 data:
   config.yaml: |-
-{{- .Values.config | toYaml | nindent 4 }}
+{{- .Values.config | toYaml | nindent 4 -}}

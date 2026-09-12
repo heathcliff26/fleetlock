@@ -19,4 +19,4 @@ spec:
     {{- with .Values.listenerSet.listeners }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
-{{- end }}
+{{- end -}}
