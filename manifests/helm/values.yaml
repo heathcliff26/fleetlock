@@ -62,8 +62,8 @@ config:
       # The address of the database
       address: "localhost:26257"
       # The username and password for login
-      username: ""
-      password: ""
+      username: "${FLEETLOCK_POSTGRES_USERNAME}"
+      password: "${FLEETLOCK_POSTGRES_PASSWORD}"
       # The database name
       database: ""
       # Additional options for connections. Will be appended with ?
@@ -72,8 +72,8 @@ config:
       # The address of the database
       address: "tcp(localhost:3306)"
       # The username and password for login
-      username: ""
-      password: ""
+      username: "${FLEETLOCK_MYSQL_USERNAME}"
+      password: "${FLEETLOCK_MYSQL_PASSWORD}"
       # The database name
       database: ""
       # Additional options for connections. Will be appended with ?
@@ -149,6 +149,10 @@ imagePullSecrets: []
 # This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
+
+# Configure the environment variables for the container
+env: []
+envFrom: []
 
 # This section builds out the service account.
 serviceAccount:

@@ -61,5 +61,5 @@ roleRef:
   kind: ClusterRole
   name: {{ include "fleetlock.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
-{{- end }}
-{{- end }}
+{{- end -}}
+{{- end -}}

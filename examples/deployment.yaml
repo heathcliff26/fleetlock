@@ -60,14 +60,14 @@ data:
         address: tcp(localhost:3306)
         database: ""
         options: ""
-        password: ""
-        username: ""
+        password: ${FLEETLOCK_MYSQL_PASSWORD}
+        username: ${FLEETLOCK_MYSQL_USERNAME}
       postgres:
         address: localhost:26257
         database: ""
         options: ""
-        password: ""
-        username: ""
+        password: ${FLEETLOCK_POSTGRES_PASSWORD}
+        username: ${FLEETLOCK_POSTGRES_USERNAME}
       sqlite:
         file: test.db
       type: kubernetes
@@ -204,6 +204,7 @@ spec:
           args:
             - "-c"
             - "/config/config.yaml"
+            - "--env"
           env:
             - name: POD_NAME
               valueFrom:
