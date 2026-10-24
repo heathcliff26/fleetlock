@@ -5,6 +5,11 @@ set -e
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath | xargs dirname)"
 dist_dir="${base_dir}/dist"
 bin_dir="${base_dir}/bin"
+script_dir="${base_dir}/hack"
+
+# shellcheck source=version.sh
+source "${script_dir}/version.sh"
+
 echo "Checking if goreleaser is installed:"
 if command -v goreleaser &>/dev/null; then
     echo "goreleaser is installed"

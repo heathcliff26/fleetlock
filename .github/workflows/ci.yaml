@@ -83,7 +83,7 @@ jobs:
     with:
       cmd: "make test-e2e"
 
-  build-fleetctl:
+  build-binary:
     uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
     permissions:
       contents: read
@@ -91,7 +91,6 @@ jobs:
       - lint
       - unit-tests
     with:
-      release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
       artifact: "dist/*"
       artifact-name: "fleetlock"
       cmd: "make release"
@@ -103,7 +102,7 @@ jobs:
       - lint
       - unit-tests
       - e2e
-      - build-fleetctl
+      - build-binary
       - validate
     permissions:
       contents: read

@@ -5,6 +5,7 @@ set -e
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
 bin_dir="${base_dir}/bin"
+script_dir="${base_dir}/hack"
 
 target="${1}"
 
@@ -13,10 +14,11 @@ GOARCH="${GOARCH:-$(go env GOARCH)}"
 
 GO_LD_FLAGS="${GO_LD_FLAGS:-"-s"}"
 
-if [ "${RELEASE_VERSION}" != "" ]; then
-    echo "Building release version ${RELEASE_VERSION}"
-    GO_LD_FLAGS+=" -X github.com/heathcliff26/fleetlock/pkg/version.gitVersion=${RELEASE_VERSION}"
-fi
+# shellcheck source=version.sh
+source "${script_dir}/version.sh"
+
+echo "Building release version ${RELEASE_VERSION}"
+GO_LD_FLAGS+=" -X github.com/heathcliff26/fleetlock/pkg/version.gitVersion=${RELEASE_VERSION}"
 
 output_name="${bin_dir}/${target}"
 
