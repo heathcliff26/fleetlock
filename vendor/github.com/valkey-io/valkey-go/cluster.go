@@ -804,7 +804,7 @@ func (c *clusterClient) _pickMulti(multi []Completed) (retries *connretry, init 
 
 	if last == cmds.InitSlot {
 		// if all commands have no slots, such as INFO, we pick a non-nil slot.
-		for i, cc := range c.wslots {
+		for i, cc := range &c.wslots {
 			if cc != nil {
 				last = uint16(i)
 				count.m[cc] = inits
@@ -1806,6 +1806,7 @@ func (c *dedicatedClusterClient) B() Builder {
 }
 
 func (c *dedicatedClusterClient) Do(ctx context.Context, cmd Completed) (resp ValkeyResult) {
+	cmds.ClearUnblockOnCancel(&cmd)
 	attempts := 1
 retry:
 	if w, err := c.acquire(ctx, cmd.Slot()); err != nil {
