@@ -5,8 +5,6 @@ set -e
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath | xargs dirname)"
 dist_dir="${base_dir}/dist"
 bin_dir="${base_dir}/bin"
-name="fleetctl"
-
 echo "Checking if goreleaser is installed:"
 if command -v goreleaser &>/dev/null; then
     echo "goreleaser is installed"
@@ -29,7 +27,8 @@ ${goreleaser} release --skip=announce,archive,publish,validate --clean
 echo "Moving release artifacts to top level of dist directory"
 artifacts="$(cat "${dist_dir}/artifacts.json" | jq -r -c '.[]')"
 echo "${artifacts}" | while read -r artifact; do
-    if ! [[ "$(echo "${artifact}" | jq -r '.name')" =~ ^${name}(\.exe)?$ ]]; then
+    name="$(echo "${artifact}" | jq -r '.name')"
+    if ! [[ "${name}" =~ ^(fleetctl|fleetlock)(\.exe)?$ ]]; then
         continue
     fi
 
@@ -45,4 +44,4 @@ done
 
 
 echo "Cleaning up dist directory"
-rm -r "${dist_dir}/artifacts.json" "${dist_dir}/config.yaml" "${dist_dir}/metadata.json"
+rm -r "${dist_dir}/artifacts.json" "${dist_dir}/config.yaml" "${dist_dir}/metadata.json" "${dist_dir}/"*_*_checksums.txt

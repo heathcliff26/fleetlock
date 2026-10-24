@@ -10,8 +10,21 @@ env:
   - RELEASE_VERSION={{ if index .Env "RELEASE_VERSION"  }}{{ .Env.RELEASE_VERSION }}{{ else }}devel{{ end }}
 
 builds:
-  - binary: fleetctl
+  - id: fleetctl
+    binary: fleetctl
     main: ./cmd/fleetctl
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -X github.com/heathcliff26/{{ .ProjectName }}/pkg/version.gitVersion={{ .Env.RELEASE_VERSION }} -X github.com/heathcliff26/{{ .ProjectName }}/pkg/version.gitCommit={{ .Commit }}
+  - id: fleetlock
+    binary: fleetlock
+    main: ./cmd/fleetlock
     goos:
       - linux
     goarch:
@@ -24,6 +37,71 @@ builds:
 
 archives:
   - formats: ["binary"]
+
+nfpms:
+  - id: fleetlock
+    package_name: "{{ .ProjectName }}"
+    file_name_template: "{{ .PackageName }}-linux-{{ .Arch }}"
+    ids:
+      - fleetlock
+    maintainer: "Heathcliff <heathcliff@heathcliff.eu>"
+    description: Server implementing the Zincati FleetLock protocol.
+    license: Apache-2.0
+    homepage: https://github.com/heathcliff26/{{ .ProjectName }}
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - dst: /usr/share/licenses/{{ .PackageName }}
+        type: dir
+      - dst: /usr/share/doc/{{ .PackageName }}
+        type: dir
+      - src: LICENSE
+        dst: /usr/share/licenses/{{ .PackageName }}/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/{{ .PackageName }}/README.md
+      - src: tools/{{ .PackageName }}.service
+        dst: /usr/lib/systemd/system/{{ .PackageName }}.service
+      - dst: /etc/{{ .PackageName }}
+        type: dir
+      - src: examples/config.yaml
+        dst: /etc/{{ .PackageName }}/config.yaml
+        type: config|noreplace
+      - src: io.github.heathcliff26.{{ .PackageName }}.metainfo.xml
+        dst: /usr/share/metainfo/io.github.heathcliff26.{{ .PackageName }}.metainfo.xml
+    scripts:
+      postinstall: "tools/postinstall.sh"
+      preremove: "tools/preremove.sh"
+      postremove: "tools/postremove.sh"
+    rpm:
+      summary: Zincati FleetLock protocol server
+  - id: fleetctl
+    package_name: fleetctl
+    file_name_template: "{{ .PackageName }}-linux-{{ .Arch }}"
+    ids:
+      - fleetctl
+    maintainer: "Heathcliff <heathcliff@heathcliff.eu>"
+    description: Simple CLI based client for debugging and testing fleetlock servers.
+    license: Apache-2.0
+    homepage: https://github.com/heathcliff26/{{ .ProjectName }}
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - dst: /usr/share/licenses/{{ .PackageName }}
+        type: dir
+      - dst: /usr/share/doc/{{ .PackageName }}
+        type: dir
+      - src: LICENSE
+        dst: /usr/share/licenses/{{ .PackageName }}/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/{{ .PackageName }}/README.md
+      - src: io.github.heathcliff26.{{ .PackageName }}.metainfo.xml
+        dst: /usr/share/metainfo/io.github.heathcliff26.{{ .PackageName }}.metainfo.xml
+    rpm:
+      summary: CLI client for fleetlock server
 
 changelog:
   disable: true

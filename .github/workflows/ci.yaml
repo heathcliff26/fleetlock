@@ -92,8 +92,8 @@ jobs:
       - unit-tests
     with:
       release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
-      artifact: "dist/fleetctl*"
-      artifact-name: "fleetctl"
+      artifact: "dist/*"
+      artifact-name: "fleetlock"
       cmd: "make release"
     secrets: inherit
 
