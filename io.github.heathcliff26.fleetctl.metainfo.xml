@@ -1,32 +1,602 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <component type="console-application">
-    <id>io.github.heathcliff26.fleetctl</id>
-
-    <name>fleetctl</name>
-    <summary>CLI client for fleetlock server</summary>
-
-    <metadata_license>MIT</metadata_license>
-    <project_license>Apache-2.0</project_license>
-
-    <description>
-        <p>
+  <id>io.github.heathcliff26.fleetctl</id>
+  <name>fleetctl</name>
+  <summary>CLI client for fleetlock server</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>Apache-2.0</project_license>
+  <description>
+    <p>
             Simple CLI based client for debugging and testing fleetlock servers. Can be used to manually lock down or release a machine for maintenance.
         </p>
-    </description>
-
-    <url type="homepage">https://github.com/heathcliff26/fleetlock</url>
-    <developer id="io.github.heathcliff26">
-        <name>Heathcliff</name>
-    </developer>
-
-    <content_rating type="oars-1.1" />
-
-    <categories>
-        <category>Network</category>
-        <category>Development</category>
-    </categories>
-
-    <provides>
-        <binary>fleetctl</binary>
-    </provides>
+  </description>
+  <developer id="io.github.heathcliff26">
+    <name>Heathcliff</name>
+  </developer>
+  <url type="homepage">https://github.com/heathcliff26/fleetlock</url>
+  <categories>
+    <category>Network</category>
+    <category>Development</category>
+  </categories>
+  <provides>
+    <binary>fleetctl</binary>
+  </provides>
+  <releases>
+    <release type="stable" version="v1.12.0-rc.0" date="2026-10-24T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(release)* Generate changelog before release</li>
+          <li>*(release)* Build RPMs with GoReleaser</li>
+          <li>*(release)* Push RPMs to Gemfury</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>Use version derived from git when possible</li>
+          <li>⚙️ Miscellaneous Tasks:</li>
+          <li>Synced file(s) with heathcliff26/ci</li>
+          <li>Synced file(s) with heathcliff26/ci</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v1.11.6" date="2026-10-13T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/alpine to v3.24.2</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.27.2</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>*(deps)* Bump google.golang.org/grpc</p>
+        <p>*(deps)* Bump go.opentelemetry.io/otel/sdk</p>
+        <p>Fix coverprofiles permissions</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.11.5" date="2026-09-12T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.26.6</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.27.1</p>
+        <p>💼 Other:</p>
+        <p>Move manifest and helm to release workflow</p>
+        <p>Switch to own golang rpm</p>
+        <p>Use synctest where useful</p>
+        <p>Use embedded server for unit-tests</p>
+        <p>*(deps)* Bump google.golang.org/grpc</p>
+        <p>Allow users to inject env</p>
+        <p>Update dependencies</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.11.4" date="2026-08-13T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.56.0</p>
+        <p>💼 Other:</p>
+        <p>Do not start periodic check automatically</p>
+        <p>Only uncordon node if it was cordoned by fleetlock</p>
+        <p>Add testcases for error exits</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.11.3" date="2026-07-12T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/alpine to v3.24.1</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.26.5</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>*(deps)* Bump golang.org/x/crypto from 0.51.0 to 0.52.0</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.11.2" date="2026-06-13T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(container)* Update image docker.io/library/alpine to v3.24.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(container)* Update image docker.io/library/golang to v1.26.4</li>
+          <li>*(deps)* Update gomod</li>
+          <li>💼 Other:</li>
+          <li>Move renovate and Link Check to tekton</li>
+          <li>Remove obsolete Renovate status badge</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v1.11.1" date="2026-06-02T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.51.0</p>
+        <p>*(deps)* Update gomod to v3.6.12</p>
+        <p>💼 Other:</p>
+        <p>*(deps)* Bump go.opentelemetry.io/otel from 1.39.0 to 1.41.0</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.11.0" date="2026-05-17T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.26.3</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Use goreleaser to build release artifacts</p>
+        <p>Add support for HTTPRoute and ListenerSet</p>
+        <p>Add additional golang repo</p>
+        <p>Fix templates in wrong location</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.10.1" date="2026-04-29T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(deps)* Update gomod to v3.6.10</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.26.2</p>
+        <p>*(deps)* Update module github.com/jackc/pgx/v5 to v5.9.2 [security]</p>
+        <p>*(container)* Update image docker.io/library/alpine to v3.23.4</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Evict self last</p>
+        <p>Add delay in failover test</p>
+        <p>Do not close miniredis</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.10.0" date="2026-03-21T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.26.1</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Use user and group nobody</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.9.3" date="2026-03-01T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(container)* Update image docker.io/library/golang to v1.26.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(deps)* Update gomod</li>
+          <li>🧪 Testing:</li>
+          <li>Add data volume to sentinel container</li>
+          <li>💼 Other:</li>
+          <li>Switch to new DialCtxFn for loadbalancer</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v1.9.2" date="2026-02-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.25.6</p>
+        <p>*(container)* Update image docker.io/library/alpine to v3.23.3</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Replace deprecated NewSimpleClientset method</p>
+        <p>Use go.yaml.in/yaml/v3 for YAML parsing</p>
+        <p>Remove unneeded prepare step in renovate workflow</p>
+        <p>Speed up drain unit-test by using eventuall instead of sleep</p>
+        <p>Fix missing targets for build shortcut</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.9.1" date="2025-12-29T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(container)* Update image docker.io/library/alpine to v3.23.2</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Rollout pods when config changes</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.9.0" date="2025-12-07T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(container)* Update image docker.io/library/alpine to v3.23.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(container)* Update image docker.io/library/golang to v1.25.5</li>
+          <li>*(deps)* Update gomod</li>
+          <li>💼 Other:</li>
+          <li>Create config from yaml</li>
+          <li>Add default resource requests</li>
+          <li>Use dual stack service</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v1.8.1" date="2025-11-23T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Add readme and license files to helm chart</p>
+        <p>Simplify label replacement logic</p>
+        <p>Reduce replicas to 1</p>
+        <p>Enable signing artifacts in release workflow</p>
+        <p>Consolidate targets after F41 EOL</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.8.0" date="2025-11-16T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Add authors label to container</p>
+        <p>Use temporary folder for storing images and kubeconfig</p>
+        <p>Use kind cluster config to ensure node port is exposed</p>
+        <p>Add step to publish helm charts to ci</p>
+        <p>Add helm install method</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.11" date="2025-11-13T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module go.mongodb.org/mongo-driver/v2 to v2.4.0</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.25.4</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Fix small error when calling golangci-lint</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.10" date="2025-10-25T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/alpine to v3.22.2</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.25.3</p>
+        <p>*(deps)* Update gomod</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.9" date="2025-10-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module github.com/spf13/cobra to v1.10.0</p>
+        <p>*(deps)* Update module github.com/spf13/cobra to v1.10.1</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.25.1</p>
+        <p>*(deps)* Update gomod</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.8" date="2025-09-01T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(container)* Update image docker.io/library/golang to v1.25.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(deps)* Update gomod</li>
+          <li>💼 Other:</li>
+          <li>Switch to alpine as final base image</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.7" date="2025-07-31T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.38.2</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.24.5</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to 270cd53</p>
+        <p>*(container)* Update image docker.io/library/golang to 1bb140b</p>
+        <p>*(container)* Update image docker.io/library/golang to 1aa97dd</p>
+        <p>*(container)* Update image docker.io/library/golang to a92f3b1</p>
+        <p>*(container)* Update image docker.io/library/golang to 764d7e0</p>
+        <p>*(container)* Update image docker.io/library/golang to 20a022e</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.6" date="2025-07-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.5" date="2025-06-22T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.24.4</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.4" date="2025-06-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.24.3</p>
+        <p>*(deps)* Update gomod</p>
+        <p>🧪 Testing:</p>
+        <p>Replace !assert with require instead</p>
+        <p>💼 Other:</p>
+        <p>Tag release to ensure correct version in binary</p>
+        <p>Update release job to target renamed workflow</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.3" date="2025-05-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to 30baaea</p>
+        <p>💼 Other:</p>
+        <p>Change defaults on release job</p>
+        <p>Add help function</p>
+        <p>Add gosec to improve code quality</p>
+        <p>Move target description to above them</p>
+        <p>Fix release workflow permissions</p>
+        <p>Allow release to create releases again</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.2" date="2025-04-20T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.24.2</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to d9db321</p>
+        <p>💼 Other:</p>
+        <p>Make default to tag container as latest for release</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.1" date="2025-04-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to 52ff1b3</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.7.0" date="2025-03-16T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.24.1</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Run e2e from the beginning</p>
+        <p>Implement mongodb storage backend</p>
+        <p>Run slow tests in parallel to speed up CI</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.6.2" date="2025-02-28T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to 3f74443</p>
+        <p>💼 Other:</p>
+        <p>Fix broken docker hub link</p>
+        <p>Use the version from build info</p>
+        <p>Use context scoped to current test</p>
+        <p>Replace abandoned yaml module with sig-kubernetes version</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.6.1" date="2025-02-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.23.5</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Upload coverprofile to coveralls</p>
+        <p>Fix missing explicit permissions for workflow runs</p>
+        <p>Change e2e test runner to ubuntu-latest</p>
+        <p>Update e2e-framework to v0.6.0</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.6.0" date="2024-12-30T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.23.4</p>
+        <p>*(deps)* Update gomod</p>
+        <p>🧪 Testing:</p>
+        <p>Fix selinux permissions when running tests</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>Add build job for fleetctl</p>
+        <p>Add e2e test</p>
+        <p>💼 Other:</p>
+        <p>Delete cover.out after generating page</p>
+        <p>Merge client code with kube-upgrade</p>
+        <p>Update go version to 1.N.P notation</p>
+        <p>Add fmt and validate commands</p>
+        <p>Improve lint by installing golangci-lint if not available</p>
+        <p>Add validate step to ci job</p>
+        <p>Move fleetlock api types to new package</p>
+        <p>Add new fake server for testing</p>
+        <p>Add clean command</p>
+        <p>Add comments to code</p>
+        <p>Add comments to code</p>
+        <p>Make name configurable</p>
+        <p>Move client package import path</p>
+        <p>Add option to specify id for lock/release</p>
+        <p>Add command to show id</p>
+        <p>Add unit-tests for package</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.5.1" date="2024-12-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>💼 Other:</p>
+        <p>Fix pointer unit-test after assert update</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.5.0" date="2024-11-21T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.23.3</p>
+        <p>*(deps)* Update gomod to v0.31.3</p>
+        <p>💼 Other:</p>
+        <p>Move drain lease into separate file</p>
+        <p>Add timeout to node drain</p>
+        <p>Add config option for drain timeout</p>
+        <p>Reformat k8s-client function to be internal for lease</p>
+        <p>Add fail counter to lease</p>
+        <p>Add option to configure max retries for node drain</p>
+        <p>Specify that kubeconfig option is intended for development only</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.4.4" date="2024-10-27T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.23.2</p>
+        <p>*(deps)* Update gomod</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.4.3" date="2024-10-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.23.1</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to acfb46b</p>
+        <p>💼 Other:</p>
+        <p>Bump go version to 1.23</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.4.2" date="2024-09-01T00:00:00Z">
+      <description>
+        <p>This release adds the following features:</p>
+        <ul>
+          <li>*(container)* Update image docker.io/library/golang to v1.23.0</li>
+          <li>🐛 Bug Fixes:</li>
+          <li>*(deps)* Update gomod</li>
+          <li>*(deps)* Update module github.com/valkey-io/valkey-go to v1.0.45</li>
+          <li>🧪 Testing:</li>
+          <li>Do not use etcd image latest tag</li>
+        </ul>
+      </description>
+    </release>
+    <release type="stable" version="v1.4.1" date="2024-08-10T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Create a client package for imports</p>
+        <p>Add commands for lint and coverprofile</p>
+        <p>Add /healthz check endpoint</p>
+        <p>Add indent to server responses to make it human readable</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.4.0" date="2024-08-02T00:00:00Z">
+      <description>
+        <p>🧪 Testing:</p>
+        <p>Switch from 7.2 to latest valkey container image</p>
+        <p>Fix loadbalancer test not testing loadbalancer</p>
+        <p>Print command output to log on failure</p>
+        <p>💼 Other:</p>
+        <p>Switch from redis-go to valkey-go for client library</p>
+        <p>Switch context to background</p>
+        <p>Add unit-test for possible deadlock detection</p>
+        <p>Rename redis package to valkey</p>
+        <p>Add log message when loadbalancer can't find any database</p>
+        <p>Output container logs after failed run</p>
+        <p>Change ports of loadbalancer test to avoid conflict</p>
+        <p>Add deprecation notice</p>
+        <p>Ignore deprecation warnings in golangci-lint</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.3.1" date="2024-08-01T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to 86a3c48</p>
+        <p>💼 Other:</p>
+        <p>Add apiGroup to roleRef</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.3.0" date="2024-07-31T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Run Renovate less frequently</p>
+        <p>Fix spelling</p>
+        <p>Implement kubernetes storage backend</p>
+        <p>Fix wrong label for client id in log messages</p>
+        <p>StorageConfig does not need to be a pointer</p>
+        <p>Fix error when config for storage type not provided</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.2.5" date="2024-07-12T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module github.com/spf13/cobra to v1.8.1</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.22.5</p>
+        <p>*(deps)* Update module github.com/redis/go-redis/v9 to v9.5.4</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.30.2</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to a0679ac</p>
+        <p>*(container)* Update image docker.io/library/golang to 4950c1c</p>
+        <p>*(container)* Update image docker.io/library/golang to c2010b9</p>
+        <p>*(container)* Update image docker.io/library/golang to a66eda6</p>
+        <p>*(container)* Update image docker.io/library/golang to c8736b8</p>
+        <p>*(container)* Update image docker.io/library/golang to 829eff9</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.2.4" date="2024-06-14T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.30.0</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.22.4</p>
+        <p>*(deps)* Update module github.com/redis/go-redis/v9 to v9.5.3</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.30.1</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to 2303a02</p>
+        <p>*(container)* Update image docker.io/library/golang to a1dc408</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.2.3" date="2024-05-31T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.22.3</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.29.9</p>
+        <p>*(deps)* Update module modernc.org/sqlite to v1.29.10</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to f43c6f0</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.2.2" date="2024-05-02T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Add option to connect to database via tls</p>
+        <p>Add tls root certificates</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.2.0" date="2024-04-27T00:00:00Z">
+      <description>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to d5302d4</p>
+        <p>💼 Other:</p>
+        <p>Move tests into separate test folder</p>
+        <p>Implement loadbalanced client</p>
+        <p>Add utility to run container commands for tests</p>
+        <p>Run unit-tests before build</p>
+        <p>Ensure coverage of tests outside of package is tracked</p>
+        <p>Rename sqlite storage package to more generic sql</p>
+        <p>Add postgres support</p>
+        <p>Add mysql support</p>
+        <p>Fix wrong condition for HasLock</p>
+        <p>Add additional unit-tests</p>
+        <p>Run test databases in memory</p>
+        <p>Implement etcd storage backend</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.1.1" date="2024-04-21T00:00:00Z">
+      <description>
+        <p>💼 Other:</p>
+        <p>Add support for sentinel</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.1.0" date="2024-04-21T00:00:00Z">
+      <description>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(container)* Update image docker.io/library/golang to 450e382</p>
+      </description>
+    </release>
+    <release type="stable" version="v1.0.0" date="2024-04-06T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.22.2</p>
+        <p>💼 Other:</p>
+        <p>Only tag release versions with latest</p>
+        <p>Add workflow to generate coverprofile report</p>
+        <p>Add unit-tests for config package and associated logic</p>
+        <p>Move testsuite to package</p>
+        <p>Add unit tests for behaviour not covered by storage testsuite</p>
+        <p>Add unit tests for server</p>
+        <p>Fix empty inputs for container build</p>
+        <p>Do not print help text after fatal error</p>
+        <p>Fix docker image tags</p>
+        <p>Fix latest tag not being applied properly</p>
+        <p>Use zig for cross-compiling</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
 </component>
