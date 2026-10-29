@@ -1,8 +1,8 @@
 # Changelog
 
-Version v1.12.0-rc.0
+Version v1.12.0
 --------------------
-Released: 2026-10-24
+Released: 2026-10-29
 
 🚀 Features:
 - *(release)* Generate changelog before release
@@ -11,8 +11,15 @@ Released: 2026-10-24
 
 🐛 Bug Fixes:
 - Use version derived from git when possible
+- *(container)* Update image docker.io/library/golang to v1.27.3
+- *(container)* Update image docker.io/library/alpine to v3.24.3
+- *(deps)* Update gomod
+- *(deps)* Update gomod to v0.37.2
 
 ⚙️ Miscellaneous Tasks:
+- Synced file(s) with heathcliff26/ci
+- Synced file(s) with heathcliff26/ci
+- *(release)* Update changelog for v1.12.0-rc.0
 - Synced file(s) with heathcliff26/ci
 - Synced file(s) with heathcliff26/ci
 
