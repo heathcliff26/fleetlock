@@ -15,9 +15,9 @@ require (
 	go.etcd.io/etcd/server/v3 v3.7.3
 	go.mongodb.org/mongo-driver/v2 v2.9.2
 	go.yaml.in/yaml/v3 v3.0.5
-	k8s.io/api v0.37.1
-	k8s.io/apimachinery v0.37.1
-	k8s.io/client-go v0.37.1
+	k8s.io/api v0.37.2
+	k8s.io/apimachinery v0.37.2
+	k8s.io/client-go v0.37.2
 	modernc.org/sqlite v1.61.0
 	sigs.k8s.io/e2e-framework v0.7.0
 )
@@ -124,7 +124,7 @@ require (
 	k8s.io/component-base v0.35.3 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad // indirect
-	k8s.io/streaming v0.37.1 // indirect
+	k8s.io/streaming v0.37.2 // indirect
 	k8s.io/utils v0.0.0-20260626114624-be93311217bd // indirect
 	modernc.org/libc v1.79.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
