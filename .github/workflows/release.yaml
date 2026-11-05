@@ -74,19 +74,10 @@ jobs:
       tag: "${{ inputs.tag }}"
     secrets: inherit
 
-  push-gemfury:
-    uses: heathcliff26/ci/.github/workflows/gemfury-push.yaml@main
-    needs: build
-    permissions: {}
-    with:
-      artifacts: "fleetlock"
-    secrets: inherit
-
   release:
     uses: heathcliff26/ci/.github/workflows/release.yaml@main
     needs:
       - push-helm
-      - push-gemfury
     permissions:
       contents: write
     with:
