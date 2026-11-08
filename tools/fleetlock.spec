@@ -31,21 +31,13 @@ install -D -m 0644 examples/config.yaml %{buildroot}%{_sysconfdir}/%{name}/confi
 install -D -m 0644 %{package_id}.metainfo.xml %{buildroot}/%{_datadir}/metainfo/%{package_id}.metainfo.xml
 
 %post
-systemctl daemon-reload
+PLACEHOLDER_POSTINSTALL
 
 %preun
-if [ $1 == 0 ]; then #uninstall
-  systemctl unmask %{name}.service
-  systemctl stop %{name}.service
-  systemctl disable %{name}.service
-  echo "Clean up %{name} service"
-fi
+PLACEHOLDER_PREREMOVE
 
 %postun
-if [ $1 == 0 ]; then #uninstall
-  systemctl daemon-reload
-  systemctl reset-failed
-fi
+PLACEHOLDER_POSTREMOVE
 
 %files
 %license LICENSE
