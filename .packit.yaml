@@ -12,6 +12,9 @@ packages:
       post-upstream-clone:
         - mkdir -p tmp
         - cp tools/fleetlock.spec tmp/
+        - sed -i -e '/^PLACEHOLDER_POSTINSTALL$/r tools/postinstall.sh' -e '/^PLACEHOLDER_POSTINSTALL$/d' tmp/fleetlock.spec
+        - sed -i -e '/^PLACEHOLDER_PREREMOVE$/r tools/preremove.sh' -e '/^PLACEHOLDER_PREREMOVE$/d' tmp/fleetlock.spec
+        - sed -i -e '/^PLACEHOLDER_POSTREMOVE$/r tools/postremove.sh' -e '/^PLACEHOLDER_POSTREMOVE$/d' tmp/fleetlock.spec
   fleetctl:
     downstream_package_name: fleetctl
     upstream_package_name: fleetctl
