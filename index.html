@@ -427,7 +427,7 @@ import (
         "github.com/heathcliff26/fleetlock/pkg/k8s"
         lockmanager "github.com/heathcliff26/fleetlock/pkg/lock-manager"
         "github.com/heathcliff26/fleetlock/pkg/server"
-        "go.yaml.in/yaml/v3"
+        "go.yaml.in/yaml/v4"
 )
 
 const (
@@ -2106,7 +2106,7 @@ func (k *KubernetesBackend) Release(group string, id string) error {
 </span>        }
 
         <span class="cov4" title="23">for _, lease := range leases </span>{
-                <span class="cov5" title="40">if *lease.Spec.HolderIdentity == id </span>{
+                <span class="cov5" title="37">if *lease.Spec.HolderIdentity == id </span>{
                         <span class="cov4" title="21">return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
 </span>                }
         }
@@ -2155,8 +2155,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 </span>
         <span class="cov7" title="248">for _, lease := range leases.Items </span>{
-                <span class="cov10" title="1960">if matcher.MatchString(lease.GetName()) </span>{
-                        <span class="cov8" title="757">result = append(result, lease)
+                <span class="cov10" title="1961">if matcher.MatchString(lease.GetName()) </span>{
+                        <span class="cov8" title="758">result = append(result, lease)
 </span>                }
         }
         <span class="cov7" title="248">return result, nil</span>
@@ -2246,7 +2246,7 @@ func (m *MemoryBackend) Release(group string, id string) error {
         <span class="cov6" title="24">var i int
         var l lock
         for i, l = range g.slots </span>{
-                <span class="cov7" title="59">if l.id == id </span>{
+                <span class="cov7" title="60">if l.id == id </span>{
                         <span class="cov5" title="22">break</span>
                 }
         }
@@ -2282,7 +2282,7 @@ func (m *MemoryBackend) Close() error {
 
 func (g *group) hasLock(id string) bool {
         <span class="cov8" title="110">for _, lock := range g.slots </span>{
-                <span class="cov10" title="287">if id == lock.id </span>{
+                <span class="cov10" title="283">if id == lock.id </span>{
                         <span class="cov5" title="14">return true
 </span>                }
         }
@@ -2432,16 +2432,16 @@ type MySQLConfig struct {
 }
 
 func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) {
-        <span class="cov10" title="17">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+        <span class="cov10" title="10">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 </span>
-        <span class="cov10" title="17">db, err := sql.Open("mysql", connStr)
+        <span class="cov10" title="10">db, err := sql.Open("mysql", connStr)
         if err != nil </span>{
                 <span class="cov1" title="1">return nil, fmt.Errorf("failed to open mysql database: %w", err)
 </span>        }
 
-        <span class="cov9" title="16">err = db.Ping()
+        <span class="cov9" title="9">err = db.Ping()
         if err != nil </span>{
-                <span class="cov9" title="15">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
+                <span class="cov9" title="8">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
 </span>        }
 
         <span class="cov1" title="1">s := &amp;SQLBackend{
@@ -2491,16 +2491,16 @@ type PostgresConfig struct {
 }
 
 func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) {
-        <span class="cov10" title="6">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+        <span class="cov10" title="2">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 </span>
-        <span class="cov10" title="6">db, err := sql.Open("pgx", "postgres://"+connStr)
+        <span class="cov10" title="2">db, err := sql.Open("pgx", "postgres://"+connStr)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to open postgres database: %w", err)
 </span>        }
 
-        <span class="cov10" title="6">err = db.Ping()
+        <span class="cov10" title="2">err = db.Ping()
         if err != nil </span>{
-                <span class="cov9" title="5">return nil, fmt.Errorf("failed to ping postgres database: %w", err)
+                <span class="cov1" title="1">return nil, fmt.Errorf("failed to ping postgres database: %w", err)
 </span>        }
 
         <span class="cov1" title="1">s := &amp;SQLBackend{
@@ -2719,20 +2719,20 @@ func (s *SQLBackend) Close() error {
 		<pre class="file" id="file30" style="display: none">package sql
 
 func createConnectionString(username, password, address, database, options string) string {
-        <span class="cov10" title="23">var connStr string
+        <span class="cov10" title="12">var connStr string
         if username != "" </span>{
-                <span class="cov9" title="21">connStr += username
+                <span class="cov9" title="10">connStr += username
                 if password != "" </span>{
-                        <span class="cov9" title="21">connStr += ":" + password
+                        <span class="cov9" title="10">connStr += ":" + password
 </span>                }
-                <span class="cov9" title="21">connStr += "@"</span>
+                <span class="cov9" title="10">connStr += "@"</span>
         }
-        <span class="cov10" title="23">connStr += address + "/" + database
+        <span class="cov10" title="12">connStr += address + "/" + database
         if options != "" </span>{
                 <span class="cov0" title="0">connStr += "?" + options
 </span>        }
 
-        <span class="cov10" title="23">return connStr</span>
+        <span class="cov10" title="12">return connStr</span>
 }
 </pre>
 		
