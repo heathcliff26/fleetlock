@@ -19,7 +19,7 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh fleetlock
 ###############################################################################
 # BEGIN final-stage
 # Create final docker image
-FROM docker.io/library/alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS final-stage
+FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS final-stage
 
 LABEL   org.opencontainers.image.authors="heathcliff@heathcliff.eu"
 
