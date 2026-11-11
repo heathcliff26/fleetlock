@@ -2106,7 +2106,7 @@ func (k *KubernetesBackend) Release(group string, id string) error {
 </span>        }
 
         <span class="cov4" title="23">for _, lease := range leases </span>{
-                <span class="cov5" title="51">if *lease.Spec.HolderIdentity == id </span>{
+                <span class="cov5" title="40">if *lease.Spec.HolderIdentity == id </span>{
                         <span class="cov4" title="21">return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
 </span>                }
         }
@@ -2127,7 +2127,7 @@ func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) {
 </span>        }
 
         <span class="cov5" title="54">for _, lease := range leases </span>{
-                <span class="cov6" title="111">if *lease.Spec.HolderIdentity == id </span>{
+                <span class="cov6" title="101">if *lease.Spec.HolderIdentity == id </span>{
                         <span class="cov3" title="10">return true, nil
 </span>                }
         }
@@ -2155,8 +2155,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 </span>
         <span class="cov7" title="248">for _, lease := range leases.Items </span>{
-                <span class="cov10" title="1980">if matcher.MatchString(lease.GetName()) </span>{
-                        <span class="cov8" title="777">result = append(result, lease)
+                <span class="cov10" title="1960">if matcher.MatchString(lease.GetName()) </span>{
+                        <span class="cov8" title="757">result = append(result, lease)
 </span>                }
         }
         <span class="cov7" title="248">return result, nil</span>
@@ -2246,7 +2246,7 @@ func (m *MemoryBackend) Release(group string, id string) error {
         <span class="cov6" title="24">var i int
         var l lock
         for i, l = range g.slots </span>{
-                <span class="cov7" title="63">if l.id == id </span>{
+                <span class="cov7" title="59">if l.id == id </span>{
                         <span class="cov5" title="22">break</span>
                 }
         }
@@ -2282,7 +2282,7 @@ func (m *MemoryBackend) Close() error {
 
 func (g *group) hasLock(id string) bool {
         <span class="cov8" title="110">for _, lock := range g.slots </span>{
-                <span class="cov10" title="283">if id == lock.id </span>{
+                <span class="cov10" title="287">if id == lock.id </span>{
                         <span class="cov5" title="14">return true
 </span>                }
         }
