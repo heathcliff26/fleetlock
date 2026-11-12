@@ -33,4 +33,4 @@ fi
 pushd "${base_dir}" >/dev/null
 
 echo "Building $(basename "${output_name}")"
-GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build -ldflags="${GO_LD_FLAGS}" -o "${output_name}" "./cmd/${target}"
+GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build -ldflags="${GO_LD_FLAGS}" -trimpath -o "${output_name}" "./cmd/${target}"
