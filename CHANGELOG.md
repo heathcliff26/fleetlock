@@ -1,5 +1,21 @@
 # Changelog
 
+Version v1.12.1
+--------------------
+Released: 2026-11-12
+
+🐛 Bug Fixes:
+- Improve systemctl command checks in rpm/deb scripts
+- *(deps)* Upgrade to go.yaml.in/yaml/v4
+- Use trimpath option for build
+- *(deps)* Update gomod
+
+⚙️ Miscellaneous Tasks:
+- *(ci)* Remove gemfury job
+- *(manifest)* Remove empty newlines
+- *(container)* Update image docker.io/library/alpine to v3.24.4
+- *(container)* Update image docker.io/library/golang to v1.27.4
+
 Version v1.12.0
 --------------------
 Released: 2026-10-29
@@ -22,6 +38,7 @@ Released: 2026-10-29
 - *(release)* Update changelog for v1.12.0-rc.0
 - Synced file(s) with heathcliff26/ci
 - Synced file(s) with heathcliff26/ci
+- *(release)* Update changelog for v1.12.0
 
 Version v1.11.6
 --------------------

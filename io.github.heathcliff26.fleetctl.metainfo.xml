@@ -22,6 +22,20 @@
     <binary>fleetctl</binary>
   </provides>
   <releases>
+    <release type="stable" version="v1.12.1" date="2026-11-12T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>Improve systemctl command checks in rpm/deb scripts</p>
+        <p>*(deps)* Upgrade to go.yaml.in/yaml/v4</p>
+        <p>Use trimpath option for build</p>
+        <p>*(deps)* Update gomod</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>*(ci)* Remove gemfury job</p>
+        <p>*(manifest)* Remove empty newlines</p>
+        <p>*(container)* Update image docker.io/library/alpine to v3.24.4</p>
+        <p>*(container)* Update image docker.io/library/golang to v1.27.4</p>
+      </description>
+    </release>
     <release type="stable" version="v1.12.0" date="2026-10-29T00:00:00Z">
       <description>
         <p>This release adds the following features:</p>
@@ -41,6 +55,7 @@
           <li>*(release)* Update changelog for v1.12.0-rc.0</li>
           <li>Synced file(s) with heathcliff26/ci</li>
           <li>Synced file(s) with heathcliff26/ci</li>
+          <li>*(release)* Update changelog for v1.12.0</li>
         </ul>
       </description>
     </release>
