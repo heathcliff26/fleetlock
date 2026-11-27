@@ -43,7 +43,7 @@ on:
       - "go.sum"
       - "*.go"
       - "**/*.go"
-      - "Dockerfile"
+      - "Containerfile"
   pull_request:
     branches: ["main"]
   merge_group:
@@ -108,7 +108,7 @@ jobs:
       contents: read
       packages: write
     with:
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
       tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
       tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
