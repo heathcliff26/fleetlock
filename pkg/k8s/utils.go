@@ -9,5 +9,5 @@ func drainLeaseName(id string) string {
 }
 
 func nodeUnschedulablePatch(desired bool) []byte {
-	return []byte(fmt.Sprintf("{\"spec\":{\"unschedulable\":%t}}", desired))
+	return fmt.Appendf([]byte{}, "{\"spec\":{\"unschedulable\":%t}}", desired)
 }
