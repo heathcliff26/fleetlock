@@ -103,7 +103,6 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 	}
 
 	var returnError error
-	evictSelf := false
 	selfName, selfNamespace := os.Getenv("POD_NAME"), os.Getenv("POD_NAMESPACE")
 	for _, pod := range pods.Items {
 		// Skip mirror pods
@@ -116,9 +115,10 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 			continue
 		}
 
+		// Skip itself, in case this is a single node cluster.
+		// Otherwise the client would be stuck, as no server is available.
 		if pod.GetName() == selfName && pod.GetNamespace() == selfNamespace {
-			slog.Debug("Delaying evicting myself until all other pods are evicted", slog.String("node", node))
-			evictSelf = true
+			slog.Debug("Skipping myself, as i need to communicate with the client", slog.String("node", node))
 			continue
 		}
 
@@ -143,14 +143,6 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 
 		if done {
 			break
-		}
-	}
-
-	if evictSelf {
-		err = c.evictPod(ctx, selfName, selfNamespace, utils.Pointer(int64(10)))
-		if err != nil {
-			slog.Info("Failed to evict myself", "err", err, slog.String("node", node), slog.String("pod", selfName), slog.String("namespace", selfNamespace))
-			returnError = NewErrorFailedToEvictAllPods()
 		}
 	}
 
