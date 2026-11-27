@@ -2106,7 +2106,7 @@ func (k *KubernetesBackend) Release(group string, id string) error {
 </span>        }
 
         <span class="cov4" title="23">for _, lease := range leases </span>{
-                <span class="cov5" title="49">if *lease.Spec.HolderIdentity == id </span>{
+                <span class="cov5" title="36">if *lease.Spec.HolderIdentity == id </span>{
                         <span class="cov4" title="21">return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
 </span>                }
         }
@@ -2246,7 +2246,7 @@ func (m *MemoryBackend) Release(group string, id string) error {
         <span class="cov6" title="24">var i int
         var l lock
         for i, l = range g.slots </span>{
-                <span class="cov7" title="49">if l.id == id </span>{
+                <span class="cov7" title="56">if l.id == id </span>{
                         <span class="cov5" title="22">break</span>
                 }
         }
@@ -2432,16 +2432,16 @@ type MySQLConfig struct {
 }
 
 func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) {
-        <span class="cov10" title="13">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+        <span class="cov10" title="10">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 </span>
-        <span class="cov10" title="13">db, err := sql.Open("mysql", connStr)
+        <span class="cov10" title="10">db, err := sql.Open("mysql", connStr)
         if err != nil </span>{
                 <span class="cov1" title="1">return nil, fmt.Errorf("failed to open mysql database: %w", err)
 </span>        }
 
-        <span class="cov9" title="12">err = db.Ping()
+        <span class="cov9" title="9">err = db.Ping()
         if err != nil </span>{
-                <span class="cov9" title="11">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
+                <span class="cov9" title="8">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
 </span>        }
 
         <span class="cov1" title="1">s := &amp;SQLBackend{
@@ -2491,16 +2491,16 @@ type PostgresConfig struct {
 }
 
 func NewPostgresBackend(cfg PostgresConfig) (*SQLBackend, error) {
-        <span class="cov10" title="5">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+        <span class="cov10" title="8">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 </span>
-        <span class="cov10" title="5">db, err := sql.Open("pgx", "postgres://"+connStr)
+        <span class="cov10" title="8">db, err := sql.Open("pgx", "postgres://"+connStr)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to open postgres database: %w", err)
 </span>        }
 
-        <span class="cov10" title="5">err = db.Ping()
+        <span class="cov10" title="8">err = db.Ping()
         if err != nil </span>{
-                <span class="cov8" title="4">return nil, fmt.Errorf("failed to ping postgres database: %w", err)
+                <span class="cov9" title="7">return nil, fmt.Errorf("failed to ping postgres database: %w", err)
 </span>        }
 
         <span class="cov1" title="1">s := &amp;SQLBackend{
