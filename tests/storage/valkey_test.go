@@ -3,6 +3,8 @@ package storage
 import (
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -60,9 +62,19 @@ func TestValkeySentinelBackend(t *testing.T) {
 		_ = utils.ExecCRI("rm", "fleetlock-valkey-sentinel-db")
 	})
 
+	sentinelConfig, err := os.ReadFile("./testdata/valkey-sentinel.conf")
+	if err != nil {
+		t.Fatalf("Failed to read sentinel config: %v", err)
+	}
+	configDir := t.TempDir()
+	configPath := filepath.Join(configDir, "sentinel.conf")
+	if err := os.WriteFile(configPath, sentinelConfig, 0666); err != nil {
+		t.Fatalf("Failed to create writable sentinel config: %v", err)
+	}
+
 	err = utils.ExecCRI("run", "--name", "fleetlock-valkey-sentinel-sentinel", "-d",
 		"--net", "host",
-		"-v", "./testdata/valkey-sentinel.conf:/config/sentinel.conf:z",
+		"-v", fmt.Sprintf("%s:/config:z", configDir),
 		"-v", fmt.Sprintf("%s:/data:z", t.TempDir()),
 		"--userns=keep-id",
 		"docker.io/valkey/valkey:latest",
