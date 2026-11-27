@@ -19,6 +19,7 @@ import (
 	"math/big"
 	"net"
 	"net/url"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -26,10 +27,10 @@ import (
 )
 
 var (
-	errInvalidDSNUnescaped       = errors.New("invalid DSN: did you forget to escape a param value?")
-	errInvalidDSNAddr            = errors.New("invalid DSN: network address not terminated (missing closing brace)")
-	errInvalidDSNNoSlash         = errors.New("invalid DSN: missing the slash separating the database name")
-	errInvalidDSNUnsafeCollation = errors.New("invalid DSN: interpolateParams can not be used with unsafe collations")
+	errInvalidDSNUnescaped = errors.New("invalid DSN: did you forget to escape a param value?")
+	errInvalidDSNAddr      = errors.New("invalid DSN: network address not terminated (missing closing brace)")
+	errInvalidDSNNoSlash   = errors.New("invalid DSN: missing the slash separating the database name")
+	errUnsafeCharset       = errors.New("interpolateParams cannot be used with unsafe charsets")
 )
 
 // Config is a configuration parsed from a DSN string.
@@ -43,7 +44,7 @@ type Config struct {
 	Net                  string            // Network (e.g. "tcp", "tcp6", "unix". default: "tcp")
 	Addr                 string            // Address (default: "127.0.0.1:3306" for "tcp" and "/tmp/mysql.sock" for "unix")
 	DBName               string            // Database name
-	Params               map[string]string // Connection parameters
+	Params               map[string]string // Connection parameters. Use Apply(AddParam(...)) to preserve insertion order.
 	ConnectionAttributes string            // Connection Attributes, comma-delimited string of user-defined "key:value" pairs
 	Collation            string            // Connection collation. When set, this will be set in SET NAMES <charset> COLLATE <collation> query
 	Loc                  *time.Location    // Location for time.Time values
@@ -76,12 +77,16 @@ type Config struct {
 	// unexported fields. new options should be come here.
 	// boolean first. alphabetical order.
 
-	compress bool // Enable zlib compression
+	compress       bool // Enable compression
+	tinyInt1IsBool bool // Treat signed TINYINT(1) as boolean
 
-	beforeConnect func(context.Context, *Config) error // Invoked before a connection is established
-	pubKey        *rsa.PublicKey                       // Server public key
-	timeTruncate  time.Duration                        // Truncate time.Time values to the specified duration
-	charsets      []string                             // Connection charset. When set, this will be set in SET NAMES <charset> query
+	beforeConnect     func(context.Context, *Config) error // Invoked before a connection is established
+	encodedAttributes string                               // Encoded connection attributes
+	openIDToken       string                               // OpenID Connect token; never included in the DSN
+	paramOrder        []string                             // Order of connection parameters parsed from the DSN
+	pubKey            *rsa.PublicKey                       // Server public key
+	timeTruncate      time.Duration                        // Truncate time.Time values to the specified duration
+	charsets          []string                             // Connection charset. When set, this will be set in SET NAMES <charset> query
 }
 
 // Functional Options Pattern
@@ -111,6 +116,27 @@ func (c *Config) Apply(opts ...Option) error {
 	return nil
 }
 
+// AddParam adds a connection parameter.
+//
+// Parameters added with AddParam retain their order in [Config.FormatDSN] and
+// are applied to the connection in that order. If name already exists, it is
+// moved to the end of the parameter order.
+func AddParam(name, value string) Option {
+	return func(cfg *Config) error {
+		params := cfg.orderedParams()
+		if i := slices.Index(params, name); i >= 0 {
+			params = slices.Delete(params, i, i+1)
+		}
+
+		if cfg.Params == nil {
+			cfg.Params = make(map[string]string)
+		}
+		cfg.Params[name] = value
+		cfg.paramOrder = append(params, name)
+		return nil
+	}
+}
+
 // TimeTruncate sets the time duration to truncate time.Time values in
 // query parameters.
 func TimeTruncate(d time.Duration) Option {
@@ -120,7 +146,25 @@ func TimeTruncate(d time.Duration) Option {
 	}
 }
 
+// OIDCToken sets the JWT for OpenID Connect authentication.
+// Empty tokens return ErrOpenIDConnectToken without changing the configuration.
+// Use [BeforeConnect] to refresh the token with cfg.Apply(OIDCToken(token)).
+// The token is omitted from [Config.FormatDSN]. OIDC requires driver-managed TLS
+// with application-configured server verification and rejects authentication switches.
+func OIDCToken(token string) Option {
+	return func(cfg *Config) error {
+		if token == "" {
+			return ErrOpenIDConnectToken
+		}
+		cfg.openIDToken = token
+		return nil
+	}
+}
+
 // BeforeConnect sets the function to be invoked before a connection is established.
+// If the function changes [Config.Addr] while [Config.TLS] is non-nil and its
+// InsecureSkipVerify field is false, it must also update ServerName to match
+// the hostname in the new address.
 func BeforeConnect(fn func(context.Context, *Config) error) Option {
 	return func(cfg *Config) error {
 		cfg.beforeConnect = fn
@@ -128,10 +172,20 @@ func BeforeConnect(fn func(context.Context, *Config) error) Option {
 	}
 }
 
-// EnableCompress sets the compression mode.
+// EnableCompression enables compression. Import mysql/zstd to prefer zstd when
+// supported by the server; otherwise connections use zlib when supported.
 func EnableCompression(yes bool) Option {
 	return func(cfg *Config) error {
 		cfg.compress = yes
+		return nil
+	}
+}
+
+// TinyInt1IsBool controls whether signed TINYINT(1) columns are treated as boolean.
+// It is disabled by default.
+func TinyInt1IsBool(yes bool) Option {
+	return func(cfg *Config) error {
+		cfg.tinyInt1IsBool = yes
 		return nil
 	}
 }
@@ -156,10 +210,11 @@ func (cfg *Config) Clone() *Config {
 	if cp.TLS != nil {
 		cp.TLS = cfg.TLS.Clone()
 	}
-	if len(cp.Params) > 0 {
+	if cp.Params != nil {
 		cp.Params = make(map[string]string, len(cfg.Params))
 		maps.Copy(cp.Params, cfg.Params)
 	}
+	cp.paramOrder = slices.Clone(cfg.paramOrder)
 	if cfg.pubKey != nil {
 		cp.pubKey = &rsa.PublicKey{
 			N: new(big.Int).Set(cfg.pubKey.N),
@@ -169,9 +224,28 @@ func (cfg *Config) Clone() *Config {
 	return &cp
 }
 
+// checkUnsafeCharset returns an error if interpolateParams is used with a
+// charset that is unsafe for backslash escaping.
+func (cfg *Config) checkUnsafeCharset() error {
+	if !cfg.InterpolateParams {
+		return nil
+	}
+	if cfg.Collation != "" && isUnsafeCollation(cfg.Collation) {
+		return errUnsafeCharset
+	}
+	// Every charset is checked, not only the first, because the fallbacks
+	// are used when the preceding ones fail.
+	for _, cs := range cfg.charsets {
+		if isUnsafeCharset(cs) {
+			return errUnsafeCharset
+		}
+	}
+	return nil
+}
+
 func (cfg *Config) normalize() error {
-	if cfg.InterpolateParams && cfg.Collation != "" && unsafeCollations[cfg.Collation] {
-		return errInvalidDSNUnsafeCollation
+	if err := cfg.checkUnsafeCharset(); err != nil {
+		return err
 	}
 
 	// Set default network if empty
@@ -229,6 +303,7 @@ func (cfg *Config) normalize() error {
 	if cfg.Logger == nil {
 		cfg.Logger = defaultLogger
 	}
+	cfg.encodedAttributes = encodeConnectionAttributes(cfg)
 
 	return nil
 }
@@ -355,6 +430,10 @@ func (cfg *Config) FormatDSN() string {
 		writeDSNParam(&buf, &hasParam, "timeTruncate", cfg.timeTruncate.String())
 	}
 
+	if cfg.tinyInt1IsBool {
+		writeDSNParam(&buf, &hasParam, "tinyInt1IsBool", "true")
+	}
+
 	if cfg.ReadTimeout > 0 {
 		writeDSNParam(&buf, &hasParam, "readTimeout", cfg.ReadTimeout.String())
 	}
@@ -384,18 +463,37 @@ func (cfg *Config) FormatDSN() string {
 	}
 
 	// other params
-	if cfg.Params != nil {
-		var params []string
-		for param := range cfg.Params {
-			params = append(params, param)
-		}
-		sort.Strings(params)
-		for _, param := range params {
-			writeDSNParam(&buf, &hasParam, param, url.QueryEscape(cfg.Params[param]))
-		}
+	for _, param := range cfg.orderedParams() {
+		writeDSNParam(&buf, &hasParam, param, url.QueryEscape(cfg.Params[param]))
 	}
 
 	return buf.String()
+}
+
+// orderedParams returns connection parameter names in their recorded order,
+// followed by any names added directly to Config.Params in sorted order.
+func (cfg *Config) orderedParams() []string {
+	params := make([]string, 0, len(cfg.Params))
+	seen := make(map[string]struct{}, len(cfg.Params))
+	for _, param := range cfg.paramOrder {
+		if _, ok := cfg.Params[param]; !ok {
+			continue
+		}
+		if _, ok := seen[param]; ok {
+			continue
+		}
+		params = append(params, param)
+		seen[param] = struct{}{}
+	}
+
+	unordered := make([]string, 0, len(cfg.Params)-len(params))
+	for param := range cfg.Params {
+		if _, ok := seen[param]; !ok {
+			unordered = append(unordered, param)
+		}
+	}
+	sort.Strings(unordered)
+	return append(params, unordered...)
 }
 
 // ParseDSN parses the DSN string to a Config
@@ -603,13 +701,6 @@ func parseDSNParams(cfg *Config, params string) (err error) {
 				return errors.New("invalid bool value: " + value)
 			}
 
-		// time.Time truncation
-		case "timeTruncate":
-			cfg.timeTruncate, err = time.ParseDuration(value)
-			if err != nil {
-				return fmt.Errorf("invalid timeTruncate value: %v, error: %w", value, err)
-			}
-
 		// I/O read Timeout
 		case "readTimeout":
 			cfg.ReadTimeout, err = time.ParseDuration(value)
@@ -642,6 +733,21 @@ func parseDSNParams(cfg *Config, params string) (err error) {
 			cfg.Timeout, err = time.ParseDuration(value)
 			if err != nil {
 				return
+			}
+
+		// time.Time truncation
+		case "timeTruncate":
+			cfg.timeTruncate, err = time.ParseDuration(value)
+			if err != nil {
+				return fmt.Errorf("invalid timeTruncate value: %v, error: %w", value, err)
+			}
+
+		// Treat TINYINT(1) as boolean
+		case "tinyInt1IsBool":
+			var isBool bool
+			cfg.tinyInt1IsBool, isBool = readBool(value)
+			if !isBool {
+				return errors.New("invalid bool value: " + value)
 			}
 
 		// TLS-Encryption
@@ -684,14 +790,23 @@ func parseDSNParams(cfg *Config, params string) (err error) {
 			cfg.ConnectionAttributes = connectionAttributes
 
 		default:
+			value, err = url.QueryUnescape(value)
+			if err != nil {
+				return
+			}
+
 			// lazy init
 			if cfg.Params == nil {
 				cfg.Params = make(map[string]string)
 			}
 
-			if cfg.Params[key], err = url.QueryUnescape(value); err != nil {
-				return
+			// Keep the last occurrence of a duplicate parameter, matching the
+			// existing map semantics, and place it at its last position.
+			if i := slices.Index(cfg.paramOrder, key); i >= 0 {
+				cfg.paramOrder = slices.Delete(cfg.paramOrder, i, i+1)
 			}
+			cfg.Params[key] = value
+			cfg.paramOrder = append(cfg.paramOrder, key)
 		}
 	}
 

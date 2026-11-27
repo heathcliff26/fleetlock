@@ -14,6 +14,7 @@ const (
 	debug = false // for debugging. Set true only in development.
 
 	defaultAuthPlugin       = "mysql_native_password"
+	openIDConnectPlugin     = "authentication_openid_connect_client"
 	defaultMaxAllowedPacket = 64 << 20 // 64 MiB. See https://github.com/go-sql-driver/mysql/issues/1355
 	minProtocolVersion      = 10
 	maxPacketSize           = 1<<24 - 1
@@ -72,6 +73,8 @@ const (
 	clientCanHandleExpiredPasswords
 	clientSessionTrack
 	clientDeprecateEOF
+	clientOptionalResultsetMetadata
+	clientZstdCompression
 )
 
 // https://mariadb.com/kb/en/connection/#capabilities
@@ -196,10 +199,4 @@ const (
 	statusPsOutParams
 	statusInTransReadonly
 	statusSessionStateChanged
-)
-
-const (
-	cachingSha2PasswordRequestPublicKey          = 2
-	cachingSha2PasswordFastAuthSuccess           = 3
-	cachingSha2PasswordPerformFullAuthentication = 4
 )

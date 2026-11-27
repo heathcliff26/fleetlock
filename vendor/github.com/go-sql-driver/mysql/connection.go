@@ -30,7 +30,6 @@ type mysqlConn struct {
 	result           mysqlResult // managed by clearResult() and handleOkPacket().
 	compIO           *compIO
 	cfg              *Config
-	connector        *connector
 	maxAllowedPacket int
 	maxWriteSize     int
 	capabilities     capabilityFlag
@@ -103,13 +102,21 @@ func (mc *mysqlConn) syncSequence() {
 }
 
 // Handles parameters set in DSN after the connection is established
-func (mc *mysqlConn) handleParams() (err error) {
+func (mc *mysqlConn) handleParams() error {
+	cmdSet := mc.cfg.setParamsCommand()
+	if cmdSet == "" {
+		return nil
+	}
+	return mc.exec(cmdSet)
+}
+
+func (cfg *Config) setParamsCommand() string {
 	var cmdSet strings.Builder
 
-	for param, val := range mc.cfg.Params {
+	writeParam := func(param, val string) {
 		if cmdSet.Len() == 0 {
 			// Heuristic: 29 chars for each other key=value to reduce reallocations
-			cmdSet.Grow(4 + len(param) + 3 + len(val) + 30*(len(mc.cfg.Params)-1))
+			cmdSet.Grow(4 + len(param) + 3 + len(val) + 30*(len(cfg.Params)-1))
 			cmdSet.WriteString("SET ")
 		} else {
 			cmdSet.WriteString(", ")
@@ -119,11 +126,11 @@ func (mc *mysqlConn) handleParams() (err error) {
 		cmdSet.WriteString(val)
 	}
 
-	if cmdSet.Len() > 0 {
-		err = mc.exec(cmdSet.String())
+	for _, param := range cfg.orderedParams() {
+		writeParam(param, cfg.Params[param])
 	}
 
-	return
+	return cmdSet.String()
 }
 
 // markBadConn replaces errBadConnNoWrite with driver.ErrBadConn.
@@ -293,6 +300,10 @@ func (mc *mysqlConn) interpolateParams(query string, args []driver.Value) (strin
 		case STAR_BYTE:
 			if state == stateNormal && lastChar == SLASH_BYTE {
 				state = stateSlashStarComment
+				// Clear lastChar so the '*' that opened the comment isn't
+				// reused to close it with a following '/'.
+				lastChar = 0
+				continue
 			}
 		case SLASH_BYTE:
 			if state == stateSlashStarComment && lastChar == STAR_BYTE {
@@ -308,13 +319,11 @@ func (mc *mysqlConn) interpolateParams(query string, args []driver.Value) (strin
 			}
 		case MINUS_BYTE:
 			if state == stateNormal && lastChar == MINUS_BYTE {
-				// -- only starts a comment if followed by whitespace or control char
-				if i+1 < lenQuery {
-					nextChar := query[i+1]
-					if nextChar == ' ' || nextChar == '\t' || nextChar == '\n' || nextChar == '\r' {
-						state = stateEOLComment
-					}
-				} else {
+				// -- starts a comment after ASCII whitespace or a control char.
+				// Non-ASCII classification is charset-dependent. Recognize raw
+				// 0xa0 for latin1 compatibility; other non-ASCII bytes are
+				// unsupported (see README).
+				if i+1 >= lenQuery || query[i+1] <= ' ' || query[i+1] == 0x7f || query[i+1] == 0xa0 {
 					state = stateEOLComment
 				}
 			}
@@ -800,6 +809,9 @@ func (mc *mysqlConn) ResetSession(ctx context.Context) error {
 			err = connCheck(conn)
 		}
 		if err != nil {
+			if err == errUnexpectedRead {
+				err = mc.idleError()
+			}
 			mc.log("closing bad idle connection: ", err)
 			return driver.ErrBadConn
 		}

@@ -9,6 +9,7 @@
 package mysql
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"io"
 	"math"
@@ -22,9 +23,10 @@ type resultSet struct {
 }
 
 type mysqlRows struct {
-	mc     *mysqlConn
-	rs     resultSet
-	finish func()
+	mc      *mysqlConn
+	rs      resultSet
+	finish  func()
+	rawCols [][]byte // buffered per-column raw bytes for RowsColumnScanner (Go 1.27+)
 }
 
 type binaryRows struct {
@@ -59,7 +61,20 @@ func (rows *mysqlRows) Columns() []string {
 	return columns
 }
 
+func (rows *mysqlRows) tinyInt1IsBool(i int) bool {
+	if rows.mc == nil || !rows.mc.cfg.tinyInt1IsBool {
+		return false
+	}
+	column := rows.rs.columns[i]
+	return column.fieldType == fieldTypeTiny &&
+		column.length == 1 &&
+		column.flags&(flagUnsigned|flagZeroFill) == 0
+}
+
 func (rows *mysqlRows) ColumnTypeDatabaseTypeName(i int) string {
+	if rows.tinyInt1IsBool(i) {
+		return "BOOLEAN"
+	}
 	return rows.rs.columns[i].typeDatabaseName()
 }
 
@@ -77,10 +92,14 @@ func (rows *mysqlRows) ColumnTypePrecisionScale(i int) (int64, int64, bool) {
 
 	switch column.fieldType {
 	case fieldTypeDecimal, fieldTypeNewDecimal:
-		if decimals > 0 {
-			return int64(column.length) - 2, decimals, true
+		precision := int64(column.length)
+		if column.flags&flagUnsigned == 0 {
+			precision-- // signed decimals include space for the sign
 		}
-		return int64(column.length) - 1, decimals, true
+		if decimals > 0 {
+			precision-- // decimals with a scale include a decimal point
+		}
+		return precision, decimals, true
 	case fieldTypeTimestamp, fieldTypeDateTime, fieldTypeTime:
 		return decimals, decimals, true
 	case fieldTypeFloat, fieldTypeDouble:
@@ -94,10 +113,31 @@ func (rows *mysqlRows) ColumnTypePrecisionScale(i int) (int64, int64, bool) {
 }
 
 func (rows *mysqlRows) ColumnTypeScanType(i int) reflect.Type {
+	if rows.tinyInt1IsBool(i) {
+		if rows.rs.columns[i].flags&flagNotNULL != 0 {
+			return reflect.TypeFor[bool]()
+		}
+		return reflect.TypeFor[sql.NullBool]()
+	}
 	return rows.rs.columns[i].scanType()
 }
 
+func (rows *mysqlRows) convertTinyInt1ToBool(dest []driver.Value) {
+	if rows.mc == nil || !rows.mc.cfg.tinyInt1IsBool {
+		return
+	}
+	for i, v := range dest {
+		if !rows.tinyInt1IsBool(i) || v == nil {
+			continue
+		}
+		if n, ok := v.(int64); ok {
+			dest[i] = n != 0
+		}
+	}
+}
+
 func (rows *mysqlRows) Close() (err error) {
+	rows.rawCols = nil
 	if f := rows.finish; f != nil {
 		f()
 		rows.finish = nil
@@ -134,6 +174,7 @@ func (rows *mysqlRows) HasNextResultSet() (b bool) {
 }
 
 func (rows *mysqlRows) nextResultSet() (int, error) {
+	rows.rawCols = rows.rawCols[:0]
 	if rows.mc == nil {
 		return 0, io.EOF
 	}
@@ -191,15 +232,11 @@ func (rows *binaryRows) NextResultSet() error {
 }
 
 func (rows *binaryRows) Next(dest []driver.Value) error {
-	if mc := rows.mc; mc != nil {
-		if err := mc.error(); err != nil {
-			return err
-		}
-
-		// Fetch next row from stream
-		return rows.readRow(dest)
+	if err := rows.readRow(dest); err != nil {
+		return err
 	}
-	return io.EOF
+	rows.convertTinyInt1ToBool(dest)
+	return nil
 }
 
 func (rows *textRows) NextResultSet() (err error) {
@@ -213,13 +250,9 @@ func (rows *textRows) NextResultSet() (err error) {
 }
 
 func (rows *textRows) Next(dest []driver.Value) error {
-	if mc := rows.mc; mc != nil {
-		if err := mc.error(); err != nil {
-			return err
-		}
-
-		// Fetch next row from stream
-		return rows.readRow(dest)
+	if err := rows.readRow(dest); err != nil {
+		return err
 	}
-	return io.EOF
+	rows.convertTinyInt1ToBool(dest)
+	return nil
 }
