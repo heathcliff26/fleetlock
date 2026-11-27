@@ -1775,17 +1775,17 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) {
 </span>        }
         <span class="cov9" title="446">ok, err = checkAvailableSlots()
         if err != nil || !ok </span>{
-                <span class="cov4" title="11">return false, err
+                <span class="cov4" title="12">return false, err
 </span>        }
 
         // Get Write Lock
-        <span class="cov9" title="435">lGroup.RWLock.Lock()
+        <span class="cov9" title="434">lGroup.RWLock.Lock()
         defer lGroup.RWLock.Unlock()
 </span>
         // Re-check, since another write could have happened between checking the first time and now
-        <span class="cov9" title="435">ok, err = lm.checkSlots(group, lGroup.Config)
+        <span class="cov9" title="434">ok, err = lm.checkSlots(group, lGroup.Config)
         if err != nil || !ok </span>{
-                <span class="cov6" title="50">return false, err
+                <span class="cov6" title="49">return false, err
 </span>        }
 
         <span class="cov8" title="385">err = lm.storage.Reserve(group, id)
@@ -1793,12 +1793,12 @@ func (lm *LockManager) Reserve(group, id string) (bool, error) {
 }
 
 func (lm *LockManager) checkSlots(group string, cfg GroupConfig) (bool, error) {
-        <span class="cov10" title="881">usedSlots, err := lm.storage.GetLocks(group)
+        <span class="cov10" title="880">usedSlots, err := lm.storage.GetLocks(group)
         if err != nil </span>{
                 <span class="cov0" title="0">return false, err
 </span>        }
 
-        <span class="cov10" title="881">return usedSlots &lt; cfg.Slots, nil</span>
+        <span class="cov10" title="880">return usedSlots &lt; cfg.Slots, nil</span>
 }
 
 // Release a slot for the given group and id
@@ -2098,7 +2098,7 @@ func (k *KubernetesBackend) Release(group string, id string) error {
 </span>        }
 
         <span class="cov4" title="23">for _, lease := range leases </span>{
-                <span class="cov5" title="34">if *lease.Spec.HolderIdentity == id </span>{
+                <span class="cov5" title="38">if *lease.Spec.HolderIdentity == id </span>{
                         <span class="cov4" title="21">return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
 </span>                }
         }
@@ -2119,7 +2119,7 @@ func (k *KubernetesBackend) HasLock(group string, id string) (bool, error) {
 </span>        }
 
         <span class="cov5" title="54">for _, lease := range leases </span>{
-                <span class="cov6" title="101">if *lease.Spec.HolderIdentity == id </span>{
+                <span class="cov6" title="110">if *lease.Spec.HolderIdentity == id </span>{
                         <span class="cov3" title="10">return true, nil
 </span>                }
         }
@@ -2147,8 +2147,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 </span>
         <span class="cov7" title="248">for _, lease := range leases.Items </span>{
-                <span class="cov10" title="1959">if matcher.MatchString(lease.GetName()) </span>{
-                        <span class="cov8" title="756">result = append(result, lease)
+                <span class="cov10" title="1978">if matcher.MatchString(lease.GetName()) </span>{
+                        <span class="cov8" title="775">result = append(result, lease)
 </span>                }
         }
         <span class="cov7" title="248">return result, nil</span>
@@ -2198,58 +2198,58 @@ func NewMemoryBackend(groups []string) *MemoryBackend {
 // Reserve a lock for the given group.
 // Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
 func (m *MemoryBackend) Reserve(group string, id string) error {
-        <span class="cov7" title="43">g := m.groups[group]
+        <span class="cov6" title="43">g := m.groups[group]
         if g == nil </span>{
                 // All groups should be initialized at the beginning
                 <span class="cov0" title="0">return errors.NewErrorUnknownGroup(group)
 </span>        }
 
-        <span class="cov7" title="43">if g.hasLock(id) </span>{
+        <span class="cov6" title="43">if g.hasLock(id) </span>{
                 <span class="cov0" title="0">return nil
 </span>        }
 
-        <span class="cov7" title="43">lock := lock{
+        <span class="cov6" title="43">lock := lock{
                 id:      id,
                 created: time.Now(),
 </span>        }
-        <span class="cov7" title="43">g.slots = append(g.slots, lock)
+        <span class="cov6" title="43">g.slots = append(g.slots, lock)
 </span>
-        <span class="cov7" title="43">return nil</span>
+        <span class="cov6" title="43">return nil</span>
 }
 
 // Returns the current number of locks for the given group
 func (m *MemoryBackend) GetLocks(group string) (int, error) {
-        <span class="cov8" title="132">g := m.groups[group]
+        <span class="cov8" title="131">g := m.groups[group]
         if g == nil </span>{
                 <span class="cov0" title="0">return 0, nil
 </span>        }
 
-        <span class="cov8" title="132">return len(g.slots), nil</span>
+        <span class="cov8" title="131">return len(g.slots), nil</span>
 }
 
 // Release the lock currently held by the id.
 // Does not fail when no lock is held.
 func (m *MemoryBackend) Release(group string, id string) error {
-        <span class="cov6" title="24">g := m.groups[group]
+        <span class="cov5" title="24">g := m.groups[group]
         if g == nil </span>{
                 <span class="cov0" title="0">return nil
 </span>        }
 
-        <span class="cov6" title="24">var i int
+        <span class="cov5" title="24">var i int
         var l lock
         for i, l = range g.slots </span>{
-                <span class="cov7" title="54">if l.id == id </span>{
+                <span class="cov7" title="72">if l.id == id </span>{
                         <span class="cov5" title="22">break</span>
                 }
         }
-        <span class="cov6" title="24">if len(g.slots) &gt; 1 </span>{
+        <span class="cov5" title="24">if len(g.slots) &gt; 1 </span>{
                 <span class="cov5" title="18">g.slots[i] = g.slots[len(g.slots)-1]
                 g.slots = g.slots[:len(g.slots)-1]
 </span>        } else {
                 <span class="cov3" title="6">g.slots = g.slots[:0]
 </span>        }
 
-        <span class="cov6" title="24">return nil</span>
+        <span class="cov5" title="24">return nil</span>
 }
 
 // Return all locks older than x
@@ -2274,7 +2274,7 @@ func (m *MemoryBackend) Close() error {
 
 func (g *group) hasLock(id string) bool {
         <span class="cov8" title="110">for _, lock := range g.slots </span>{
-                <span class="cov10" title="278">if id == lock.id </span>{
+                <span class="cov10" title="316">if id == lock.id </span>{
                         <span class="cov5" title="14">return true
 </span>                }
         }
@@ -2424,16 +2424,16 @@ type MySQLConfig struct {
 }
 
 func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) {
-        <span class="cov10" title="15">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+        <span class="cov10" title="7">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 </span>
-        <span class="cov10" title="15">db, err := sql.Open("mysql", connStr)
+        <span class="cov10" title="7">db, err := sql.Open("mysql", connStr)
         if err != nil </span>{
                 <span class="cov1" title="1">return nil, fmt.Errorf("failed to open mysql database: %w", err)
 </span>        }
 
-        <span class="cov9" title="14">err = db.Ping()
+        <span class="cov9" title="6">err = db.Ping()
         if err != nil </span>{
-                <span class="cov9" title="13">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
+                <span class="cov8" title="5">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
 </span>        }
 
         <span class="cov1" title="1">s := &amp;SQLBackend{
@@ -2711,20 +2711,20 @@ func (s *SQLBackend) Close() error {
 		<pre class="file" id="file30" style="display: none">package sql
 
 func createConnectionString(username, password, address, database, options string) string {
-        <span class="cov10" title="17">var connStr string
+        <span class="cov10" title="9">var connStr string
         if username != "" </span>{
-                <span class="cov9" title="15">connStr += username
+                <span class="cov8" title="7">connStr += username
                 if password != "" </span>{
-                        <span class="cov9" title="15">connStr += ":" + password
+                        <span class="cov8" title="7">connStr += ":" + password
 </span>                }
-                <span class="cov9" title="15">connStr += "@"</span>
+                <span class="cov8" title="7">connStr += "@"</span>
         }
-        <span class="cov10" title="17">connStr += address + "/" + database
+        <span class="cov10" title="9">connStr += address + "/" + database
         if options != "" </span>{
                 <span class="cov0" title="0">connStr += "?" + options
 </span>        }
 
-        <span class="cov10" title="17">return connStr</span>
+        <span class="cov10" title="9">return connStr</span>
 }
 </pre>
 		
