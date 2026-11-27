@@ -1,5 +1,23 @@
 # Changelog
 
+Version v1.12.2
+--------------------
+Released: 2026-11-27
+
+🐛 Bug Fixes:
+- *(tests)* Make valkey sentinel config directory writable
+- Skip evicting itself to support single node cluster
+- *(deps)* Update gomod
+
+🚜 Refactor:
+- Rename Dockerfile to Containerfile
+
+⚙️ Miscellaneous Tasks:
+- Synced file(s) with heathcliff26/ci
+
+💼 Other:
+- *(deps)* Bump go.opentelemetry.io/otel/sdk
+
 Version v1.12.1
 --------------------
 Released: 2026-11-12
@@ -15,6 +33,7 @@ Released: 2026-11-12
 - *(manifest)* Remove empty newlines
 - *(container)* Update image docker.io/library/alpine to v3.24.4
 - *(container)* Update image docker.io/library/golang to v1.27.4
+- *(release)* Update changelog for v1.12.1
 
 Version v1.12.0
 --------------------

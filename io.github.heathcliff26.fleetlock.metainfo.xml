@@ -19,6 +19,20 @@
     <category>Network</category>
   </categories>
   <releases>
+    <release type="stable" version="v1.12.2" date="2026-11-27T00:00:00Z">
+      <description>
+        <p>🐛 Bug Fixes:</p>
+        <p>*(tests)* Make valkey sentinel config directory writable</p>
+        <p>Skip evicting itself to support single node cluster</p>
+        <p>*(deps)* Update gomod</p>
+        <p>🚜 Refactor:</p>
+        <p>Rename Dockerfile to Containerfile</p>
+        <p>⚙️ Miscellaneous Tasks:</p>
+        <p>Synced file(s) with heathcliff26/ci</p>
+        <p>💼 Other:</p>
+        <p>*(deps)* Bump go.opentelemetry.io/otel/sdk</p>
+      </description>
+    </release>
     <release type="stable" version="v1.12.1" date="2026-11-12T00:00:00Z">
       <description>
         <p>🐛 Bug Fixes:</p>
@@ -31,6 +45,7 @@
         <p>*(manifest)* Remove empty newlines</p>
         <p>*(container)* Update image docker.io/library/alpine to v3.24.4</p>
         <p>*(container)* Update image docker.io/library/golang to v1.27.4</p>
+        <p>*(release)* Update changelog for v1.12.1</p>
       </description>
     </release>
     <release type="stable" version="v1.12.0" date="2026-10-29T00:00:00Z">
