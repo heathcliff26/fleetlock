@@ -79,7 +79,7 @@
 				
 				<option value="file11">github.com/heathcliff26/fleetlock/pkg/fleetlock/root.go (60.6%)</option>
 				
-				<option value="file12">github.com/heathcliff26/fleetlock/pkg/k8s/client.go (81.4%)</option>
+				<option value="file12">github.com/heathcliff26/fleetlock/pkg/k8s/client.go (85.6%)</option>
 				
 				<option value="file13">github.com/heathcliff26/fleetlock/pkg/k8s/config.go (100.0%)</option>
 				
@@ -1053,7 +1053,6 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
 </span>        }
 
         <span class="cov5" title="4">var returnError error
-        evictSelf := false
         selfName, selfNamespace := os.Getenv("POD_NAME"), os.Getenv("POD_NAMESPACE")
         for _, pod := range pods.Items </span>{
                 // Skip mirror pods
@@ -1066,9 +1065,10 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
                         <span class="cov0" title="0">continue</span>
                 }
 
+                // Skip itself, in case this is a single node cluster.
+                // Otherwise the client would be stuck, as no server is available.
                 <span class="cov4" title="3">if pod.GetName() == selfName &amp;&amp; pod.GetNamespace() == selfNamespace </span>{
-                        <span class="cov0" title="0">slog.Debug("Delaying evicting myself until all other pods are evicted", slog.String("node", node))
-                        evictSelf = true
+                        <span class="cov0" title="0">slog.Debug("Skipping myself, as i need to communicate with the client", slog.String("node", node))
                         continue</span>
                 }
 
@@ -1094,14 +1094,6 @@ func (c *Client) drainNode(ctx context.Context, node string) error {
                 <span class="cov4" title="3">if done </span>{
                         <span class="cov1" title="1">break</span>
                 }
-        }
-
-        <span class="cov5" title="4">if evictSelf </span>{
-                <span class="cov0" title="0">err = c.evictPod(ctx, selfName, selfNamespace, utils.Pointer(int64(10)))
-                if err != nil </span>{
-                        <span class="cov0" title="0">slog.Info("Failed to evict myself", "err", err, slog.String("node", node), slog.String("pod", selfName), slog.String("namespace", selfNamespace))
-                        returnError = NewErrorFailedToEvictAllPods()
-</span>                }
         }
 
         <span class="cov5" title="4">return returnError</span>
@@ -1467,7 +1459,7 @@ func drainLeaseName(id string) string {
 </span>}
 
 func nodeUnschedulablePatch(desired bool) []byte {
-        <span class="cov6" title="7">return []byte(fmt.Sprintf("{\"spec\":{\"unschedulable\":%t}}", desired))
+        <span class="cov6" title="7">return fmt.Appendf([]byte{}, "{\"spec\":{\"unschedulable\":%t}}", desired)
 </span>}
 </pre>
 		
@@ -2106,7 +2098,7 @@ func (k *KubernetesBackend) Release(group string, id string) error {
 </span>        }
 
         <span class="cov4" title="23">for _, lease := range leases </span>{
-                <span class="cov5" title="36">if *lease.Spec.HolderIdentity == id </span>{
+                <span class="cov5" title="55">if *lease.Spec.HolderIdentity == id </span>{
                         <span class="cov4" title="21">return k.client.Leases(k.namespace).Delete(context.Background(), lease.GetName(), metav1.DeleteOptions{})
 </span>                }
         }
@@ -2155,8 +2147,8 @@ func (k *KubernetesBackend) getLeasesForGroup(group string) ([]coordv1.Lease, er
         <span class="cov7" title="248">result := make([]coordv1.Lease, 0)
 </span>
         <span class="cov7" title="248">for _, lease := range leases.Items </span>{
-                <span class="cov10" title="1963">if matcher.MatchString(lease.GetName()) </span>{
-                        <span class="cov8" title="760">result = append(result, lease)
+                <span class="cov10" title="1960">if matcher.MatchString(lease.GetName()) </span>{
+                        <span class="cov8" title="757">result = append(result, lease)
 </span>                }
         }
         <span class="cov7" title="248">return result, nil</span>
@@ -2206,23 +2198,23 @@ func NewMemoryBackend(groups []string) *MemoryBackend {
 // Reserve a lock for the given group.
 // Returns true if the lock is successfully reserved, even if the lock is already held by the specific id
 func (m *MemoryBackend) Reserve(group string, id string) error {
-        <span class="cov7" title="43">g := m.groups[group]
+        <span class="cov6" title="43">g := m.groups[group]
         if g == nil </span>{
                 // All groups should be initialized at the beginning
                 <span class="cov0" title="0">return errors.NewErrorUnknownGroup(group)
 </span>        }
 
-        <span class="cov7" title="43">if g.hasLock(id) </span>{
+        <span class="cov6" title="43">if g.hasLock(id) </span>{
                 <span class="cov0" title="0">return nil
 </span>        }
 
-        <span class="cov7" title="43">lock := lock{
+        <span class="cov6" title="43">lock := lock{
                 id:      id,
                 created: time.Now(),
 </span>        }
-        <span class="cov7" title="43">g.slots = append(g.slots, lock)
+        <span class="cov6" title="43">g.slots = append(g.slots, lock)
 </span>
-        <span class="cov7" title="43">return nil</span>
+        <span class="cov6" title="43">return nil</span>
 }
 
 // Returns the current number of locks for the given group
@@ -2246,7 +2238,7 @@ func (m *MemoryBackend) Release(group string, id string) error {
         <span class="cov6" title="24">var i int
         var l lock
         for i, l = range g.slots </span>{
-                <span class="cov7" title="56">if l.id == id </span>{
+                <span class="cov7" title="62">if l.id == id </span>{
                         <span class="cov5" title="22">break</span>
                 }
         }
@@ -2282,7 +2274,7 @@ func (m *MemoryBackend) Close() error {
 
 func (g *group) hasLock(id string) bool {
         <span class="cov8" title="110">for _, lock := range g.slots </span>{
-                <span class="cov10" title="281">if id == lock.id </span>{
+                <span class="cov10" title="305">if id == lock.id </span>{
                         <span class="cov5" title="14">return true
 </span>                }
         }
@@ -2432,16 +2424,16 @@ type MySQLConfig struct {
 }
 
 func NewMySQLBackend(cfg MySQLConfig) (*SQLBackend, error) {
-        <span class="cov10" title="10">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
+        <span class="cov10" title="13">connStr := createConnectionString(cfg.Username, cfg.Password, cfg.Address, cfg.Database, cfg.Options)
 </span>
-        <span class="cov10" title="10">db, err := sql.Open("mysql", connStr)
+        <span class="cov10" title="13">db, err := sql.Open("mysql", connStr)
         if err != nil </span>{
                 <span class="cov1" title="1">return nil, fmt.Errorf("failed to open mysql database: %w", err)
 </span>        }
 
-        <span class="cov9" title="9">err = db.Ping()
+        <span class="cov9" title="12">err = db.Ping()
         if err != nil </span>{
-                <span class="cov9" title="8">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
+                <span class="cov9" title="11">return nil, fmt.Errorf("failed to ping mysql database: %w", err)
 </span>        }
 
         <span class="cov1" title="1">s := &amp;SQLBackend{
@@ -2719,20 +2711,20 @@ func (s *SQLBackend) Close() error {
 		<pre class="file" id="file30" style="display: none">package sql
 
 func createConnectionString(username, password, address, database, options string) string {
-        <span class="cov10" title="18">var connStr string
+        <span class="cov10" title="21">var connStr string
         if username != "" </span>{
-                <span class="cov9" title="16">connStr += username
+                <span class="cov9" title="19">connStr += username
                 if password != "" </span>{
-                        <span class="cov9" title="16">connStr += ":" + password
+                        <span class="cov9" title="19">connStr += ":" + password
 </span>                }
-                <span class="cov9" title="16">connStr += "@"</span>
+                <span class="cov9" title="19">connStr += "@"</span>
         }
-        <span class="cov10" title="18">connStr += address + "/" + database
+        <span class="cov10" title="21">connStr += address + "/" + database
         if options != "" </span>{
                 <span class="cov0" title="0">connStr += "?" + options
 </span>        }
 
-        <span class="cov10" title="18">return connStr</span>
+        <span class="cov10" title="21">return connStr</span>
 }
 </pre>
 		
