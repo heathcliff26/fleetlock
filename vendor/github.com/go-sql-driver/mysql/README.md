@@ -18,6 +18,8 @@ A MySQL-Driver for Go's [database/sql](https://golang.org/pkg/database/sql/) pac
       * [Address](#address)
       * [Parameters](#parameters)
       * [Examples](#examples)
+    * [Verifying Server](#verifying-server)
+    * [OpenID Connect authentication](#openid-connect-authentication)
     * [Connection pool and timeouts](#connection-pool-and-timeouts)
     * [context.Context Support](#contextcontext-support)
     * [ColumnType Support](#columntype-support)
@@ -41,12 +43,12 @@ A MySQL-Driver for Go's [database/sql](https://golang.org/pkg/database/sql/) pac
   * Secure `LOAD DATA LOCAL INFILE` support with file allowlisting and `io.Reader` support
   * Optional `time.Time` parsing
   * Optional placeholder interpolation
-  * Supports zlib compression.
+  * Supports zlib compression and optional zstd compression.
 
 ## Requirements
 
-* Go 1.24 or higher. We aim to support the 3 latest versions of Go.
-* MySQL (5.7+) and MariaDB (10.5+) are supported by maintainers.
+* Go 1.25 or higher. We aim to support the 3 latest versions of Go.
+* MySQL (8.0+) and MariaDB (10.11+) are supported by maintainers.
 * [TiDB](https://github.com/pingcap/tidb) is supported by PingCAP.
   * Do not ask questions about TiDB in our issue tracker or forum.
   * [Document](https://docs.pingcap.com/tidb/v6.1/dev-guide-sample-application-golang)
@@ -279,7 +281,20 @@ Valid Values:   true, false
 Default:        false
 ```
 
-Toggles zlib compression. false by default.
+Toggles compression. false by default. Connections use zlib unless the optional
+`github.com/go-sql-driver/mysql/zstd` package is imported:
+
+```go
+import _ "github.com/go-sql-driver/mysql/zstd"
+```
+
+This import also registers the MySQL driver. With `compress=true` (or
+`EnableCompression(true)`), connections automatically prefer zstd when the server
+supports it and fall back to zlib otherwise.
+
+Applications that do not import `mysql/zstd` do not compile or link
+`github.com/klauspost/compress`. The optional package's dependency is listed in the
+module's `go.mod`.
 
 ##### `interpolateParams`
 
@@ -291,7 +306,18 @@ Default:        false
 
 If `interpolateParams` is true, placeholders (`?`) in calls to `db.Query()` and `db.Exec()` are interpolated into a single query string with given parameters. This reduces the number of roundtrips, since the driver has to prepare a statement, execute it with given parameters and close the statement again with `interpolateParams=false`.
 
-*This can not be used together with the multibyte encodings BIG5, CP932, GB2312, GBK or SJIS. These are rejected as they may [introduce a SQL injection vulnerability](http://stackoverflow.com/a/12118602/3430118)!*
+*This can not be used together with the multibyte encodings BIG5, CP932, GB18030, GBK or SJIS. A `charset` or `collation` using one of these is rejected, as they may [introduce a SQL injection vulnerability](http://stackoverflow.com/a/12118602/3430118)!*
+
+> [!NOTE]
+> `interpolateParams` is designed to safely embed externally supplied parameter values into queries written by the application.
+> It does not fully replicate the MySQL server's parser: its handling of comments, quoting and escaping (e.g. executable comments `/*! ... */` or the `ANSI_QUOTES` SQL mode) may differ from the server's.
+> Queries using `interpolateParams` must not rely on character-set-specific recognition of `--` comments. When the byte immediately following `--` is non-ASCII, the driver's interpretation is not guaranteed to match the server's; use an ASCII space (`-- `) or server-side `Prepare()` instead. The driver recognizes a raw `0xA0` byte as a comment separator for latin1 compatibility. This is not U+00A0 encoded as UTF-8, whose bytes are `0xC2 0xA0`.
+> If you need to run arbitrary SQL with placeholders, use `Prepare()` (e.g. `db.Prepare()` or `conn.PrepareContext()`) so that the placeholders are processed by the server.
+
+> [!WARNING]
+> Unsafe-charset rejection is a fail-safe, not a complete safety mechanism. The driver checks the configured `charset` and `collation` but does not automatically select or enforce a safe effective charset on the server. Applications that enable `interpolateParams` are responsible for ensuring that `character_set_client` remains safe and for following the parser restrictions documented above.
+> Changes made through other paths, such as a `character_set_client=sjis` system variable in the DSN or `SET NAMES sjis` at runtime, are not detected and can make `interpolateParams` unsafe.
+> If the effective charset cannot be guaranteed, disable `interpolateParams` and let the server process the placeholders.
 
 ##### `loc`
 
@@ -318,6 +344,33 @@ Default:        0
 
 > [!NOTE]
 > `time.Time` arguments are sent with up to nanosecond precision, so a value from `time.Now()` usually has more fractional-second digits than a `DATETIME(N)` or `TIMESTAMP(N)` column stores. On MariaDB, comparing such a value against an indexed column can prevent an index range scan, turning it into a full index scan. Truncating to the column's precision (`1us` for `DATETIME(6)`) avoids this. Only arguments sent to the server are truncated; values read from the server are not affected.
+
+##### `tinyInt1IsBool`
+
+```
+Type:           bool
+Valid Values:   true, false
+Default:        false
+```
+
+When `tinyInt1IsBool=true`, signed `TINYINT(1)` columns are treated as boolean values. Zero is returned as `false`, and non-zero values are returned as `true`. Their database type name is reported as `BOOLEAN`, and their scan type is `bool` for non-nullable columns or `sql.NullBool` for nullable columns.
+
+This conversion affects `Scan` destinations as well as column metadata. For non-NULL values:
+
+- Scanning into `*any` returns a `bool`.
+- Scanning into integer destinations such as `*int`, `*int8`, `*int64`, or `*sql.NullInt64` fails with a conversion error, even when the stored value is 0 or 1.
+- Scanning into `*string` returns `"false"` or `"true"` instead of a numeric string.
+- Non-zero values such as 1 and 5 both become `true`; their original numeric values are not preserved in the result.
+
+These behaviors apply to both text-protocol queries and prepared statements. SQL `NULL` values remain `NULL`. Unsigned and `ZEROFILL` columns are not converted.
+
+To enable boolean conversion explicitly:
+
+```text
+user:password@tcp(localhost:3306)/dbname?tinyInt1IsBool=true
+```
+
+When configuring connections programmatically, use `cfg.Apply(mysql.TinyInt1IsBool(true))`.
 
 ##### `maxAllowedPacket`
 ```
@@ -470,6 +523,8 @@ Rules:
 * The values for string variables must be quoted with `'`.
 * The values must also be [url.QueryEscape](http://golang.org/pkg/net/url/#QueryEscape)'ed!
  (which implies values of string variables must be wrapped with `%27`).
+* System variables are set and retained by `FormatDSN` in the order they appear in the DSN.
+  Use `Config.Apply(AddParam(name, value))` to preserve order when adding them programmatically.
 
 Examples:
   * `autocommit=1`: `SET autocommit=1`
@@ -526,6 +581,94 @@ user:password@/
 ```
 
 
+### Verifying Server
+
+With system trust roots, use `tls=true` to verify the certificate chain and the
+server name in the connection address. When dialing an IP for a DNS-named server,
+set the expected name explicitly:
+
+```go
+cfg.TLS = &tls.Config{ServerName: "database.example"}
+```
+
+#### Private CA (VERIFY_CA)
+
+For an exclusive private CA or the intended server's self-signed certificate,
+verify the certificate chain without checking the server name:
+
+```go
+roots := x509.NewCertPool()
+if !roots.AppendCertsFromPEM(caPEM) { // Obtain the trusted certificate through a trusted channel.
+    return errors.New("no CA certificates found")
+}
+cfg.TLS = &tls.Config{
+    InsecureSkipVerify: true, // Replace default verification with VERIFY_CA below.
+    VerifyConnection: func(state tls.ConnectionState) error {
+        if len(state.PeerCertificates) == 0 {
+            return errors.New("server did not provide a certificate")
+        }
+        intermediates := x509.NewCertPool()
+        for _, cert := range state.PeerCertificates[1:] {
+            intermediates.AddCert(cert)
+        }
+        _, err := state.PeerCertificates[0].Verify(x509.VerifyOptions{
+            Roots:         roots,
+            Intermediates: intermediates,
+            KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+            // Omit DNSName for VERIFY_CA.
+        })
+        return err
+    },
+}
+```
+
+This safely authenticates the intended server without hostname verification when
+the trusted signing key is kept private and has not issued certificates to other
+users or unrelated servers. A CA shared with unrelated services does not provide
+that guarantee. `InsecureSkipVerify` plus `RootCAs` alone does **not** verify
+certificates; keep the callback and propagate its errors.
+
+Pass `cfg` to `mysql.NewConnector` and `sql.OpenDB`. For DSNs, register the TLS
+configuration with `mysql.RegisterTLSConfig` and use its name in `tls`.
+Avoid `tls=skip-verify`, `tls=preferred`, and `AllowFallbackToPlaintext` when
+server authentication is required. See Go's [`tls.Config`](https://pkg.go.dev/crypto/tls#Config).
+
+### OpenID Connect authentication
+
+Use `cfg.Apply(mysql.OIDCToken(token))` with `mysql.NewConnector` and `sql.OpenDB`.
+The token is not included in `FormatDSN`; there is no OIDC DSN parameter.
+Configure TLS to authenticate the intended server. If using `InsecureSkipVerify`,
+provide proper replacement verification; the driver does not validate your policy.
+Plaintext fallback and TLS provided solely by a custom dialer are not supported.
+
+To obtain a fresh token for each new connection:
+
+```go
+cfg := mysql.NewConfig()
+cfg.User = "oidc_user"
+cfg.Addr = "database.example:3306"
+cfg.TLS = &tls.Config{ServerName: "database.example"}
+if err := cfg.Apply(mysql.BeforeConnect(func(ctx context.Context, cfg *mysql.Config) error {
+    token, err := tokenSource(ctx) // Application-provided, safe for concurrent calls.
+    if err != nil {
+        return err
+    }
+    return cfg.Apply(mysql.OIDCToken(token))
+})); err != nil {
+    return err
+}
+connector, err := mysql.NewConnector(cfg)
+if err != nil {
+    return err
+}
+db := sql.OpenDB(connector)
+defer db.Close()
+```
+
+An empty token makes `Apply` return `ErrOpenIDConnectToken` without changing the
+configuration. Return this error from `BeforeConnect` to abort the connection.
+Token refresh affects new connections, not existing pooled sessions.
+
 ### Connection pool and timeouts
 The connection pool is managed by Go's database/sql package. For details on how to configure the size of the pool and how long connections stay in the pool see `*DB.SetMaxOpenConns`, `*DB.SetMaxIdleConns`, and `*DB.SetConnMaxLifetime` in the [database/sql documentation](https://golang.org/pkg/database/sql/). The read, write, and dial timeouts for each individual connection are configured with the DSN parameters [`readTimeout`](#readtimeout), [`writeTimeout`](#writetimeout), and [`timeout`](#timeout), respectively.
 
@@ -539,6 +682,24 @@ See [context support in the database/sql package](https://golang.org/doc/go1.8#d
 > [!IMPORTANT]
 > The `QueryContext`, `ExecContext`, etc. variants provided by `database/sql` will cause the connection to be closed if the provided context is cancelled or timed out before the result is received by the driver.
 
+
+### Authentication Plugin System
+
+The driver implements a pluggable authentication system that supports various authentication methods used by MySQL and MariaDB servers. The built-in authentication plugins include:
+
+* `mysql_native_password` - Legacy MySQL authentication and the driver's initial fallback
+* `caching_sha2_password` - Default authentication method in MySQL 8.0+
+* `mysql_clear_password` - Cleartext authentication (requires `allowCleartextPasswords=true`)
+* `mysql_old_password` - Old MySQL authentication (requires `allowOldPasswords=true`)
+* `sha256_password` - SHA256 authentication
+* `client_ed25519` - MariaDB Ed25519 authentication
+* `parsec` - MariaDB PARSEC authentication (MariaDB 11.6+)
+
+Custom plugins implement the two methods of `AuthPlugin`, `InitAuth` and `ContinuationAuth`, and are registered with `RegisterAuthPlugin(name, factory)`. Registration does not call the factory; the driver calls it to create an independent instance for each authentication exchange. Factories may run concurrently for different connections. All built-in plugins use the same registry: registering a built-in name replaces its factory for subsequent authentication exchanges, including the initial handshake and authentication switches. Authentication-method permissions such as `allowCleartextPasswords` still apply to that name. Built-in plugin implementations are internal to the driver.
+
+The driver passes the connection's `context.Context` for cancellation and an `AuthContext` snapshot containing the selected credentials, established transport information, and configured RSA public key. Plugins do not receive or modify the connection's `Config`; the driver checks authentication-method permissions before starting a plugin. Custom plugins that require a particular transport must check it in `InitAuth` before returning credentials.
+
+`AuthContext.TLS()` reports a completed MySQL TLS handshake, not merely a TLS configuration or an external tunnel. A continuation returning `nil, nil` waits for another server packet without sending; a non-nil empty slice sends an empty packet. Authentication succeeds only when the driver receives the server's OK packet.
 
 ### `LOAD DATA LOCAL INFILE` support
 For this feature you need direct access to the package. Therefore you must change the import path (no `_`):

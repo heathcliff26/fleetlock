@@ -227,7 +227,7 @@ func bToi(b byte) (int, error) {
 	return int(b - '0'), nil
 }
 
-func parseBinaryDateTime(num uint64, data []byte, loc *time.Location) (driver.Value, error) {
+func parseBinaryDateTime(num uint64, data []byte, loc *time.Location) (time.Time, error) {
 	switch num {
 	case 0:
 		return time.Time{}, nil
@@ -262,7 +262,7 @@ func parseBinaryDateTime(num uint64, data []byte, loc *time.Location) (driver.Va
 			loc,
 		), nil
 	}
-	return nil, fmt.Errorf("invalid DATETIME packet length %d", num)
+	return time.Time{}, fmt.Errorf("invalid DATETIME packet length %d", num)
 }
 
 func appendDateTime(buf []byte, t time.Time, timeTruncate time.Duration) ([]byte, error) {
@@ -330,7 +330,7 @@ func appendDateTime(buf []byte, t time.Time, timeTruncate time.Duration) ([]byte
 // zeroDateTime is used in formatBinaryDateTime to avoid an allocation
 // if the DATE or DATETIME has the zero value.
 // It must never be changed.
-// The current behavior depends on database/sql copying the result.
+// Callers must copy it before returning an owned byte slice.
 var zeroDateTime = []byte("0000-00-00 00:00:00.000000")
 
 const digits01 = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
@@ -385,7 +385,7 @@ func appendMicrosecs(dst, src []byte, decimals int) []byte {
 	}
 }
 
-func formatBinaryDateTime(src []byte, length uint8) (driver.Value, error) {
+func formatBinaryDateTime(src []byte, length uint8) ([]byte, error) {
 	// length expects the deterministic length of the zero value,
 	// negative time and 100+ hours are automatically added if needed
 	if len(src) == 0 {
@@ -444,7 +444,7 @@ func formatBinaryDateTime(src []byte, length uint8) (driver.Value, error) {
 	return appendMicrosecs(dst, src[2:], int(length)-20), nil
 }
 
-func formatBinaryTime(src []byte, length uint8) (driver.Value, error) {
+func formatBinaryTime(src []byte, length uint8) ([]byte, error) {
 	// length expects the deterministic length of the zero value,
 	// negative time and 100+ hours are automatically added if needed
 	if len(src) == 0 {
@@ -529,7 +529,14 @@ func uint64ToString(n uint64) []byte {
 // the input slice
 func readLengthEncodedString(b []byte) ([]byte, bool, int, error) {
 	// Get length
+	if len(b) == 0 {
+		return nil, false, 0, io.EOF
+	}
 	num, isNull, n := readLengthEncodedInteger(b)
+	if n == 0 {
+		// truncated length prefix
+		return nil, false, 0, io.EOF
+	}
 	if num < 1 {
 		return b[n:n], isNull, n, nil
 	}
@@ -547,7 +554,14 @@ func readLengthEncodedString(b []byte) ([]byte, bool, int, error) {
 // longer than the input slice
 func skipLengthEncodedString(b []byte) (int, error) {
 	// Get length
+	if len(b) == 0 {
+		return 0, io.EOF
+	}
 	num, _, n := readLengthEncodedInteger(b)
+	if n == 0 {
+		// truncated length prefix
+		return 0, io.EOF
+	}
 	if num < 1 {
 		return n, nil
 	}
@@ -575,14 +589,23 @@ func readLengthEncodedInteger(b []byte) (uint64, bool, int) {
 
 	// 252: value of following 2
 	case 0xfc:
+		if len(b) < 3 {
+			return 0, false, 0
+		}
 		return uint64(binary.LittleEndian.Uint16(b[1:])), false, 3
 
 	// 253: value of following 3
 	case 0xfd:
+		if len(b) < 4 {
+			return 0, false, 0
+		}
 		return uint64(getUint24(b[1:])), false, 4
 
 	// 254: value of following 8
 	case 0xfe:
+		if len(b) < 9 {
+			return 0, false, 0
+		}
 		return uint64(binary.LittleEndian.Uint64(b[1:])), false, 9
 	}
 

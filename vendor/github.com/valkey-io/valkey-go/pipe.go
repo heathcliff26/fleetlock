@@ -21,7 +21,7 @@ import (
 )
 
 const LibName = "valkey"
-const LibVer = "1.0.79"
+const LibVer = "1.0.80"
 
 var (
 	noHello = regexp.MustCompile("unknown command .?(HELLO|hello).?")
@@ -82,7 +82,7 @@ type pipe struct {
 	r2p             *r2p
 	pingTimer       *time.Timer // timer for background ping
 	authTimer       *time.Timer // timer for refreshing dynamic auth credentials, written once in _newPipe
-	lftmTimer       *time.Timer // lifetime timer
+	lftmTimer       *time.Timer // lifetime timer, written once in _newPipe
 	info            map[string]ValkeyMessage
 	authRefreshAt   atomic.Pointer[time.Time]
 	timeout         time.Duration
@@ -372,25 +372,37 @@ func _newPipe(ctx context.Context, connFn func(context.Context) (net.Conn, error
 			}
 		}
 	}
+	// The timer callbacks reach the other timers' fields: refreshAuth can
+	// reach _exit and _background, which read lftmTimer and pingTimer, and
+	// expired calls Close, which reads authTimer and pingTimer. A due timer
+	// fires before AfterFunc even returns, so each callback first waits on mu,
+	// held until every timer is set and the background goroutines have started.
+	// Everything the callbacks spawn inherits that ordering, and all other
+	// readers see the fields through the pipe being published after _newPipe
+	// returns: they are written exactly once, here. Holding mu for the whole
+	// refresh also keeps overlapping fires from running refreshAuth concurrently.
+	var mu sync.Mutex
+	mu.Lock()
+	defer mu.Unlock()
 	if option.AuthCredentialsFn != nil && !authCredentials.RefreshAfter.IsZero() {
 		authFn := option.AuthCredentialsFn
 		p.authRefreshAt.Store(&authCredentials.RefreshAfter)
-		// A RefreshAfter already in the past makes the timer fire before
-		// AfterFunc even returns. The captured mutex makes the callback wait
-		// for the assignment below, and everything the callback spawns
-		// inherits that ordering, so every reader reached through the
-		// callback sees authTimer set. All other readers see it through the
-		// pipe being published after _newPipe returns: the field is written
-		// exactly once, here. Holding the mutex for the whole refresh also
-		// keeps overlapping fires from running refreshAuth concurrently.
-		var mu sync.Mutex
-		mu.Lock()
 		p.authTimer = time.AfterFunc(time.Until(authCredentials.RefreshAfter), func() {
 			mu.Lock()
 			p.refreshAuth(authFn, authCredentialsContext)
 			mu.Unlock()
 		})
-		mu.Unlock()
+	}
+	if option.ConnLifetime > 0 {
+		p.lftm = option.ConnLifetime
+		p.lftmTimer = time.AfterFunc(option.ConnLifetime, func() {
+			// Only wait for _newPipe to return. expired needs no exclusion,
+			// and holding mu through Close would delay auth refreshes.
+			mu.Lock()
+			//lint:ignore SA2001 the empty critical section waits for _newPipe to return
+			mu.Unlock()
+			p.expired()
+		})
 	}
 	if !nobg {
 		if p.timeout > 0 && p.pinggap > 0 {
@@ -399,10 +411,6 @@ func _newPipe(ctx context.Context, connFn func(context.Context) (net.Conn, error
 		if p.onInvalidations != nil || option.AlwaysPipelining {
 			p.background()
 		}
-	}
-	if option.ConnLifetime > 0 {
-		p.lftm = option.ConnLifetime
-		p.lftmTimer = time.AfterFunc(option.ConnLifetime, p.expired)
 	}
 	return p, nil
 }
@@ -426,7 +434,8 @@ func (p *pipe) backgroundSkipReadWrite() {
 // failSync is called by the sync paths (syncDo, syncDoMulti, DoStream and DoMultiStream) when
 // they fail to write or read. It marks the pipe as failed, closes the connection and starts the
 // background worker to clean up goroutines. The sync paths must not use p.background() for
-// this, see backgroundSkipReadWrite.
+// this, see backgroundSkipReadWrite. The escape timer in Close also calls it, for a Close
+// left waiting on a queue that no background worker drains.
 func (p *pipe) failSync(err error) {
 	p.error.CompareAndSwap(nil, &errs{error: err})
 	p.conn.Close()
@@ -444,6 +453,7 @@ func (p *pipe) startBackground(skipReadWrite bool) {
 
 func (p *pipe) _exit(err error) {
 	p.error.CompareAndSwap(nil, &errs{error: err})
+	p.stopLifetimeTimer()
 	atomic.CompareAndSwapInt32(&p.state, 1, 2) // stop accepting new requests
 	_ = p.conn.Close()                         // force both read & write goroutine to exit
 	p.clhks.Load().(func(error))(err)
@@ -779,6 +789,10 @@ func (p *pipe) backgroundPing() {
 			if err == nil && p.Error() == nil {
 				prev = p.loadRecvs()
 				p.pingTimer.Reset(p.pinggap)
+				// Close or _background can stop pingTimer between the error check and Reset.
+				if p.Error() != nil {
+					p.pingTimer.Stop()
+				}
 			}
 		}()
 		if recv != prev || atomic.LoadInt32(&p.blcksig) != 0 || (atomic.LoadInt32(&p.state) == 0 && p.loadWaits() != 0) {
@@ -808,6 +822,10 @@ func (p *pipe) scheduleAuthRefresh(refreshAfter time.Time) {
 		return
 	}
 	p.authTimer.Reset(time.Until(refreshAfter))
+	// Close or _background can stop authTimer between the error check and Reset.
+	if p.Error() != nil {
+		p.authTimer.Stop()
+	}
 }
 
 func (p *pipe) refreshAuth(authFn func(AuthCredentialsContext) (AuthCredentials, error), authContext AuthCredentialsContext) {
@@ -837,11 +855,16 @@ func (p *pipe) refreshAuth(authFn func(AuthCredentialsContext) (AuthCredentials,
 			defer cancel()
 		}
 		cmd := cmds.NewCompleted(args)
-		result := p.Do(ctx, cmd)
-		if err := result.Error(); err != nil {
-			p._exit(err)
-			return
-		}
+		// The reply is ignored. The AUTH can fail while the connection is
+		// still fine: behind a blocking command it hits ConnWriteTimeout, like
+		// the background PING, and is applied once the blocking command
+		// returns; a subscribed RESP2 connection rejects it; Valkey 8.1 to 9.x
+		// reject module auth on a subscribed RESP3 connection
+		// (valkey-io/valkey#4862). The connection then keeps its current
+		// credentials and the server drops it when they expire, which is also
+		// what happens when the new credentials are really wrong. A connection
+		// that stopped replying is closed by the background PING.
+		p.Do(ctx, cmd)
 	}
 	p.scheduleAuthRefresh(auth.RefreshAfter)
 }
@@ -1638,7 +1661,10 @@ func (p *pipe) doCacheMGet(ctx context.Context, cmd Cacheable, ttl time.Duration
 	builder := cmds.NewBuilder(cmds.InitSlot)
 	result := ValkeyResult{val: ValkeyMessage{typ: '*'}}
 	mgetcc := cmds.MGetCacheCmd(cmd)
-	if mgetcc[0] == 'J' {
+	// mgetcc is length-prefixed now, so the JSON check has to look at the command
+	// name instead of the first byte of the cache command.
+	isJSONMGet := commands[0][0] == 'J'
+	if isJSONMGet {
 		keys-- // the last one of JSON.MGET is a path, not a key
 	}
 	entries := entriesp.Get(keys, keys)
@@ -1669,7 +1695,7 @@ func (p *pipe) doCacheMGet(ctx context.Context, cmd Cacheable, ttl time.Duration
 	if !rewrite.IsZero() {
 		var rewritten Completed
 		var keys int
-		if mgetcc[0] == 'J' { // rewrite JSON.MGET path
+		if isJSONMGet { // rewrite JSON.MGET path
 			rewritten = rewrite.Args(commands[len(commands)-1]).MultiGet()
 			keys = len(rewritten.Commands()) - 2
 		} else {
@@ -1932,6 +1958,7 @@ func (p *pipe) Error() error {
 
 func (p *pipe) Close() {
 	p.error.CompareAndSwap(nil, errClosing)
+	p.stopLifetimeTimer()
 	block := atomic.AddInt32(&p.blcksig, 1)
 	waits := p.incrWaits()
 	stopping1 := atomic.CompareAndSwapInt32(&p.state, 0, 2)
@@ -1949,12 +1976,17 @@ func (p *pipe) Close() {
 			// which frees a slot and answers the PING with an error. The timer
 			// costs a goroutine only when it fires.
 			//
-			// The drain runs in the background worker. There is always one
-			// here: it is already running, or the branch above started it, or
-			// syncDo starts it when the closed connection breaks its read.
+			// The drain runs in the background worker. Usually there is one: it
+			// is already running, or the branch above started it, or syncDo
+			// starts it when the closed connection breaks its read. But the
+			// other waiter that made the branch above skip may not be a syncDo:
+			// a concurrent Close, or a Do that sees the pipe already stopping,
+			// leaves without starting one. So the timer also starts the cleanup
+			// worker, which drains the queue without reading or writing the
+			// connection and is a no-op when a worker is already running.
 			var escape *time.Timer
 			if p.conn != nil {
-				escape = time.AfterFunc(time.Second, func() { p.conn.Close() })
+				escape = time.AfterFunc(time.Second, func() { p.failSync(errClosing) })
 			}
 			ch, _ := p.queue.PutOne(context.Background(), cmds.PingCmd)
 			<-ch
@@ -1980,12 +2012,25 @@ func (p *pipe) Close() {
 	}
 }
 
-func (p *pipe) StopTimer() bool {
-	stopped := true
+func (p *pipe) stopLifetimeTimer() bool {
 	if p.lftmTimer != nil {
-		stopped = p.lftmTimer.Stop()
+		return p.lftmTimer.Stop()
 	}
-	if p.authTimer != nil {
+	return true
+}
+
+// StopTimer pauses the timers of a pipe checked out from a pool, and ResetTimer
+// resumes them when the pipe is returned. The auth refresh keeps running while
+// a pipe is checked out: AUTH is an ordinary request, also on a subscribed RESP3
+// connection, a transaction is sent in one DoMulti so AUTH cannot land inside
+// it, and the reply of the refresh AUTH is ignored, see refreshAuth. A
+// dedicated pub/sub pipe would otherwise never be refreshed and be dropped by
+// the server once its credentials expire. Only a nobg pipe, as used by the
+// stream pool, still pauses the refresh: DoStream owns its connection
+// synchronously and cannot share it with a concurrent AUTH.
+func (p *pipe) StopTimer() bool {
+	stopped := p.stopLifetimeTimer()
+	if p.authTimer != nil && p.queue == nil {
 		stopped = p.authTimer.Stop() && stopped
 	}
 	return stopped
@@ -1998,10 +2043,18 @@ func (p *pipe) ResetTimer() bool {
 	reset := true
 	if p.lftmTimer != nil {
 		reset = p.lftmTimer.Reset(p.lftm)
+		// Close can race the initial error check and stop before this Reset.
+		if p.Error() != nil {
+			p.lftmTimer.Stop()
+		}
 	}
-	if p.authTimer != nil {
+	if p.authTimer != nil && p.queue == nil {
 		if at := p.authRefreshAt.Load(); at != nil && !at.IsZero() {
 			reset = p.authTimer.Reset(time.Until(*at)) && reset
+			// Same race as above, with Close or _background stopping authTimer.
+			if p.Error() != nil {
+				p.authTimer.Stop()
+			}
 		}
 	}
 	return reset

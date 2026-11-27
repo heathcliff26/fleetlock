@@ -10,7 +10,9 @@ package mysql
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -19,8 +21,7 @@ import (
 )
 
 type connector struct {
-	cfg               *Config // immutable private copy.
-	encodedAttributes string  // Encoded connection attributes.
+	cfg *Config // immutable private copy.
 }
 
 func encodeConnectionAttributes(cfg *Config) string {
@@ -55,10 +56,8 @@ func encodeConnectionAttributes(cfg *Config) string {
 }
 
 func newConnector(cfg *Config) *connector {
-	encodedAttributes := encodeConnectionAttributes(cfg)
 	return &connector{
-		cfg:               cfg,
-		encodedAttributes: encodedAttributes,
+		cfg: cfg,
 	}
 }
 
@@ -75,6 +74,15 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 		if err != nil {
 			return nil, err
 		}
+		// beforeConnect may have changed the charset, collation, or InterpolateParams.
+		if err = cfg.checkUnsafeCharset(); err != nil {
+			return nil, err
+		}
+		cfg.encodedAttributes = encodeConnectionAttributes(cfg)
+	}
+
+	if cfg.openIDToken != "" && cfg.TLS == nil {
+		return nil, ErrOpenIDConnectTLS
 	}
 
 	// New mysqlConn
@@ -83,7 +91,6 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 		maxWriteSize:     maxPacketSize - 1,
 		closech:          make(chan struct{}),
 		cfg:              cfg,
-		connector:        c,
 	}
 	mc.parseTime = mc.cfg.ParseTime
 
@@ -91,12 +98,12 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 	dctx := ctx
 	if mc.cfg.Timeout > 0 {
 		var cancel context.CancelFunc
-		dctx, cancel = context.WithTimeout(ctx, c.cfg.Timeout)
+		dctx, cancel = context.WithTimeout(ctx, mc.cfg.Timeout)
 		defer cancel()
 	}
 
-	if c.cfg.DialFunc != nil {
-		mc.netConn, err = c.cfg.DialFunc(dctx, mc.cfg.Net, mc.cfg.Addr)
+	if mc.cfg.DialFunc != nil {
+		mc.netConn, err = mc.cfg.DialFunc(dctx, mc.cfg.Net, mc.cfg.Addr)
 	} else {
 		dialsLock.RLock()
 		dial, ok := dials[mc.cfg.Net]
@@ -116,7 +123,7 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 	// Enable TCP Keepalives on TCP connections
 	if tc, ok := mc.netConn.(*net.TCPConn); ok {
 		if err := tc.SetKeepAlive(true); err != nil {
-			c.cfg.Logger.Print(err)
+			mc.cfg.Logger.Print(err)
 		}
 	}
 
@@ -140,27 +147,71 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 	if plugin == "" {
 		plugin = defaultAuthPlugin
 	}
+	if mc.cfg.TLS != nil && serverCapabilities&clientSSL == 0 && (!mc.cfg.AllowFallbackToPlaintext || cfg.openIDToken != "") {
+		mc.cleanup()
+		return nil, ErrNoTLS
+	}
 
-	// Send Client Authentication Packet
-	authResp, err := mc.auth(authData, plugin)
-	if err != nil {
-		// try the default auth plugin, if using the requested plugin failed
-		c.cfg.Logger.Print("could not use requested auth plugin '"+plugin+"': ", err.Error())
-		plugin = defaultAuthPlugin
-		authResp, err = mc.auth(authData, plugin)
-		if err != nil {
+	if cfg.openIDToken != "" {
+		plugin = openIDConnectPlugin
+		if serverCapabilities&(clientPluginAuth|clientPluginAuthLenEncClientData) != clientPluginAuth|clientPluginAuthLenEncClientData {
+			mc.cleanup()
+			return nil, ErrOpenIDConnectCapabilities
+		}
+	}
+
+	// Establish TLS before starting the authentication plugin, so its context
+	// describes the transport that will actually carry its responses.
+	mc.initCapabilities(serverCapabilities, serverExtCapabilities)
+	tlsEstablished := false
+	if mc.capabilities&clientSSL != 0 {
+		if err := mc.writeSSLRequestPacket(); err != nil {
 			mc.cleanup()
 			return nil, err
 		}
+		tlsConn := tls.Client(mc.netConn, mc.cfg.TLS)
+		if err := tlsConn.HandshakeContext(ctx); err != nil {
+			mc.cleanup()
+			if cerr := mc.canceled.Value(); cerr != nil {
+				return nil, cerr
+			}
+			return nil, err
+		}
+		mc.netConn = tlsConn
+		tlsEstablished = true
 	}
-	mc.initCapabilities(serverCapabilities, serverExtCapabilities, mc.cfg)
+
+	auth := newAuthContext(mc.cfg, mc.cfg.Passwd, tlsEstablished)
+	var authPlugin AuthPlugin
+	var authResp []byte
+	if cfg.openIDToken != "" {
+		authPlugin = &openIDConnectAuthPlugin{token: cfg.openIDToken}
+		authResp, err = authPlugin.InitAuth(ctx, authData, auth)
+	} else {
+		authPlugin, authResp, err = mc.initAuth(ctx, plugin, authData, auth)
+		// The greeting names the server's default plugin, not necessarily the
+		// connecting account's plugin. If it is unavailable or disabled, advertise
+		// our default and let the server select the account's plugin with a switch.
+		// Do not hide cancellation or errors from a plugin that actually ran.
+		if err != nil && plugin != defaultAuthPlugin && ctx.Err() == nil && authPlugin == nil &&
+			(errors.Is(err, ErrUnknownPlugin) || errors.Is(err, ErrOldPassword) || errors.Is(err, ErrCleartextPassword)) {
+			mc.cfg.Logger.Print("could not use requested auth plugin '"+plugin+"': ", err.Error())
+			plugin = defaultAuthPlugin
+			authPlugin, authResp, err = mc.initAuth(ctx, plugin, authData, auth)
+		}
+	}
+	if err != nil {
+		mc.cleanup()
+		return nil, err
+	}
+
 	if err = mc.writeHandshakeResponsePacket(authResp, plugin); err != nil {
 		mc.cleanup()
 		return nil, err
 	}
 
 	// Handle response to auth packet, switch methods if possible
-	if err = mc.handleAuthResult(authData, plugin); err != nil {
+	if err = mc.handleAuthResult(ctx, authData, authPlugin, auth); err != nil {
 		// Authentication failed and MySQL has already closed the connection
 		// (https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_connection_phase.html#sect_protocol_connection_phase_fast_path_fails).
 		// Do not send COM_QUIT, just cleanup and return the error.
@@ -169,7 +220,7 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 	}
 
 	// compression is enabled after auth, not right after sending handshake response.
-	if mc.capabilities&clientCompress > 0 {
+	if mc.capabilities&(clientCompress|clientZstdCompression) != 0 {
 		mc.compress = true
 		mc.compIO = newCompIO(mc)
 	}
